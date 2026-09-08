@@ -77,8 +77,35 @@ flowchart TD
 ---
 
 ### Requirement: 5 國語言多語系介面
-HTML 討論串所有介面標籤（狀態、嚴重度、優先級、提出者、指派者、討論串歷程、附加檔案、總計等）MUST 支援繁體中文 (`zh-TW`)、英文 (`en`)、簡體中文 (`zh-CN`)、日語 (`ja`)、越南語 (`vi`)。
+HTML 討論串所有介面標籤（狀態、嚴重度、優先級、提出者、指派者、討論串歷程、附加檔案、主題切換、總計等）MUST 支援繁體中文 (`zh-TW`)、英文 (`en`)、簡體中文 (`zh-CN`)、日語 (`ja`)、越南語 (`vi`)。
 
 #### Scenario: 指定特定語系匯出
 - **WHEN** 命令列傳入 `--lang=ja`
 - **THEN** 匯出之 HTML 頁面所有欄位名稱、狀態徽章與統計資訊皆顯示為日本語
+
+---
+
+### Requirement: 舊版 HSQLDB 1.8.x 相容性與實體檔案預檢防呆
+工具 MUST 原生相容 JTrac 歷史發行版所建立之 HSQLDB 1.8.0.x 資料庫實體檔案，並在連線前執行實體檔案存在性檢查，阻擋 HSQLDB 引擎自動產生空資料庫。
+
+#### Scenario: 連線舊版 JTrac HSQLDB 實體資料庫
+- **WHEN** 使用者指定指向 HSQLDB 1.8 檔案之連線字串（如 `jdbc:hsqldb:file:./data/db/jtrac`）
+- **THEN** 程式使用相容之 HSQLDB 驅動正確解析讀取所有歷史資料表，絕不拋出 `wrong database file version` 例外
+
+#### Scenario: 指定之 HSQLDB 實體檔案不存在 (Guardrail)
+- **WHEN** 使用者傳入不存在之 HSQLDB 檔案路徑且未帶 `ifexists=true`
+- **THEN** 程式於連線前主動中斷並拋出友善錯誤提示與當前工作目錄，絕不允許資料庫引擎於該路徑建立空白資料庫
+
+---
+
+### Requirement: 醒目大卡片視覺與 100% 離線明暗主題切換
+產出之 HTML 文件 MUST 具備清晰醒目之議題大外框（含加粗主題飾條與獨立標題橫幅），且 MUST 100% 離線可用，支援一鍵切換深色（Dark）與淺色（Light）模式並以 `localStorage` 跨頁面記憶。
+
+#### Scenario: 醒目大框框呈現 (High-Contrast Issue Section)
+- **WHEN** 檢視空間 HTML 文件中的任一議題（例如 `NETWORKQA-1`）
+- **THEN** 議題具有 `2px solid var(--border-strong)` 實心外框、`10px solid var(--border-accent)` 左側主題飾條、立體陰影與獨立底色橫幅；議題編號以深藍底白字實心徽章醒目顯示
+
+#### Scenario: 離線深淺主題切換 (Offline Dark Mode Toggle)
+- **WHEN** 使用者在未連接網際網路之環境下點擊頁首之「🌓 切換明暗主題」按鈕
+- **THEN** 頁面即時套用深色/淺色 CSS 變數配色，完全不發送任何外部網路請求，且在切換至其他空間頁面時自動維持所選主題
+
