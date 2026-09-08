@@ -1,0 +1,46 @@
+<html>
+    <body>
+        <wicket:extend>
+            <form wicket:id="form">
+                <div class="heading">
+                    <wicket:message key="storedsearch_form.linkDetails"/>
+                    <input type="submit" wicket:id="delete" wicket:message="value:delete"/>
+                </div>
+                <table class="jtrac">
+                    <tr>
+                        <td class="label">
+							<wicket:message key="storedsearch_list.name"/>
+						</td>
+                        <td>
+                            <input type="hidden" wicket:id="idSearchLink" />
+                            <input wicket:id="name" size="30"/>
+                        </td>
+                    </tr> 
+                    <tr>
+                        <td class="label">
+							<wicket:message key="storedsearch_list.query"/>
+						</td>
+                        <td>
+                            <input wicket:id="query" size="60"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+							<wicket:message key="storedsearch_form.openNewWindow"/>
+                        </td>    
+                        <td>
+                            <input type="checkbox" wicket:id="newWindow"/>                                                            
+                        </td>
+                    </tr> 
+                    <tr>
+                        <td>
+                            <input type="submit" wicket:message="value:submit"/>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <a href="#" wicket:id="cancel"><img src="resources/cancel.gif" class="nav-link"/><wicket:message key="cancel"/></a>
+            </form>
+        </wicket:extend>
+    </body>
+</html>

@@ -1,0 +1,24 @@
+<html>
+    <body>
+        <wicket:extend>
+            <form wicket:id="form">
+                <div wicket:id="heading" class="heading"></div>
+                <table class="jtrac">
+                    <tr>
+                        <td wicket:id="param" class="label"></td>
+						<td wicket:id="field"></td>
+                        <td>
+                            <input type="submit" wicket:message="value:submit"/>
+                        </td>
+                    </tr>
+                </table>
+                <p/>
+                <a href="#" wicket:id="cancel"><img src="resources/cancel.gif" class="nav-link"/><wicket:message key="cancel"/></a>
+            </form>
+			<wicket:fragment wicket:id="textField"><input wicket:id="value"/></wicket:fragment>
+			<wicket:fragment wicket:id="numberField"><input type="number" min="0" size="8" wicket:id="value"/></wicket:fragment>
+			<wicket:fragment wicket:id="booleanField"><input type="hidden" wicket:id="value" id="valueField"/><div class="switch"></div></wicket:fragment>
+			<wicket:fragment wicket:id="colorField"><input type="color" wicket:id="value"/></wicket:fragment>
+        </wicket:extend>
+    </body>
+</html>

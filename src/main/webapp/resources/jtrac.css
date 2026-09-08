@@ -1,0 +1,124 @@
+:root {
+	--header: #E1ECFE;
+	--lightblue: #E1ECFE;
+	--mediumblue: #C3D9FF;
+	--darkblue: #0000D9;
+	--gray: #CCCCCC;
+	--error: #CC2200;
+	--errorbg: #FFB6C1;
+}
+body { font-family: Arial; background: #FFF; font-size: 80%; }
+table.jtrac th, table.jtrac td.label { background: var(--gray); padding-left: 0.2em; padding-right: 0.2em; }
+tr.center td { text-align: center; }
+.label { font-weight: bold; text-align: right; }
+a { color: var(--darkblue); }
+a:hover { color: black; }
+img { border: none; vertical-align: middle; }
+.multiselect { overflow: auto; background: #FFF; text-align: left; border: 1px solid var(--gray); }
+.scrollable { height: 10em; }
+.error-input { border: 1px solid var(--error); }
+div.error-input { float: left; }
+div.error-input select { border: none; }
+.error { color: var(--error); font-weight: bold; margin-bottom: 1em; }
+.error-back { background: var(--errorbg); }
+.info { color: var(--darkblue); font-weight: bold; }
+.heading { color: var(--darkblue); font-weight: bold; margin-bottom: 1em; }
+.alt { background: var(--lightblue); }
+.header { background: var(--header); }
+.selected, table.jtrac .selected { background: var(--mediumblue); }
+.bdr-bottom, tr.bdr-bottom td { border-bottom: 1px solid var(--gray); }
+.nav-header { background: var(--gray); padding: 0.1em; }
+.nav-header table, .jtrac-list, .jtrac-view { font-size: 95%; }
+.jtrac-view { border: 1px solid var(--gray); }
+.nav-header img, img.nav-link { margin-top: 1px; margin-right: 0.3em; }
+.nav-header img, a img.nav-link { vertical-align: top; display: block; float: left; }
+.nav-header td, .nav-table td { font-weight: bold; text-align: right; padding: 0 10px 0 10px; background-color: var(--lightblue); }
+.nav-table td.icon { padding: 0; text-align: center; width: 4em; }
+.nav-table td a { width: 100%; display: block; }
+.bdr-collapse { border-collapse: collapse; }
+.bdr-collapse td { padding: 0; }
+.page-links { font-weight: bold; }
+.nav-header td { padding-left: 0.7em; }
+.space-below { padding-bottom: 0.5em; }
+tr.sortable th { background-position: right; background-repeat: no-repeat; }
+tr.sortable th.order-none { background-image: url("arrow_off.gif"); }
+tr.sortable th.order-up { background-color: var(--mediumblue); background-image: url("arrow_up.gif"); }
+tr.sortable th.order-down { background-color: var(--mediumblue); background-image: url("arrow_down.gif"); }
+tr.sortable a { color: black; }
+tr.sortable a:hover { color: var(--darkblue); }
+/* { list-style-image: url("error.gif"); } */
+li.feedbackPanelINFO { list-style-image: url("success.gif"); padding-left: 0.4em; }
+li.feedbackPanelERROR { list-style-image: url("error.gif"); padding-left: 0.4em; }
+.menu-option div { font-weight: bold; background-color: var(--lightblue); padding-left: 1em; padding-right: 1em; margin-bottom: 1.5em; }
+
+.workflow { border-style: solid; border-width: 0 1px 1px 0; border-color: black; }
+.workflow td { border-style: solid; border-width: 1px 0 0 1px; padding-left: 0.2em; padding-right: 0.2em; }
+.state { background: var(--lightblue); }
+.mirror { background: var(--gray); }
+.transition { font-style: italic; }
+
+table.border, th.border, td.border {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 3px;
+}
+
+blockquote {
+  border-left: 5px solid #ccc;
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+}
+blockquote:before {
+  color: #ccc;
+  font-size: 4em;
+  line-height: 0.1em;
+  margin-right: 0.25em;
+  vertical-align: -0.4em;
+}
+
+code {
+	background:#F1F1F1;
+	border: 1px solid #E1E1E1;
+	border-radius: 4px;
+	font-size: 90%;
+	padding: .2rem .5rem;
+	font-family: 'Roboto Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+.custom-hr {
+	border-top: 3px solid #E1E1E1;
+    margin-top: 1rem;
+}
+
+.preformatted {
+    font-size: 0.9em;
+	font: 1em/normal 'Roboto Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+/* for the Wiki */
+
+/* header */
+.wikiTitle {
+   font-size: 200%;
+   text-align: center;
+}
+
+.tableBG { background-color: var(--header); }
+
+/* search results */ 
+.red { color: #FF3030; }
+
+/* for the menu on the left hand side */
+.menu {
+	padding-right: 10px;
+	border-style: solid;
+	border-width: 0px 1px 0px 0px;
+}
+
+/* for the Diff pages */
+.added { background:#ccffcc }
+.removed { background:#ffcccc }
+.changed { background:#ccffff }
+.diff { text-align:center }
+.lineno { text-align:center }
+
