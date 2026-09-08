@@ -58,7 +58,12 @@ public class HtmlGenerator {
 
         sb.append("<div class='container'>\n");
         sb.append("  <header class='header-bar'>\n");
-        sb.append("    <h1>🏷️ ").append(HtmlEscaper.escape(i18n.get("app.title"))).append("</h1>\n");
+        sb.append("    <div class='header-top'>\n");
+        sb.append("      <h1>🏷️ ").append(HtmlEscaper.escape(i18n.get("app.title"))).append("</h1>\n");
+        sb.append("      <button type='button' class='btn-theme' onclick='toggleTheme()' title='")
+                .append(HtmlEscaper.escape(i18n.get("action.toggle_theme"))).append("'>🌓 ")
+                .append(HtmlEscaper.escape(i18n.get("action.toggle_theme"))).append("</button>\n");
+        sb.append("    </div>\n");
         sb.append("    <p class='subtitle'>").append(HtmlEscaper.escape(i18n.get("nav.spaces"))).append("</p>\n");
         sb.append("  </header>\n");
 
@@ -123,7 +128,12 @@ public class HtmlGenerator {
 
         sb.append("<div class='container'>\n");
         sb.append("  <header class='header-bar'>\n");
-        sb.append("    <a href='index.html' class='back-link'>").append(HtmlEscaper.escape(i18n.get("nav.back_to_index"))).append("</a>\n");
+        sb.append("    <div class='header-top'>\n");
+        sb.append("      <a href='index.html' class='back-link'>").append(HtmlEscaper.escape(i18n.get("nav.back_to_index"))).append("</a>\n");
+        sb.append("      <button type='button' class='btn-theme' onclick='toggleTheme()' title='")
+                .append(HtmlEscaper.escape(i18n.get("action.toggle_theme"))).append("'>🌓 ")
+                .append(HtmlEscaper.escape(i18n.get("action.toggle_theme"))).append("</button>\n");
+        sb.append("    </div>\n");
         sb.append("    <h1>").append(HtmlEscaper.escape(space.getName()))
                 .append(" <span class='badge badge-prefix'>").append(HtmlEscaper.escape(space.getPrefixCode())).append("</span></h1>\n");
         if (space.getDescription() != null && !space.getDescription().trim().isEmpty()) {
@@ -177,41 +187,43 @@ public class HtmlGenerator {
         }
         sb.append("        </div>\n");
         sb.append("      </div>\n");
+        sb.append("      <div class='issue-content-body'>\n");
 
         // 元數據網格
-        sb.append("      <div class='issue-meta-grid'>\n");
-        sb.append("        <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.logged_by"))).append(":</span> ")
+        sb.append("        <div class='issue-meta-grid'>\n");
+        sb.append("          <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.logged_by"))).append(":</span> ")
                 .append(HtmlEscaper.escape(item.getLoggedBy() != null ? item.getLoggedBy().getName() : "-")).append("</div>\n");
-        sb.append("        <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.assigned_to"))).append(":</span> ")
+        sb.append("          <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.assigned_to"))).append(":</span> ")
                 .append(HtmlEscaper.escape(item.getAssignedTo() != null ? item.getAssignedTo().getName() : "-")).append("</div>\n");
-        sb.append("        <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.timestamp"))).append(":</span> ")
+        sb.append("          <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.timestamp"))).append(":</span> ")
                 .append(item.getTimeStamp() != null ? dateFormat.format(item.getTimeStamp()) : "-").append("</div>\n");
         if (item.getPlannedEffort() != null) {
-            sb.append("        <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.planned_effort"))).append(":</span> ")
+            sb.append("          <div><span class='meta-title'>").append(HtmlEscaper.escape(i18n.get("issue.planned_effort"))).append(":</span> ")
                     .append(item.getPlannedEffort()).append("</div>\n");
         }
-        sb.append("      </div>\n");
+        sb.append("        </div>\n");
 
         // 詳細說明
         if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
-            sb.append("      <div class='issue-detail-box'>\n");
-            sb.append("        <div class='box-title'>").append(HtmlEscaper.escape(i18n.get("issue.detail"))).append("</div>\n");
-            sb.append("        <div class='box-content'>").append(HtmlEscaper.escapeWithBreaks(item.getDetail())).append("</div>\n");
-            sb.append("      </div>\n");
+            sb.append("        <div class='issue-detail-box'>\n");
+            sb.append("          <div class='box-title'>").append(HtmlEscaper.escape(i18n.get("issue.detail"))).append("</div>\n");
+            sb.append("          <div class='box-content'>").append(HtmlEscaper.escapeWithBreaks(item.getDetail())).append("</div>\n");
+            sb.append("        </div>\n");
         }
 
         // 議題本身直接關聯之附件
         if (!item.getAttachmentList().isEmpty()) {
-            sb.append("      <div class='attachments-container'>\n");
-            sb.append("        <div class='box-title'>📎 ").append(HtmlEscaper.escape(i18n.get("attachment.title"))).append("</div>\n");
-            sb.append("        <div class='attachments-list'>\n");
+            sb.append("        <div class='attachments-container'>\n");
+            sb.append("          <div class='box-title'>📎 ").append(HtmlEscaper.escape(i18n.get("attachment.title"))).append("</div>\n");
+            sb.append("          <div class='attachments-list'>\n");
             for (AttachmentDto att : item.getAttachmentList()) {
                 appendAttachmentHtml(sb, att, attachmentsOutDir);
             }
+            sb.append("          </div>\n");
             sb.append("        </div>\n");
-            sb.append("      </div>\n");
         }
 
+        sb.append("      </div>\n"); // 結束 issue-content-body
         sb.append("    </div>\n"); // 結束 issue-main-card
 
         // ===================== 後續留言討論串 (Follow-up History) =====================
@@ -340,6 +352,21 @@ public class HtmlGenerator {
         sb.append("  <style>\n");
         sb.append(getEmbeddedCss());
         sb.append("  </style>\n");
+        sb.append("  <script>\n");
+        sb.append("    (function() {\n");
+        sb.append("      var t = localStorage.getItem('jtrac-theme');\n");
+        sb.append("      if (t) { document.documentElement.setAttribute('data-theme', t);\n");
+        sb.append("      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {\n");
+        sb.append("        document.documentElement.setAttribute('data-theme', 'dark');\n");
+        sb.append("      }\n");
+        sb.append("    })();\n");
+        sb.append("    function toggleTheme() {\n");
+        sb.append("      var html = document.documentElement;\n");
+        sb.append("      var current = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';\n");
+        sb.append("      html.setAttribute('data-theme', current);\n");
+        sb.append("      try { localStorage.setItem('jtrac-theme', current); } catch(e){}\n");
+        sb.append("    }\n");
+        sb.append("  </script>\n");
         sb.append("</head>\n<body>\n");
     }
 
@@ -355,37 +382,77 @@ public class HtmlGenerator {
         return "  :root {\n" +
                 "    --primary: #2563eb;\n" +
                 "    --primary-hover: #1d4ed8;\n" +
-                "    --bg-main: #f8fafc;\n" +
+                "    --bg-main: #f1f5f9;\n" +
                 "    --card-bg: #ffffff;\n" +
-                "    --border: #e2e8f0;\n" +
-                "    --text: #1e293b;\n" +
+                "    --card-header-bg: #f8fafc;\n" +
+                "    --border: #cbd5e1;\n" +
+                "    --border-strong: #94a3b8;\n" +
+                "    --border-accent: #2563eb;\n" +
+                "    --text: #0f172a;\n" +
                 "    --text-muted: #64748b;\n" +
+                "    --meta-bg: #f8fafc;\n" +
+                "    --box-bg: #ffffff;\n" +
+                "    --thread-bg: #f8fafc;\n" +
+                "    --comment-bg: #ffffff;\n" +
+                "    --table-header: #f8fafc;\n" +
+                "    --table-hover: #f1f5f9;\n" +
                 "    --green-bg: #dcfce7; --green-text: #166534;\n" +
-                "    --gray-bg: #f1f5f9; --gray-text: #475569;\n" +
+                "    --gray-bg: #e2e8f0; --gray-text: #334155;\n" +
                 "    --blue-bg: #dbeafe; --blue-text: #1e40af;\n" +
+                "    --shadow: 0 4px 16px rgba(0,0,0,0.08);\n" +
+                "    --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);\n" +
+                "  }\n" +
+                "  [data-theme='dark'] {\n" +
+                "    --primary: #3b82f6;\n" +
+                "    --primary-hover: #60a5fa;\n" +
+                "    --bg-main: #0b0f19;\n" +
+                "    --card-bg: #1e293b;\n" +
+                "    --card-header-bg: #172033;\n" +
+                "    --border: #334155;\n" +
+                "    --border-strong: #64748b;\n" +
+                "    --border-accent: #3b82f6;\n" +
+                "    --text: #f8fafc;\n" +
+                "    --text-muted: #94a3b8;\n" +
+                "    --meta-bg: #131d2e;\n" +
+                "    --box-bg: #0f172a;\n" +
+                "    --thread-bg: #141d2c;\n" +
+                "    --comment-bg: #1e293b;\n" +
+                "    --table-header: #172033;\n" +
+                "    --table-hover: #26354a;\n" +
+                "    --green-bg: #064e3b; --green-text: #6ee7b7;\n" +
+                "    --gray-bg: #334155; --gray-text: #cbd5e1;\n" +
+                "    --blue-bg: #1e3a8a; --blue-text: #bfdbfe;\n" +
+                "    --shadow: 0 4px 16px rgba(0,0,0,0.5);\n" +
+                "    --shadow-hover: 0 8px 24px rgba(0,0,0,0.7);\n" +
                 "  }\n" +
                 "  * { box-sizing: border-box; margin: 0; padding: 0; }\n" +
                 "  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n" +
-                "         background-color: var(--bg-main); color: var(--text); line-height: 1.6; padding: 24px 16px; }\n" +
+                "         background-color: var(--bg-main); color: var(--text); line-height: 1.6; padding: 24px 16px;\n" +
+                "         transition: background-color 0.2s, color 0.2s; }\n" +
                 "  .container { max-width: 1080px; margin: 0 auto; }\n" +
-                "  .header-bar { background: var(--card-bg); padding: 24px 32px; border-radius: 12px; border: 1px solid var(--border);\n" +
-                "                margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }\n" +
-                "  .header-bar h1 { font-size: 1.75rem; color: #0f172a; display: flex; align-items: center; gap: 12px; }\n" +
+                "  .header-bar { background: var(--card-bg); padding: 24px 32px; border-radius: 12px; border: 2px solid var(--border);\n" +
+                "                margin-bottom: 24px; box-shadow: var(--shadow); }\n" +
+                "  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }\n" +
+                "  .header-bar h1 { font-size: 1.75rem; color: var(--text); display: flex; align-items: center; gap: 12px; }\n" +
+                "  .btn-theme { display: inline-flex; align-items: center; gap: 8px; background: var(--card-bg); color: var(--text);\n" +
+                "               border: 1.5px solid var(--border-strong); padding: 7px 15px; border-radius: 8px; font-size: 0.9rem;\n" +
+                "               font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }\n" +
+                "  .btn-theme:hover { background: var(--card-header-bg); border-color: var(--primary); color: var(--primary); }\n" +
                 "  .subtitle { color: var(--text-muted); margin-top: 6px; font-size: 1rem; }\n" +
                 "  .meta-count { margin-top: 12px; font-size: 0.95rem; color: var(--text-muted); }\n" +
-                "  .back-link { display: inline-block; margin-bottom: 12px; color: var(--primary); text-decoration: none; font-size: 0.95rem; font-weight: 500; }\n" +
+                "  .back-link { display: inline-block; color: var(--primary); text-decoration: none; font-size: 0.95rem; font-weight: 600; }\n" +
                 "  .back-link:hover { text-decoration: underline; }\n" +
                 "  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }\n" +
-                "  .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);\n" +
-                "               text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }\n" +
+                "  .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 2px solid var(--border);\n" +
+                "               text-align: center; box-shadow: var(--shadow); }\n" +
                 "  .stat-val { font-size: 2.2rem; font-weight: 700; color: var(--primary); }\n" +
                 "  .stat-label { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }\n" +
-                "  .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);\n" +
-                "          padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 24px; }\n" +
+                "  .card { background: var(--card-bg); border-radius: 12px; border: 2px solid var(--border);\n" +
+                "          padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px; }\n" +
                 "  .data-table { width: 100%; border-collapse: collapse; }\n" +
                 "  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; }\n" +
-                "  .data-table th { background: #f8fafc; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }\n" +
-                "  .data-table tr:hover { background: #f1f5f9; }\n" +
+                "  .data-table th { background: var(--table-header); font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }\n" +
+                "  .data-table tr:hover { background: var(--table-hover); }\n" +
                 "  .btn { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 0.88rem; text-decoration: none;\n" +
                 "         font-weight: 500; transition: all 0.15s ease; }\n" +
                 "  .btn-primary { background: var(--primary); color: white; border: none; }\n" +
@@ -395,49 +462,56 @@ public class HtmlGenerator {
                 "  .badge-open { background: var(--green-bg); color: var(--green-text); }\n" +
                 "  .badge-closed { background: var(--gray-bg); color: var(--gray-text); }\n" +
                 "  .badge-new { background: var(--blue-bg); color: var(--blue-text); }\n" +
-                "  .badge-meta { background: #f1f5f9; color: #475569; font-weight: 500; }\n" +
-                "  .badge-missing { color: #dc2626; font-size: 0.82rem; font-style: italic; }\n" +
-                "  /* Issue Thread Section */\n" +
-                "  .issue-thread-section { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);\n" +
-                "                         margin-bottom: 32px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); overflow: hidden; }\n" +
-                "  .issue-main-card { padding: 24px 32px; border-bottom: 2px solid #e2e8f0; }\n" +
-                "  .issue-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }\n" +
-                "  .issue-title-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px; }\n" +
-                "  .issue-badge-link { font-size: 1.1rem; font-weight: 700; color: var(--primary); text-decoration: none;\n" +
-                "                      background: #eff6ff; padding: 4px 10px; border-radius: 6px; border: 1px solid #bfdbfe; }\n" +
-                "  .issue-title { font-size: 1.35rem; color: #0f172a; word-break: break-word; }\n" +
-                "  .badge-group { display: flex; gap: 8px; align-items: center; }\n" +
+                "  .badge-meta { background: var(--meta-bg); border: 1px solid var(--border); color: var(--text-muted); font-weight: 500; }\n" +
+                "  .badge-missing { color: #ef4444; font-size: 0.82rem; font-style: italic; }\n" +
+                "  /* Issue Thread Section (強化大外框與層次) */\n" +
+                "  .issue-thread-section { background: var(--card-bg); border-radius: 14px; border: 2px solid var(--border-strong);\n" +
+                "                         border-left: 10px solid var(--border-accent); margin-bottom: 48px; box-shadow: var(--shadow);\n" +
+                "                         overflow: hidden; transition: box-shadow 0.2s, border-color 0.2s; }\n" +
+                "  .issue-thread-section:hover { box-shadow: var(--shadow-hover); }\n" +
+                "  .issue-main-card { padding: 0; border-bottom: 2px solid var(--border); }\n" +
+                "  .issue-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;\n" +
+                "                  padding: 18px 24px; background: var(--card-header-bg); border-bottom: 2px solid var(--border); }\n" +
+                "  .issue-title-row { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 280px; }\n" +
+                "  .issue-badge-link { font-size: 1.25rem; font-weight: 800; color: #ffffff !important; background: var(--primary);\n" +
+                "                      padding: 6px 14px; border-radius: 8px; text-decoration: none; letter-spacing: 0.5px;\n" +
+                "                      box-shadow: 0 2px 4px rgba(0,0,0,0.15); display: inline-block; }\n" +
+                "  .issue-badge-link:hover { background: var(--primary-hover); text-decoration: none; }\n" +
+                "  .issue-title { font-size: 1.4rem; font-weight: 700; color: var(--text); word-break: break-word; margin: 0; }\n" +
+                "  .badge-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }\n" +
+                "  .issue-content-body { padding: 24px; }\n" +
                 "  .issue-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;\n" +
-                "                     background: #f8fafc; padding: 14px 18px; border-radius: 8px; font-size: 0.92rem; margin-bottom: 18px; }\n" +
-                "  .meta-title { color: var(--text-muted); font-weight: 500; }\n" +
-                "  .box-title { font-weight: 600; font-size: 0.95rem; color: #334155; margin-bottom: 8px; }\n" +
+                "                     background: var(--meta-bg); border: 1px solid var(--border); padding: 14px 18px; border-radius: 8px;\n" +
+                "                     font-size: 0.92rem; margin-bottom: 18px; color: var(--text); }\n" +
+                "  .meta-title { color: var(--text-muted); font-weight: 600; }\n" +
+                "  .box-title { font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 8px; }\n" +
                 "  .issue-detail-box { margin-bottom: 18px; }\n" +
-                "  .box-content { background: #ffffff; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px;\n" +
-                "                white-space: pre-wrap; font-size: 0.95rem; color: #334155; line-height: 1.6; }\n" +
+                "  .box-content { background: var(--box-bg); padding: 14px 18px; border: 1.5px solid var(--border); border-radius: 8px;\n" +
+                "                white-space: pre-wrap; font-size: 0.95rem; color: var(--text); line-height: 1.6; }\n" +
                 "  .attachments-container { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }\n" +
                 "  .attachments-list { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }\n" +
                 "  .attachment-item { font-size: 0.9rem; }\n" +
                 "  .thumb-img { max-width: 180px; max-height: 120px; border-radius: 6px; border: 1px solid var(--border);\n" +
-                "               object-fit: cover; transition: transform 0.2s; }\n" +
+                "               object-fit: cover; transition: transform 0.2s; background: var(--card-bg); }\n" +
                 "  .thumb-img:hover { transform: scale(1.03); }\n" +
-                "  .file-download-link { display: inline-flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 12px;\n" +
-                "                       border-radius: 6px; text-decoration: none; color: var(--text); border: 1px solid #cbd5e1; }\n" +
-                "  .file-download-link:hover { background: #e2e8f0; }\n" +
+                "  .file-download-link { display: inline-flex; align-items: center; gap: 8px; background: var(--meta-bg); padding: 7px 14px;\n" +
+                "                       border-radius: 6px; text-decoration: none; color: var(--text); border: 1px solid var(--border); }\n" +
+                "  .file-download-link:hover { border-color: var(--primary); color: var(--primary); }\n" +
                 "  .btn-download-tag { font-size: 0.75rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; }\n" +
                 "  /* Discussion Thread */\n" +
-                "  .discussion-thread-container { padding: 24px 32px; background: #fdfefe; }\n" +
+                "  .discussion-thread-container { padding: 24px; background: var(--thread-bg); border-top: 2px dashed var(--border); }\n" +
                 "  .thread-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }\n" +
-                "  .thread-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }\n" +
-                "  .thread-count-badge { background: #f1f5f9; padding: 4px 10px; border-radius: 9999px; font-size: 0.85rem; color: var(--text-muted); }\n" +
+                "  .thread-title { font-size: 1.1rem; font-weight: 700; color: var(--text); }\n" +
+                "  .thread-count-badge { background: var(--meta-bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 9999px; font-size: 0.85rem; color: var(--text-muted); }\n" +
                 "  .timeline { display: flex; flex-direction: column; gap: 14px; }\n" +
-                "  .comment-card { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px;\n" +
-                "                  box-shadow: 0 1px 2px rgba(0,0,0,0.03); }\n" +
+                "  .comment-card { background: var(--comment-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 20px;\n" +
+                "                  box-shadow: 0 1px 3px rgba(0,0,0,0.04); color: var(--text); }\n" +
                 "  .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;\n" +
-                "                    border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }\n" +
+                "                    border-bottom: 1px solid var(--border); padding-bottom: 8px; }\n" +
                 "  .commenter-info { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }\n" +
                 "  .reply-idx { font-weight: 700; color: var(--primary); font-size: 0.9rem; }\n" +
                 "  .comment-time { color: var(--text-muted); font-size: 0.85rem; }\n" +
-                "  .comment-body { font-size: 0.95rem; color: #334155; line-height: 1.6; }\n" +
+                "  .comment-body { font-size: 0.95rem; color: var(--text); line-height: 1.6; }\n" +
                 "  .comment-attachment { margin-top: 10px; padding-top: 8px; border-top: 1px dotted var(--border); }\n" +
                 "  .thread-empty { padding: 12px 0; font-size: 0.9rem; }\n" +
                 "  .page-footer { text-align: center; margin-top: 36px; padding: 18px 0; color: var(--text-muted); font-size: 0.88rem; }\n" +
