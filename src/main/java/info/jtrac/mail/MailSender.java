@@ -293,31 +293,6 @@ public class MailSender {
 		}
 	}
 
-	public void sendWikiPageUpdated (User userMadeChange, User userToSendTo, String pageName, String viewUrl, String diffUrl) {
-		logger.debug("attempting to send mail for wiki page "+pageName+" updated to user "+userToSendTo);
-		if (userToSendTo == null || userToSendTo.isLocked())
-			return;
-
-		Locale locale = new Locale(userToSendTo.getLocale());
-		MimeMessage message = sender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-		try {
-			helper.setTo(userToSendTo.getEmail());
-			helper.setSubject(prefix + " " + pageName + " " + fmt("wasUpdated", locale));
-			StringBuffer sb = new StringBuffer();
-			sb.append("<p>" + fmt("byUser", locale, userMadeChange.getName(), pageName) + "</p>");
-			sb.append("<p><a href='" + viewUrl + "'>" + fmt("seeThePage", locale) + "</a></p>");
-			sb.append("<p><a href='" + diffUrl + "'>" + fmt("seeTheChanges", locale) + "</a></p>");
-			helper.setText(addHeaderAndFooter(sb), true);
-			helper.setSentDate(new Date());
-			// helper.setCc(from);
-			helper.setFrom(from);
-			sendInNewThread(message);
-		} catch (Exception e) {
-			logger.error("failed to prepare e-mail", e);
-		}
-	}
-
 	private void initMailSenderFromJndi(String mailSessionJndiName) {
 		logger.info("attempting to initialize mail sender from jndi name = '" + mailSessionJndiName + "'");
 		JndiObjectFactoryBean factoryBean = new JndiObjectFactoryBean();

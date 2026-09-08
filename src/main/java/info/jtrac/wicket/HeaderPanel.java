@@ -22,9 +22,7 @@ import info.jtrac.domain.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 
 import org.acegisecurity.context.SecurityContextHolder;
@@ -33,9 +31,7 @@ import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.protocol.http.WebResponse;
 
@@ -48,10 +44,20 @@ public class HeaderPanel extends BasePanel {
         super("header");
 
         final User user = getPrincipal();
-        final Space space = getCurrentSpace();
+        Space currentSpace = getCurrentSpace();
+        if (currentSpace != null && currentSpace.getId() > 0) {
+            try {
+                if (currentSpace.getMetadata() != null) {
+                    currentSpace.getMetadata().getName();
+                }
+            } catch (Exception e) {
+                logger.warn("space.metadata is detached/uninitialized proxy, reloading space: " + currentSpace.getId());
+                currentSpace = getJtrac().loadSpace(currentSpace.getId());
+                setCurrentSpace(currentSpace);
+            }
+        }
+        final Space space = currentSpace;
         final List<Space> spaces = new ArrayList(user.getSpaces());
-        final Map<String, String> configMap = getJtrac().loadAllConfig();
-		final ServletContext servletContext = ((WebApplication) WebApplication.get()).getServletContext();
 
         add(new Link("dashboard") {
             public void onClick() {
@@ -59,14 +65,6 @@ public class HeaderPanel extends BasePanel {
                 setResponsePage(DashboardPage.class);
             }            
         });
-
-		String base = configMap.get("jtrac.url.base");
-		if (base == null) {
-			 base = "/"; 
-		} else if (! base.endsWith("/")) {
-			 base =  base + "/";
-		}
-		add(new ExternalLink("wiki", base+"wiki/view"));
 
         if (space == null) {
             add(new WebMarkupContainer("spaceName").setVisible(false));

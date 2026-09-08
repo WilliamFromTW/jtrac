@@ -9,7 +9,7 @@
     <description>
         JTrac is a generic issue-tracking web-application that can be easily customized by adding custom fields 
         and drop-downs. Features include customizable workflow, field level permissions, e-mail integration, 
-        file attachments, a detailed history view and an integrated wiki.
+        file attachments and a detailed history view.
     </description>
     <url>https://sourceforge.net/projects/j-trac/</url>
 
@@ -415,23 +415,6 @@
 			<groupId>org.commonmark</groupId>
 			<artifactId>commonmark-ext-gfm-tables</artifactId>
 			<version>${commonmark.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.cliftonlabs</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>4.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>stringtree</groupId>
-			<artifactId>stringtree</artifactId>
-			<version>1.0</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/src/main/webapp/WEB-INF/lib/stringtree.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>org.greenrobot</groupId>
-			<artifactId>eventbus-java</artifactId>
-			<version>3.3.1</version>
 		</dependency>
 
     </dependencies>

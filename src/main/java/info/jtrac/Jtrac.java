@@ -127,5 +127,4 @@ public interface Jtrac extends UserDetailsService {
     void storeStoredSearch(StoredSearch storedSearch);
     void removeStoredSearch(Long id);
     //========================================================
-	void sendWikiPageUpdated (User userMadeChange, User userToSendTo, String pageName, String viewUrl, String diffUrl);
 }

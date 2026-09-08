@@ -179,7 +179,7 @@
             <generator class="native"/>
         </id>
         <many-to-one name="user" column="user_id"/>
-        <many-to-one name="space" column="space_id"/>
+        <many-to-one name="space" column="space_id" lazy="false"/>
         <property name="roleKey" column="role_key" not-null="true"/>
     </class>
 
@@ -194,7 +194,7 @@
         <property name="description" column="description" type="text"/>
         <property name="guestAllowed" column="guest_allowed"/>
         <property name="isActive" column="is_active" type="boolean"/>
-        <many-to-one name="metadata" column="metadata_id" cascade="all"/>
+        <many-to-one name="metadata" column="metadata_id" cascade="all" lazy="false"/>
     </class>
 
     <class name="SpaceSequence" table="space_sequence">

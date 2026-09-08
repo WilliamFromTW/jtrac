@@ -71,9 +71,6 @@ public class Config implements Serializable {
         PARAMS.add("markdown.enabled");
         PARAMS.add("attachments.openNewWindow");
         PARAMS.add("items.search.num");
-        PARAMS.add("wiki.public");
-        PARAMS.add("wiki.markdown.html");
-        PARAMS.add("wiki.maxChangeLogSize");
 
         BOOLEAN_PARAMS = new LinkedHashSet<String>();
         BOOLEAN_PARAMS.add("mail.server.starttls.enable");
@@ -82,15 +79,12 @@ public class Config implements Serializable {
         BOOLEAN_PARAMS.add("markdown.enabled");
         BOOLEAN_PARAMS.add("attachments.openNewWindow");
         BOOLEAN_PARAMS.add("jtrac.comment.closed");
-        BOOLEAN_PARAMS.add("wiki.public");
-        BOOLEAN_PARAMS.add("wiki.markdown.html");
 
         NUMBER_PARAMS = new LinkedHashSet<String>();
         NUMBER_PARAMS.add("mail.server.port");
         NUMBER_PARAMS.add("attachment.maxsize");
         NUMBER_PARAMS.add("pwd.minLength");
         NUMBER_PARAMS.add("items.search.num");
-        NUMBER_PARAMS.add("wiki.maxChangeLogSize");
 
         COLOR_PARAMS = new LinkedHashSet<String>();
         COLOR_PARAMS.add("jtrac.color.gray");

@@ -870,9 +870,4 @@ public class JtracImpl implements Jtrac {
         StoredSearch storedSearchToDel = dao.loadStoredSearch(id);
         dao.removeStoredSearch(storedSearchToDel);
     }
-
-	@Override
-	public void sendWikiPageUpdated (User userMadeChange, User userToSendTo, String pageName, String viewUrl, String diffUrl) {
-		mailSender.sendWikiPageUpdated(userMadeChange, userToSendTo, pageName, viewUrl, diffUrl);
-    }
 }

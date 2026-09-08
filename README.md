@@ -27,7 +27,6 @@
 - **Customizable Workflow & Fields**: Easily configure custom fields, drop-down selections, and permissions per space.
 - **Detailed History View**: Follow-up discussion threads (similar to forum threads) keeping all updates, status changes, and notes organized together.
 - **File Attachments**: Upload and link attachments directly into discussion history entries.
-- **Integrated Wiki**: Built-in wiki with Markdown and rich text formatting support.
 - **Email Integration**: Automated email notifications upon ticket creation, updates, and reassignment.
 - **Flexible Database**: Out-of-the-box embedded HSQLDB; also supports MySQL, PostgreSQL, MS SQL Server, and Oracle.
 

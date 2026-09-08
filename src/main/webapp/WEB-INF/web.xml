@@ -145,31 +145,6 @@
     </security-constraint>
 -->
 
-    <servlet>
-        <servlet-name>Wiki</servlet-name>
-        <servlet-class>info.jtrac.wiki.WikiServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>Wiki</servlet-name>
-        <url-pattern>/wiki/view</url-pattern>
-        <url-pattern>/wiki/edit</url-pattern>
-        <url-pattern>/wiki/search</url-pattern>
-        <url-pattern>/wiki/update</url-pattern>
-        <url-pattern>/wiki/diff</url-pattern>
-        <url-pattern>/wiki/preview</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>Rest</servlet-name>
-        <servlet-class>info.jtrac.wiki.REST</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>Rest</servlet-name>
-        <url-pattern>/wiki/rest/*</url-pattern>
-    </servlet-mapping>
-
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>

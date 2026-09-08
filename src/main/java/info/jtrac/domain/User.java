@@ -101,11 +101,33 @@ public class User implements UserDetails, Serializable, Comparable<User> {
     }
 
     public Map<Integer, String> getPermittedTransitions(Space space, int status) {
-        return space.getMetadata().getPermittedTransitions(getRoleKeys(space), status);
+        if (space == null) {
+            return Collections.emptyMap();
+        }
+        try {
+            Metadata metadata = space.getMetadata();
+            if (metadata == null) {
+                return Collections.emptyMap();
+            }
+            return metadata.getPermittedTransitions(getRoleKeys(space), status);
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
     }
 
     public List<Field> getEditableFieldList(Space space, int status) {
-        return space.getMetadata().getEditableFields(getRoleKeys(space), status);
+        if (space == null) {
+            return Collections.emptyList();
+        }
+        try {
+            Metadata metadata = space.getMetadata();
+            if (metadata == null) {
+                return Collections.emptyList();
+            }
+            return metadata.getEditableFields(getRoleKeys(space), status);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     public Set<Space> getSpaces() {
