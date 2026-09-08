@@ -442,7 +442,17 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-				<filtering>true</filtering>
+                <filtering>true</filtering>
+                <includes>
+                    <include>jtrac-version.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>jtrac-version.properties</exclude>
+                </excludes>
                 <includes>
                     <include>**</include>
                 </includes>
@@ -465,6 +475,7 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>UTF-8</encoding>
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
 						<!--

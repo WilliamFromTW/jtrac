@@ -9,3 +9,4 @@ records/
 *.db
 *.log
 *.csv
+target/
