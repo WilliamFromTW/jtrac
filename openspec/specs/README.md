@@ -11,6 +11,8 @@
 | [`i18n-resources`](i18n-resources/spec.md) | 多國語系資源與過濾規範 | 定義 JTrac 專案中多國語系資源檔案之 UTF-8 編碼規範與 Maven 資源處理隔離規則，確保在不同作業系統與 JDK 環境下建置及執行時皆能正確處理字元編碼，並避免框架變數被構建工具誤替換。 | Active |
 | [`build-documentation`](build-documentation/spec.md) | 多語系建置與編譯文件規範 | 規範 JTrac 專案之多語系建置與編譯技術文件結構，確保全球開發者皆能在其母語或慣用語言環境下，清楚理解 Maven 建置指令、依賴套件本機快取下載機制，以及 WAR 封裝檔內部依賴整合原理。 | Active |
 | [`html-exporter`](html-exporter/spec.md) | 獨立命令列與網頁即時串流 HTML 討論串匯出工具 | 定義獨立命令列工具 `jtrac-exporter.jar` 與網頁即時串流 ZIP 下載之功能規格與資料處理邏輯。支援指定 JDBC 連線字串或既有 Spring DataSource 存取資料庫，相容 HSQLDB 1.8 歷史庫，在零舊版依賴或行內連線下將議題、討論串歷程與附件匯出為支援離線明暗主題與 5 國多語系之高對比靜態 HTML 報表與 ZIP 串流下載。 | Active |
+| [`backend-security`](backend-security/spec.md) | Spring Security 5.8 現代化安全認證與授權規範 | 規範 JTrac 系統以 Spring Security 5.8 替代過時 Acegi 1.0.7 之現代化安全認證與授權機制，包含雙模無痛密碼雜湊升級、LDAP/AD 整合與權限上下文管理。 | Active |
+| [`backend-persistence`](backend-persistence/spec.md) | Hibernate 5.6 持久層 DAO 與原生 Lucene 全文檢索規範 | 規範 JTrac 資料持久層現代化架構，以原生 Hibernate 5.6 `SessionFactory` 重構 `HibernateJtracDao`，徹底解耦過時之 `HibernateDaoSupport` 與 `HibernateTemplate`，並整合資料表結構自動同步與原生輕量 Lucene 全文檢索。 | Active |
 
 ---
 
@@ -26,7 +28,7 @@ flowchart TD
     C --> E[注入 POM 版本號與 Timestamp]
     D --> F[以原始 UTF-8 位元組原樣複製到 target]
     E --> G[打包至 WAR 封裝檔]
-    F --> G
+    D --> G
     G --> H[執行期 Wicket / Spring 載入 UTF-8 資源]
 ```
 
@@ -101,6 +103,54 @@ flowchart TD
     
     ZipStream --> Response[Wicket WebResponse 直接串流下載]
     Response --> Browser([瀏覽器接收 jtrac-export-YYYYMMDD.zip])
+```
+
+### 4. `backend-security` 系統認證與密碼升級流程圖
+
+```mermaid
+flowchart TD
+    Login["使用者登入 (帳號/密碼)"] --> ProviderMgr["ProviderManager"]
+    ProviderMgr --> DaoProvider["DaoAuthenticationProvider"]
+    DaoProvider --> HybridEncoder["JtracHybridPasswordEncoder"]
+    
+    HybridEncoder --> Match{"密碼比對是否成功?"}
+    Match -- "否" --> Fail["拋出 BadCredentialsException 登入失敗"]
+    Match -- "是" --> CheckMD5{"密碼是否為舊版 32 碼 MD5?"}
+    CheckMD5 -- "是" --> Upgrade["以 BCrypt 重新雜湊並非同步更新資料庫"]
+    CheckMD5 -- "否 (已是 BCrypt)" --> Success["驗證成功"]
+    Upgrade --> Success
+    Success --> SetCtx["寫入 SecurityContextHolder 完成登入"]
+```
+
+### 5. `backend-persistence` 資料持久層與檢索架構圖
+
+```mermaid
+flowchart TD
+    subgraph ServiceLayer["業務服務層"]
+        JtracImpl["JtracImpl (@Transactional)"]
+    end
+
+    subgraph PersistenceLayer["現代化持久層 (Hibernate 5.6)"]
+        SessionFactory["org.hibernate.SessionFactory"]
+        DAO["HibernateJtracDao"]
+        HbmXML["jtrac.hbm.xml 實體對應"]
+        Hbm2ddl["hibernate.hbm2ddl.auto=update"]
+    end
+
+    subgraph SearchLayer["全文檢索層 (原生 Lucene)"]
+        Indexer["原生 Indexer"]
+        IndexSearcher["原生 IndexSearcher"]
+        LuceneDir["FSDirectory (jtrac.home/indexes)"]
+    end
+
+    JtracImpl --> DAO
+    SessionFactory --> DAO
+    HbmXML --> SessionFactory
+    Hbm2ddl --> SessionFactory
+    JtracImpl --> Indexer
+    JtracImpl --> IndexSearcher
+    Indexer --> LuceneDir
+    IndexSearcher --> LuceneDir
 ```
 
 ---
