@@ -7,9 +7,9 @@
 
 ## 2. Wicket 9.16.x 核心相依性與 Application 基礎重構
 
-- [ ] 2.1 更新 `pom.xml`，將 `wicket`, `wicket-extensions`, `wicket-spring`, `wicket-auth-roles` 升級至 9.16.0，並透過 `mvn dependency:resolve` 驗證解析成功
-- [ ] 2.2 重構 `JtracApplication.java`：適配 Wicket 9 核心生命週期、頁面掛載（`mountPage()`）、自訂 RequestCycle 與 SpringComponentInjector
-- [ ] 2.3 重構 `JtracSession.java`：繼承 Wicket 9 `AuthenticatedWebSession`，重構登入授權與使用者憑證狀態管理
+- [x] 2.1 更新 `pom.xml`，將 `wicket`, `wicket-extensions`, `wicket-spring`, `wicket-auth-roles` 升級至 9.16.0，並透過 `mvn dependency:resolve` 驗證解析成功
+- [x] 2.2 重構 `JtracApplication.java`：適配 Wicket 9 核心生命週期、頁面掛載（`mountPage()`）、自訂 RequestCycle 與 SpringComponentInjector
+- [x] 2.3 重構 `JtracSession.java`：繼承 Wicket 9 `AuthenticatedWebSession`，重構登入授權與使用者憑證狀態管理
 
 ## 3. Wicket 頁面與組件模型泛型化重構
 

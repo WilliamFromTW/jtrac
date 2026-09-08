@@ -17,7 +17,6 @@
 package info.jtrac.wicket;
 
 import info.jtrac.Jtrac;
-import info.jtrac.wicket.devmode.DebugHttpSessionStore;
 import info.jtrac.domain.Role;
 import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
@@ -37,19 +36,18 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.Request;
-import org.apache.wicket.RequestCycle;
-import org.apache.wicket.Response;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.Session;
 import org.apache.wicket.authorization.Action;
 import org.apache.wicket.authorization.IAuthorizationStrategy;
 import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.protocol.http.WebRequest;
-import org.apache.wicket.request.target.coding.IndexedParamUrlCodingStrategy;
-import org.apache.wicket.request.target.coding.QueryStringUrlCodingStrategy;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Response;
+import org.apache.wicket.request.component.IRequestableComponent;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.session.ISessionStore;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,16 +95,16 @@ public class JtracApplication extends WebApplication {
                 .getWebApplicationContext(sc);
         jtrac = (Jtrac) applicationContext.getBean("jtrac");
         
+        getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext));
+
         /*
          * Delegate Wicket i18n support to spring i18n
          */
-        getResourceSettings().addStringResourceLoader(
+        getResourceSettings().getStringResourceLoaders().add(
                 new IStringResourceLoader() {
-                    /* (non-Javadoc)
-                     * @see org.apache.wicket.resource.loader.IStringResourceLoader#loadStringResource(java.lang.Class, java.lang.String, java.util.Locale, java.lang.String)
-                     */
-                    public String loadStringResource(Class clazz, String key,
-                            Locale locale, String style) {
+                    @Override
+                    public String loadStringResource(Class<?> clazz, String key,
+                            Locale locale, String style, String variation) {
                         try {
                             return applicationContext.getMessage(key, null,
                                     locale == null ? Session.get().getLocale() : locale);
@@ -120,13 +118,11 @@ public class JtracApplication extends WebApplication {
                         }
                     }
                     
-                    /* (non-Javadoc)
-                     * @see org.apache.wicket.resource.loader.IStringResourceLoader#loadStringResource(org.apache.wicket.Component, java.lang.String)
-                     */
+                    @Override
                     public String loadStringResource(Component component,
-                            String key) {
+                            String key, String style) {
                         String value = loadStringResource(null, key,
-                                component == null ? null : component.getLocale(), null);
+                                component == null ? null : component.getLocale(), style, null);
                         if (logger.isDebugEnabled() && value == null) {
                             logger.debug("i18n failed for key: '" + key + "', component: " + component);
                         }
@@ -136,17 +132,13 @@ public class JtracApplication extends WebApplication {
         
         getSecuritySettings().setAuthorizationStrategy(
                 new IAuthorizationStrategy() {
-                    /* (non-Javadoc)
-                     * @see org.apache.wicket.authorization.IAuthorizationStrategy#isActionAuthorized(org.apache.wicket.Component, org.apache.wicket.authorization.Action)
-                     */
+                    @Override
                     public boolean isActionAuthorized(Component c, Action a) {
                         return true;
                     }
                     
-                    /* (non-Javadoc)
-                     * @see org.apache.wicket.authorization.IAuthorizationStrategy#isInstantiationAuthorized(java.lang.Class)
-                     */
-                    public boolean isInstantiationAuthorized(Class clazz) {
+                    @Override
+                    public <T extends IRequestableComponent> boolean isInstantiationAuthorized(Class<T> clazz) {
                         if (BasePage.class.isAssignableFrom(clazz)) {
                             if (JtracSession.get().isAuthenticated()) {
                                 return true;
@@ -194,52 +186,14 @@ public class JtracApplication extends WebApplication {
         /*
          * Friendly URLs for selected pages
          */
-        mountBookmarkablePage("/login", LoginPage.class);
-        
-        mountBookmarkablePage("/logout", LogoutPage.class);
-        mountBookmarkablePage("/svn", SvnStatsPage.class);
-        mountBookmarkablePage("/options", OptionsPage.class);
-        mountBookmarkablePage("/item/form", ItemFormPage.class);
-        
-        /*
-         * Bookmarkable URL for search and search results
-         */
-        mount(new QueryStringUrlCodingStrategy("/item/search",
-                ItemSearchFormPage.class));
-        mount(new QueryStringUrlCodingStrategy("/item/list", ItemListPage.class));
-        
-        /*
-         * Bookmarkable URL for viewing items
-         */
-        mount(new IndexedParamUrlCodingStrategy("/item", ItemViewPage.class));
-    }
-    
-    /* (non-Javadoc)
-     * @see org.apache.wicket.protocol.http.WebApplication#newSession(org.apache.wicket.Request, org.apache.wicket.Response)
-     */
-    @Override
-    public JtracSession newSession(Request request, Response response) {
-        return new JtracSession(request);
-    }
-    
-    /* (non-Javadoc)
-     * @see org.apache.wicket.protocol.http.WebApplication#newSessionStore()
-     */
-    @Override
-    protected ISessionStore newSessionStore() {
-        if (getConfigurationType().equalsIgnoreCase(DEVELOPMENT)) {
-            logger.warn("wicket development mode, using custom debug http session store");
-            
-            /*
-             * The default second level cache session store does not play well
-             * with our custom reloading filter so we use a custom session store.
-             */
-            return new DebugHttpSessionStore(this);
-        } else {
-            ISessionStore sessionStore = super.newSessionStore();
-            logger.info("wicket production mode, using: " + sessionStore);
-            return sessionStore;
-        }
+        mountPage("/login", LoginPage.class);
+        mountPage("/logout", LogoutPage.class);
+        mountPage("/svn", SvnStatsPage.class);
+        mountPage("/options", OptionsPage.class);
+        mountPage("/item/form", ItemFormPage.class);
+        mountPage("/item/search", ItemSearchFormPage.class);
+        mountPage("/item/list", ItemListPage.class);
+        mountPage("/item/#{0}", ItemViewPage.class);
     }
     
     /* (non-Javadoc)
@@ -296,9 +250,9 @@ public class JtracApplication extends WebApplication {
      */
     private boolean attemptRememberMeAutoLogin() {
         logger.debug("checking cookies for remember-me auto login");
-        Cookie[] cookies = ((WebRequest) RequestCycle.get().getRequest())
-                .getCookies();
-        if (cookies == null) {
+        WebRequest wr = (WebRequest) RequestCycle.get().getRequest();
+        List<Cookie> cookies = wr.getCookies();
+        if (cookies == null || cookies.isEmpty()) {
             logger.debug("no cookies found");
             return false;
         }
