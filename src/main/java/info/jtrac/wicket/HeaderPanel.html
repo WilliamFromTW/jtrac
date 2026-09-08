@@ -1,21 +1,22 @@
 <wicket:panel>
-    <div class="nav-header" style="float:left;width:100%">        
+    <div class="nav-header" style="width:100%;box-sizing:border-box;">        
         <table style="float:left">
             <tr>
-                <td><a href="#" wicket:id="dashboard"><img src="resources/dashboard.gif"/><wicket:message key="header.dashboard"/></a></td>
-                <wicket:enclosure child="spaceName"><td><img src="resources/space.gif"/><span wicket:id="spaceName"></span>&nbsp;<font size="1">[<span wicket:id="prefixCode"></span>]</font></td></wicket:enclosure>
-                <wicket:enclosure><td><a href="#" wicket:id="new"><img src="resources/new.gif"/><wicket:message key="header.new"/></a></td></wicket:enclosure>
-                <wicket:enclosure><td><a href="#" wicket:id="search"><img src="resources/search.gif"/><wicket:message key="header.search"/></a></td></wicket:enclosure>
+                <td class="action-tab"><a href="#" wicket:id="dashboard"><img src="resources/dashboard.gif"/><wicket:message key="header.dashboard"/></a></td>
+                <wicket:enclosure child="spaceName"><td class="info-tab"><span class="nav-item-content"><img src="resources/space.gif"/><span wicket:id="spaceName"></span>&nbsp;<font size="1">[<span wicket:id="prefixCode"></span>]</font></span></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="new"><img src="resources/new.gif"/><wicket:message key="header.new"/></a></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="search"><img src="resources/search.gif"/><wicket:message key="header.search"/></a></td></wicket:enclosure>
             </tr>
         </table>         
         <table style="float:right">
             <tr>                                
-                <wicket:enclosure><td><a href="#" wicket:id="export"><wicket:message key="header.export"/></a></td></wicket:enclosure>
-                <wicket:enclosure><td><a href="#" wicket:id="options"><img src="resources/options.gif"/><wicket:message key="header.options"/></a></td></wicket:enclosure>
-                <wicket:enclosure><td><a href="#" wicket:id="logout"><img src="resources/logout.gif"/><wicket:message key="header.logout"/></a></td></wicket:enclosure>
-                <wicket:enclosure><td><a href="#" wicket:id="login"><wicket:message key="header.login"/></a></td></wicket:enclosure>
-                <wicket:enclosure><td><img src="resources/user.gif"/><span wicket:id="user"></span></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="export"><wicket:message key="header.export"/></a></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="options"><img src="resources/options.gif"/><wicket:message key="header.options"/></a></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="logout"><img src="resources/logout.gif"/><wicket:message key="header.logout"/></a></td></wicket:enclosure>
+                <wicket:enclosure><td class="action-tab"><a href="#" wicket:id="login"><wicket:message key="header.login"/></a></td></wicket:enclosure>
+                <wicket:enclosure><td class="info-tab"><span class="nav-item-content"><img src="resources/user.gif"/><span wicket:id="user"></span></span></td></wicket:enclosure>
             </tr>
-        </table>        
+        </table>
+        <div style="clear:both"></div>
     </div>
 </wicket:panel>
