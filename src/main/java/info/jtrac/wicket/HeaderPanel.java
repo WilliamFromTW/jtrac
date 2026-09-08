@@ -108,6 +108,7 @@ public class HeaderPanel extends BasePanel {
         }
         
         if(user.getId() == 0) {
+            add(new WebMarkupContainer("export").setVisible(false));
             add(new WebMarkupContainer("options").setVisible(false));
             add(new WebMarkupContainer("logout").setVisible(false));
             add(new Link("login") {
@@ -117,6 +118,11 @@ public class HeaderPanel extends BasePanel {
             });
             add(new WebMarkupContainer("user").setVisible(false));
         } else {
+            add(new Link("export") {
+                public void onClick() {
+                    setResponsePage(HtmlExportPage.class);
+                }            
+            });
             add(new Link("options") {
                 public void onClick() {
                     JtracSession.get().setCurrentSpace(null); 

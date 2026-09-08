@@ -23,4 +23,5 @@ tools/*.jar
 !etc/maven-ant-tasks.jar
 # Application runtime data & export outputs
 data/
-export*/
+/export*/
+/jtrac-html-export*/

@@ -1,0 +1,57 @@
+<html>
+    <body>
+        <wicket:extend>
+            <form wicket:id="form">
+                <div class="heading">
+                    <wicket:message key="html_export.heading"/>
+                </div>
+
+                <div style="margin: 15px 0; padding: 14px 18px; background-color: #fff3cd; border: 1px solid #ffeeba; border-left: 6px solid #ffc107; border-radius: 4px; color: #856404; max-width: 700px;">
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">
+                        <wicket:message key="html_export.disclaimer.title"/>
+                    </div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #664d03;">
+                        <wicket:message key="html_export.disclaimer.text"/>
+                    </div>
+                </div>
+
+                <table class="jtrac" style="width: 700px; margin-bottom: 20px;">
+                    <tr>
+                        <td class="label" style="width: 200px;">
+                            <wicket:message key="html_export.scope"/>
+                        </td>
+                        <td>
+                            <span wicket:id="scope"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="html_export.lang"/>
+                        </td>
+                        <td>
+                            <select wicket:id="lang"></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="html_export.includeAttachments"/>
+                        </td>
+                        <td>
+                            <input type="checkbox" wicket:id="includeAttachments"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td style="padding-top: 15px; padding-bottom: 15px;">
+                            <input type="submit" class="button" wicket:id="download" wicket:message="value:html_export.btn.download" style="font-weight: bold; padding: 6px 16px; cursor: pointer;"/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <a href="#" wicket:id="cancel" style="color: #666; text-decoration: underline;">
+                                <wicket:message key="html_export.btn.back"/>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </wicket:extend>
+    </body>
+</html>
