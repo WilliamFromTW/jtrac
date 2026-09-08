@@ -1,0 +1,311 @@
+package info.jtrac.exporter.db;
+
+import info.jtrac.exporter.config.ExportConfig;
+import info.jtrac.exporter.model.*;
+
+import java.sql.*;
+import java.util.*;
+
+public class DatabaseReader implements AutoCloseable {
+
+    private final ExportConfig config;
+    private Connection connection;
+
+    public DatabaseReader(ExportConfig config) {
+        this.config = config;
+    }
+
+    public void connect() throws Exception {
+        String url = config.getDbUrl();
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalArgumentException("未指定 JDBC 連線字串 (--db-url 參數為必要項)");
+        }
+
+        String driver = config.getDbDriver();
+        if (driver == null || driver.trim().isEmpty()) {
+            driver = autoDetectDriver(url);
+        }
+
+        if (driver != null) {
+            try {
+                Class.forName(driver);
+            } catch (ClassNotFoundException e) {
+                System.err.println("[警告] 找不到驅動類別: " + driver + "，嘗試直接透過 DriverManager 連線。");
+            }
+        }
+
+        System.out.println("正在連線至資料庫: " + url + " (帳號: " + config.getDbUser() + ")");
+        this.connection = DriverManager.getConnection(url, config.getDbUser(), config.getDbPassword());
+        System.out.println("資料庫連線成功！");
+    }
+
+    public List<SpaceDto> readAllData() throws SQLException {
+        // 1. 讀取使用者
+        Map<Long, UserDto> usersMap = readUsers();
+        System.out.println("讀取到 " + usersMap.size() + " 位使用者資料。");
+
+        // 2. 讀取附加檔案記錄
+        Map<Long, AttachmentDto> attachmentsById = new HashMap<>();
+        Map<Long, List<AttachmentDto>> attachmentsByItemId = new HashMap<>();
+        readAttachments(attachmentsById, attachmentsByItemId);
+        System.out.println("讀取到 " + attachmentsById.size() + " 筆附件資料。");
+
+        // 3. 讀取專案空間
+        List<SpaceDto> spaces = readSpaces();
+        System.out.println("讀取到 " + spaces.size() + " 個專案空間。");
+
+        // 篩選 Space (若有指定)
+        if (config.getSpaceFilter() != null && !config.getSpaceFilter().trim().isEmpty()) {
+            String filter = config.getSpaceFilter().trim();
+            spaces.removeIf(s -> !s.getPrefixCode().equalsIgnoreCase(filter));
+            System.out.println("套用空間篩選 [" + filter + "]，符合之空間數: " + spaces.size());
+        }
+
+        Map<Long, SpaceDto> spaceMap = new HashMap<>();
+        for (SpaceDto s : spaces) {
+            spaceMap.put(s.getId(), s);
+        }
+
+        // 4. 讀取議題
+        Map<Long, ItemDto> itemsById = readItems(spaceMap, usersMap, attachmentsByItemId);
+        int totalItems = itemsById.size();
+        System.out.println("讀取到 " + totalItems + " 個議題。");
+
+        // 5. 讀取討論串歷史追蹤
+        int historyCount = readHistory(itemsById, usersMap, attachmentsById);
+        System.out.println("讀取到 " + historyCount + " 筆討論串歷史更新記錄。");
+
+        return spaces;
+    }
+
+    private Map<Long, UserDto> readUsers() throws SQLException {
+        Map<Long, UserDto> map = new HashMap<>();
+        String sql = "SELECT id, login_name, name, email FROM users";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = executeQueryWithFallback(stmt, sql, "SELECT id, login_name, name, email FROM USERS")) {
+            while (rs.next()) {
+                long id = rs.getLong(findCol(rs, "id"));
+                String login = rs.getString(findCol(rs, "login_name"));
+                String name = rs.getString(findCol(rs, "name"));
+                String email = rs.getString(findCol(rs, "email"));
+                map.put(id, new UserDto(id, login, name, email));
+            }
+        }
+        return map;
+    }
+
+    private void readAttachments(Map<Long, AttachmentDto> byId, Map<Long, List<AttachmentDto>> byItemId) throws SQLException {
+        String sql = "SELECT id, item_id, file_name, file_prefix FROM attachments";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = executeQueryWithFallback(stmt, sql, "SELECT id, item_id, file_name, file_prefix FROM ATTACHMENTS")) {
+            while (rs.next()) {
+                long id = rs.getLong(findCol(rs, "id"));
+                long itemId = rs.getLong(findCol(rs, "item_id"));
+                String fileName = rs.getString(findCol(rs, "file_name"));
+                long filePrefix = rs.getLong(findCol(rs, "file_prefix"));
+                AttachmentDto att = new AttachmentDto(id, itemId, fileName, filePrefix);
+                byId.put(id, att);
+                byItemId.computeIfAbsent(itemId, k -> new ArrayList<>()).add(att);
+            }
+        } catch (SQLException e) {
+            System.err.println("[提醒] 讀取 attachments 資料表時發生訊息 (可能無附件或表名不同): " + e.getMessage());
+        }
+    }
+
+    private List<SpaceDto> readSpaces() throws SQLException {
+        List<SpaceDto> list = new ArrayList<>();
+        String sql = "SELECT id, prefix_code, name, description, metadata_id FROM spaces ORDER BY id";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = executeQueryWithFallback(stmt, sql, "SELECT id, prefix_code, name, description, metadata_id FROM SPACES ORDER BY ID")) {
+            while (rs.next()) {
+                long id = rs.getLong(findCol(rs, "id"));
+                String prefix = rs.getString(findCol(rs, "prefix_code"));
+                String name = rs.getString(findCol(rs, "name"));
+                String desc = rs.getString(findCol(rs, "description"));
+                long meta = rs.getLong(findCol(rs, "metadata_id"));
+                Long metaId = rs.wasNull() ? null : meta;
+                list.add(new SpaceDto(id, prefix, name, desc, metaId));
+            }
+        }
+        return list;
+    }
+
+    private Map<Long, ItemDto> readItems(Map<Long, SpaceDto> spaceMap,
+                                        Map<Long, UserDto> usersMap,
+                                        Map<Long, List<AttachmentDto>> attachmentsByItemId) throws SQLException {
+        Map<Long, ItemDto> map = new HashMap<>();
+        String sql = "SELECT id, space_id, sequence_num, summary, detail, status, severity, priority, " +
+                "logged_by, assigned_to, time_stamp, planned_effort FROM items ORDER BY space_id, sequence_num";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = executeQueryWithFallback(stmt, sql,
+                     "SELECT id, space_id, sequence_num, summary, detail, status, severity, priority, " +
+                             "logged_by, assigned_to, time_stamp, planned_effort FROM ITEMS ORDER BY SPACE_ID, SEQUENCE_NUM")) {
+            while (rs.next()) {
+                long id = rs.getLong(findCol(rs, "id"));
+                long spaceId = rs.getLong(findCol(rs, "space_id"));
+                SpaceDto space = spaceMap.get(spaceId);
+                if (space == null) {
+                    continue; // 不在被選取的 Space 中
+                }
+
+                ItemDto item = new ItemDto();
+                item.setId(id);
+                item.setSpaceId(spaceId);
+                item.setSpace(space);
+                item.setSequenceNum(rs.getLong(findCol(rs, "sequence_num")));
+                item.setSummary(rs.getString(findCol(rs, "summary")));
+                item.setDetail(rs.getString(findCol(rs, "detail")));
+
+                int status = rs.getInt(findCol(rs, "status"));
+                item.setStatus(rs.wasNull() ? null : status);
+
+                int severity = rs.getInt(findCol(rs, "severity"));
+                item.setSeverity(rs.wasNull() ? null : severity);
+
+                int priority = rs.getInt(findCol(rs, "priority"));
+                item.setPriority(rs.wasNull() ? null : priority);
+
+                long loggedBy = rs.getLong(findCol(rs, "logged_by"));
+                item.setLoggedById(loggedBy);
+                item.setLoggedBy(usersMap.get(loggedBy));
+
+                long assignedTo = rs.getLong(findCol(rs, "assigned_to"));
+                if (!rs.wasNull()) {
+                    item.setAssignedToId(assignedTo);
+                    item.setAssignedTo(usersMap.get(assignedTo));
+                }
+
+                Timestamp ts = rs.getTimestamp(findCol(rs, "time_stamp"));
+                if (ts != null) {
+                    item.setTimeStamp(new java.util.Date(ts.getTime()));
+                }
+
+                double effort = rs.getDouble(findCol(rs, "planned_effort"));
+                if (!rs.wasNull()) {
+                    item.setPlannedEffort(effort);
+                }
+
+                // 關聯附件
+                List<AttachmentDto> atts = attachmentsByItemId.get(id);
+                if (atts != null) {
+                    item.getAttachmentList().addAll(atts);
+                }
+
+                space.getItems().add(item);
+                map.put(id, item);
+            }
+        }
+        return map;
+    }
+
+    private int readHistory(Map<Long, ItemDto> itemsById,
+                            Map<Long, UserDto> usersMap,
+                            Map<Long, AttachmentDto> attachmentsById) throws SQLException {
+        int count = 0;
+        String sql = "SELECT id, item_id, comment, attachment_id, time_stamp, logged_by, assigned_to, " +
+                "status, severity, priority, actual_effort FROM history ORDER BY item_id, time_stamp, id";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = executeQueryWithFallback(stmt, sql,
+                     "SELECT id, item_id, comment, attachment_id, time_stamp, logged_by, assigned_to, " +
+                             "status, severity, priority, actual_effort FROM HISTORY ORDER BY ITEM_ID, TIME_STAMP, ID")) {
+            while (rs.next()) {
+                long itemId = rs.getLong(findCol(rs, "item_id"));
+                ItemDto item = itemsById.get(itemId);
+                if (item == null) {
+                    continue;
+                }
+
+                HistoryDto h = new HistoryDto();
+                h.setId(rs.getLong(findCol(rs, "id")));
+                h.setItemId(itemId);
+                h.setComment(rs.getString(findCol(rs, "comment")));
+
+                long attId = rs.getLong(findCol(rs, "attachment_id"));
+                if (!rs.wasNull()) {
+                    h.setAttachmentId(attId);
+                    h.setAttachment(attachmentsById.get(attId));
+                }
+
+                Timestamp ts = rs.getTimestamp(findCol(rs, "time_stamp"));
+                if (ts != null) {
+                    h.setTimeStamp(new java.util.Date(ts.getTime()));
+                }
+
+                long loggedBy = rs.getLong(findCol(rs, "logged_by"));
+                h.setLoggedById(loggedBy);
+                h.setLoggedBy(usersMap.get(loggedBy));
+
+                long assignedTo = rs.getLong(findCol(rs, "assigned_to"));
+                if (!rs.wasNull()) {
+                    h.setAssignedToId(assignedTo);
+                    h.setAssignedTo(usersMap.get(assignedTo));
+                }
+
+                int status = rs.getInt(findCol(rs, "status"));
+                h.setStatus(rs.wasNull() ? null : status);
+
+                int severity = rs.getInt(findCol(rs, "severity"));
+                h.setSeverity(rs.wasNull() ? null : severity);
+
+                int priority = rs.getInt(findCol(rs, "priority"));
+                h.setPriority(rs.wasNull() ? null : priority);
+
+                double effort = rs.getDouble(findCol(rs, "actual_effort"));
+                if (!rs.wasNull()) {
+                    h.setActualEffort(effort);
+                }
+
+                item.getHistoryList().add(h);
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private ResultSet executeQueryWithFallback(Statement stmt, String primarySql, String fallbackSql) throws SQLException {
+        try {
+            return stmt.executeQuery(primarySql);
+        } catch (SQLException e) {
+            return stmt.executeQuery(fallbackSql);
+        }
+    }
+
+    private int findCol(ResultSet rs, String colName) throws SQLException {
+        ResultSetMetaData md = rs.getMetaData();
+        int count = md.getColumnCount();
+        for (int i = 1; i <= count; i++) {
+            if (md.getColumnLabel(i).equalsIgnoreCase(colName) || md.getColumnName(i).equalsIgnoreCase(colName)) {
+                return i;
+            }
+        }
+        return rs.findColumn(colName);
+    }
+
+    public static String autoDetectDriver(String url) {
+        if (url == null) return null;
+        String lower = url.toLowerCase();
+        if (lower.startsWith("jdbc:mysql:")) {
+            return "com.mysql.cj.jdbc.Driver";
+        } else if (lower.startsWith("jdbc:mariadb:")) {
+            return "org.mariadb.jdbc.Driver";
+        } else if (lower.startsWith("jdbc:postgresql:")) {
+            return "org.postgresql.Driver";
+        } else if (lower.startsWith("jdbc:hsqldb:")) {
+            return "org.hsqldb.jdbcDriver";
+        } else if (lower.startsWith("jdbc:sqlserver:")) {
+            return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        } else if (lower.startsWith("jdbc:oracle:")) {
+            return "oracle.jdbc.OracleDriver";
+        }
+        return null;
+    }
+
+    @Override
+    public void close() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException ignored) {}
+        }
+    }
+}

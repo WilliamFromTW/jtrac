@@ -10,3 +10,4 @@ records/
 *.log
 *.csv
 target/
+dependency-reduced-pom.xml

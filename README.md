@@ -77,9 +77,35 @@ The output WAR package will be generated at:
 
 ---
 
+## 📦 Tools: JTrac Standalone HTML Exporter / 討論串靜態匯出工具
+
+A zero-legacy-dependency, standalone CLI tool to export any JTrac database into static, responsive HTML discussion threads with attachments:
+無需啟動 Web 伺服器，直接透過 JDBC 連線字串將 JTrac 議題、歷史討論串與附件匯出為多語系靜態 HTML 報表。
+
+### Build & Run / 建置與執行:
+```bash
+# Build the standalone executable JAR / 打包獨立可執行檔
+cd tools/jtrac-exporter
+mvn clean package
+
+# Run via JDBC Connection String (MySQL, PostgreSQL, HSQLDB, SQL Server)
+java -jar target/jtrac-exporter.jar \
+  --db-url="jdbc:mysql://host:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  --db-user="jtrac" \
+  --db-password="password" \
+  --attachments-dir="/path/to/attachments" \
+  --out="./export-html" \
+  --lang=zh-TW
+```
+For full options, run: `java -jar target/jtrac-exporter.jar --help`
+
+---
+
 ## 📚 Documentation & Specifications / 相關規格文件
 
 - [Master Specifications / 專案主規格目錄](openspec/specs/README.md)
+- [HTML Exporter Specification / 討論串匯出規格](openspec/specs/html-exporter/spec.md)
+- [Build Documentation Specification / 編譯文件規格](openspec/specs/build-documentation/spec.md)
 - [i18n & Resources Specification / 語系與資源規格](openspec/specs/i18n-resources/spec.md)
 - [Project Rules / 專案鐵律規範](.agents/AGENTS.md)
 

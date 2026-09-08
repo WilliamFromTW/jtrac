@@ -10,6 +10,7 @@
 |---|---|---|---|
 | [`i18n-resources`](i18n-resources/spec.md) | 多國語系資源與過濾規範 | 定義 JTrac 專案中多國語系資源檔案之 UTF-8 編碼規範與 Maven 資源處理隔離規則，確保在不同作業系統與 JDK 環境下建置及執行時皆能正確處理字元編碼，並避免框架變數被構建工具誤替換。 | Active |
 | [`build-documentation`](build-documentation/spec.md) | 多語系建置與編譯文件規範 | 規範 JTrac 專案之多語系建置與編譯技術文件結構，確保全球開發者皆能在其母語或慣用語言環境下，清楚理解 Maven 建置指令、依賴套件本機快取下載機制，以及 WAR 封裝檔內部依賴整合原理。 | Active |
+| [`html-exporter`](html-exporter/spec.md) | 獨立命令列 HTML 討論串匯出工具 | 定義獨立命令列工具 `jtrac-exporter.jar` 之功能規格與資料處理邏輯。透過指定 JDBC 連線字串存取遠端或本地資料庫，在零舊版依賴下將議題、討論串歷程與附件匯出為符合 JTrac 邏輯之 5 國多語系靜態 HTML 報表。 | Active |
 
 ---
 
@@ -45,6 +46,32 @@ flowchart TD
     F --> H
     G --> H
     H --> I[WAR WEB-INF/lib 第三方套件封裝解析]
+```
+
+### 3. `html-exporter` 命令列 JDBC 討論串匯出架構
+
+```mermaid
+flowchart TD
+    A[使用者命令列啟動 CLI] --> B{解析參數}
+    B -->|必要: --db-url| C[載入對應 JDBC Driver]
+    B -->|可選: --db-user, --db-password| C
+    B -->|可選: --attachments-dir| D[附件目錄檢查]
+    B -->|可選: --lang, --out, --space| E[語系與輸出路徑配置]
+    
+    C --> F[建立原生 JDBC Connection]
+    F --> G[查詢 SPACES 專案空間清單]
+    G --> H[查詢 USERS 使用者對照表]
+    G --> I[查詢 ITEMS 議題資料]
+    I --> J[查詢 HISTORY 討論串追蹤記錄]
+    J --> K[查詢 ATTACHMENTS 附件記錄]
+    
+    H & I & J & K --> L[組裝討論串資料模型]
+    D & L --> M[處理實體附件複製與縮圖標記]
+    E & M --> N[依語系字典渲染 HTML 樣板]
+    
+    N --> O[產出 index.html 專案空間導覽索引]
+    N --> P[產出 各 Space 討論串 HTML 頁面]
+    M --> Q[輸出 attachments/ 靜態附件目錄]
 ```
 
 ---
