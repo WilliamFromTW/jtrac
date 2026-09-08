@@ -99,3 +99,40 @@ After packaging, to run JTrac locally for interactive testing:
 1. Copy `target/jtrac.war` to `W:\developer\jtrac-2.3.3\webapps\ROOT.war`.
 2. Run `W:\developer\jtrac-2.3.3\start.bat`.
 3. Open your browser and navigate to: `http://localhost:8888` (Default administrator credentials: `admin` / `admin`).
+
+---
+
+## 6. Building & Running Standalone CLI HTML Exporter (jtrac-exporter)
+
+The project includes a standalone CLI tool `jtrac-exporter` (with zero legacy framework dependencies) that exports JTrac database records directly into static, responsive HTML discussion threads with attachments via standard JDBC.
+
+### 6.1 Build the Tool (Fat JAR)
+Run this command from the project root directory (no need to switch directories):
+```cmd
+mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
+```
+Upon successful build, the executable JAR is generated directly at:
+`tools/jtrac-exporter.jar`
+
+### 6.2 Execute Export (Command Mode)
+From the project root, export from local embedded HSQLDB using relative paths:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
+  --attachments-dir="./data/attachments" ^
+  --out="./export-hsqldb" ^
+  --lang=en
+```
+
+You can also connect to remote MySQL, PostgreSQL, or SQL Server databases:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
+  --db-user="jtrac" ^
+  --db-password="your_password" ^
+  --attachments-dir="/path/to/attachments" ^
+  --out="./export-mysql" ^
+  --lang=en
+```
+To view all available CLI options, run: `java -jar tools/jtrac-exporter.jar --help`.
+

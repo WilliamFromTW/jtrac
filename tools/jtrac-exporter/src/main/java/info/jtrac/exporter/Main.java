@@ -57,7 +57,7 @@ public class Main {
         System.out.println("  JTrac Standalone HTML Exporter (命令列靜態討論串匯出工具)");
         System.out.println("================================================================================");
         System.out.println("使用方式:");
-        System.out.println("  java -jar jtrac-exporter.jar --db-url=<JDBC_URL> [選項...]");
+        System.out.println("  java -jar tools/jtrac-exporter.jar --db-url=<JDBC_URL> [選項...]");
         System.out.println();
         System.out.println("必要參數:");
         System.out.println("  --db-url=<URL>           指定 JDBC 連線字串 (支援 MySQL, PostgreSQL, HSQLDB, SQLServer)");
@@ -74,19 +74,19 @@ public class Main {
         System.out.println();
         System.out.println("執行範例:");
         System.out.println("  # 範例 1：連線遠端 MySQL 資料庫");
-        System.out.println("  java -jar jtrac-exporter.jar \\");
+        System.out.println("  java -jar tools/jtrac-exporter.jar \\");
         System.out.println("    --db-url=\"jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8\" \\");
         System.out.println("    --db-user=\"jtrac\" --db-password=\"secret\" --out=\"./export-mysql\" --lang=zh-TW");
         System.out.println();
         System.out.println("  # 範例 2：連線遠端 PostgreSQL 資料庫");
-        System.out.println("  java -jar jtrac-exporter.jar \\");
+        System.out.println("  java -jar tools/jtrac-exporter.jar \\");
         System.out.println("    --db-url=\"jdbc:postgresql://db.company.internal:5432/jtrac\" \\");
         System.out.println("    --db-user=\"postgres\" --db-password=\"secret\" --out=\"./export-pg\" --lang=en");
         System.out.println();
-        System.out.println("  # 範例 3：連線本地或伺服器 HSQLDB (預設帳號 sa、無密碼)");
-        System.out.println("  java -jar jtrac-exporter.jar \\");
-        System.out.println("    --db-url=\"jdbc:hsqldb:file:W:/developer/jtrac-2.3.3/data/db/jtrac;shutdown=true;readonly=true\" \\");
-        System.out.println("    --attachments-dir=\"W:/developer/jtrac-2.3.3/data/attachments\" \\");
+        System.out.println("  # 範例 3：連線本地 HSQLDB (相對路徑，預設帳號 sa、無密碼)");
+        System.out.println("  java -jar tools/jtrac-exporter.jar \\");
+        System.out.println("    --db-url=\"jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true\" \\");
+        System.out.println("    --attachments-dir=\"./data/attachments\" \\");
         System.out.println("    --out=\"./export-hsqldb\" --lang=zh-TW");
         System.out.println("================================================================================");
     }

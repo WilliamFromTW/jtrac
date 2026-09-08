@@ -98,3 +98,40 @@ Sau khi đóng gói xong, bạn có thể chạy thử JTrac trên máy cục b�
 1. Sao chép `target/jtrac.war` thành `W:\developer\jtrac-2.3.3\webapps\ROOT.war`.
 2. Chạy tệp `W:\developer\jtrac-2.3.3\start.bat`.
 3. Mở trình duyệt và truy cập: `http://localhost:8888` (Tài khoản quản trị viên mặc định: `admin` / `admin`).
+
+---
+
+## 6. Xây dựng và chạy công cụ xuất thảo luận CLI độc lập (jtrac-exporter)
+
+Dự án tích hợp sẵn công cụ dòng lệnh `jtrac-exporter` hoàn toàn độc lập, không phụ thuộc vào các framework cũ, cho phép kết nối trực tiếp qua chuỗi kết nối JDBC tới cơ sở dữ liệu để xuất vấn đề, luồng thảo luận và tệp đính kèm thành báo cáo HTML tĩnh đa ngôn ngữ.
+
+### 6.1 Biên dịch và đóng gói công cụ (Fat JAR)
+Chạy lệnh sau tại thư mục gốc của dự án (không cần chuyển thư mục):
+```cmd
+mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
+```
+Sau khi biên dịch thành công, tệp thực thi sẽ được lưu trực tiếp tại:
+`tools/jtrac-exporter.jar`
+
+### 6.2 Chạy xuất dữ liệu (Command Mode)
+Từ thư mục gốc dự án, bạn có thể sử dụng đường dẫn tương đối để kết nối tới HSQLDB cục bộ:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
+  --attachments-dir="./data/attachments" ^
+  --out="./export-hsqldb" ^
+  --lang=vi
+```
+
+Đồng thời hỗ trợ kết nối tới cơ sở dữ liệu từ xa như MySQL hoặc PostgreSQL:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
+  --db-user="jtrac" ^
+  --db-password="your_password" ^
+  --attachments-dir="/path/to/attachments" ^
+  --out="./export-mysql" ^
+  --lang=vi
+```
+Xem hướng dẫn chi tiết các tùy chọn: `java -jar tools/jtrac-exporter.jar --help`.
+

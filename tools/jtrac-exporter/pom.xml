@@ -69,6 +69,21 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/..</directory>
+                            <includes>
+                                <include>jtrac-exporter.jar</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.2</version>
                 <executions>
@@ -78,7 +93,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>jtrac-exporter</finalName>
+                            <outputFile>${project.basedir}/../jtrac-exporter.jar</outputFile>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>info.jtrac.exporter.Main</mainClass>

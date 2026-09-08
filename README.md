@@ -84,20 +84,28 @@ A zero-legacy-dependency, standalone CLI tool to export any JTrac database into 
 
 ### Build & Run / 建置與執行:
 ```bash
-# Build the standalone executable JAR / 打包獨立可執行檔
-cd tools/jtrac-exporter
-mvn clean package
+# 1. Build the standalone executable JAR / 在專案根目錄打包獨立可執行檔
+mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
 
-# Run via JDBC Connection String (MySQL, PostgreSQL, HSQLDB, SQL Server)
-java -jar target/jtrac-exporter.jar \
+# 產出位置: tools/jtrac-exporter.jar
+
+# 2. Run with Local HSQLDB (Relative Path) / 連線本地 HSQLDB (相對路徑)
+java -jar tools/jtrac-exporter.jar \
+  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" \
+  --attachments-dir="./data/attachments" \
+  --out="./export-hsqldb" \
+  --lang=zh-TW
+
+# 3. Run with Remote Database (MySQL / PostgreSQL / SQL Server)
+java -jar tools/jtrac-exporter.jar \
   --db-url="jdbc:mysql://host:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
   --db-user="jtrac" \
   --db-password="password" \
   --attachments-dir="/path/to/attachments" \
-  --out="./export-html" \
-  --lang=zh-TW
+  --out="./export-mysql" \
+  --lang=en
 ```
-For full options, run: `java -jar target/jtrac-exporter.jar --help`
+For full options, run: `java -jar tools/jtrac-exporter.jar --help`
 
 ---
 

@@ -11,3 +11,13 @@ records/
 *.csv
 target/
 dependency-reduced-pom.xml
+
+# Compiled binaries, packages & libraries
+*.class
+*.war
+*.ear
+*.lib
+tools/*.jar
+*.jar
+!src/main/webapp/WEB-INF/lib/*.jar
+!etc/maven-ant-tasks.jar

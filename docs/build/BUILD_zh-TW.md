@@ -99,3 +99,40 @@ jtrac.war
 1. 將 `target/jtrac.war` 複製為 `W:\developer\jtrac-2.3.3\webapps\ROOT.war`。
 2. 執行 `W:\developer\jtrac-2.3.3\start.bat`。
 3. 開啟瀏覽器訪問：`http://localhost:8888`（預設管理員帳號密碼：`admin` / `admin`）。
+
+---
+
+## 6. 獨立 CLI 討論串匯出工具建置與執行 (jtrac-exporter)
+
+專案內建一個完全獨立、零舊版框架依賴的命令列工具 `jtrac-exporter`，可直接透過 JDBC 連線字串存取本地或遠端資料庫，並將議題、歷史討論串與附件匯出為多語系靜態 HTML 報表。
+
+### 6.1 編譯打包獨立工具 (Fat JAR)
+在專案根目錄執行以下指令（免切換目錄）：
+```cmd
+mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
+```
+編譯成功後，可執行檔會直接輸出至：
+`tools/jtrac-exporter.jar`
+
+### 6.2 執行匯出 (Command Mode)
+在專案根目錄下，可使用相對路徑直接連線本地 HSQLDB 資料庫進行匯出：
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
+  --attachments-dir="./data/attachments" ^
+  --out="./export-hsqldb" ^
+  --lang=zh-TW
+```
+
+亦支援連線遠端 MySQL 或 PostgreSQL 自訂資料庫：
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
+  --db-user="jtrac" ^
+  --db-password="your_password" ^
+  --attachments-dir="/path/to/attachments" ^
+  --out="./export-mysql" ^
+  --lang=zh-TW
+```
+查看完整參數說明：`java -jar tools/jtrac-exporter.jar --help`。
+

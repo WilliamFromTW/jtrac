@@ -98,3 +98,40 @@ jtrac.war
 1. `target/jtrac.war` を `W:\developer\jtrac-2.3.3\webapps\ROOT.war` にコピー。
 2. `W:\developer\jtrac-2.3.3\start.bat` を実行。
 3. ブラウザで `http://localhost:8888` にアクセス (初期管理者アカウント: `admin` / `admin`)。
+
+---
+
+## 6. スタンドアロン CLI ディスカッションエクスポートツールのビルドと実行 (jtrac-exporter)
+
+本プロジェクトには、レガシーフレームワークに一切依存せず、標準 JDBC 経由でローカルまたはリモートデータベースから課題、ディスカッション履歴、添付ファイルを多言語静的 HTML レポートとして出力するスタンドアロン CLI ツール `jtrac-exporter` が組み込まれています。
+
+### 6.1 ツールのビルド (Fat JAR)
+プロジェクトのルートディレクトリで以下のコマンドを実行します（ディレクトリ移動不要）:
+```cmd
+mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
+```
+ビルド完了後、実行可能 JAR は以下に出力されます:
+`tools/jtrac-exporter.jar`
+
+### 6.2 エクスポートの実行 (Command Mode)
+ルートディレクトリから、相対パスを用いてローカルの HSQLDB データベースからエクスポートする場合:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
+  --attachments-dir="./data/attachments" ^
+  --out="./export-hsqldb" ^
+  --lang=ja
+```
+
+リモートの MySQL または PostgreSQL データベースへの接続もサポートしています:
+```cmd
+java -jar tools/jtrac-exporter.jar ^
+  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
+  --db-user="jtrac" ^
+  --db-password="your_password" ^
+  --attachments-dir="/path/to/attachments" ^
+  --out="./export-mysql" ^
+  --lang=ja
+```
+全オプションの確認: `java -jar tools/jtrac-exporter.jar --help`。
+

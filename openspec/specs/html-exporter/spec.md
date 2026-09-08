@@ -36,11 +36,11 @@ flowchart TD
 工具 MUST 支援透過命令列接收 `--db-url` 參數，並依據字串自動偵測或手動指定驅動程式，建立原生資料庫連線。
 
 #### Scenario: 使用者指定遠端 MySQL 資料庫連線字串
-- **WHEN** 執行 `java -jar jtrac-exporter.jar --db-url="jdbc:mysql://host:3306/jtrac" --db-user="u" --db-password="p"`
+- **WHEN** 執行 `java -jar tools/jtrac-exporter.jar --db-url="jdbc:mysql://host:3306/jtrac" --db-user="u" --db-password="p"`
 - **THEN** 程式自動載入 `com.mysql.cj.jdbc.Driver` 並建立連線，成功提取資料庫內容
 
-#### Scenario: 使用者連線 HSQLDB 預設環境
-- **WHEN** 執行 `java -jar jtrac-exporter.jar --db-url="jdbc:hsqldb:file:/data/db/jtrac"` 未提供帳號密碼
+#### Scenario: 使用者連線 HSQLDB 本地環境（相對路徑）
+- **WHEN** 執行 `java -jar tools/jtrac-exporter.jar --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true"` 未提供帳號密碼
 - **THEN** 程式自動預設使用使用者名稱 `sa` 與空字串密碼建立連線
 
 ---
