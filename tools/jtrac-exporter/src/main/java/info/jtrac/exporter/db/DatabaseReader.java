@@ -21,6 +21,31 @@ public class DatabaseReader implements AutoCloseable {
             throw new IllegalArgumentException("未指定 JDBC 連線字串 (--db-url 參數為必要項)");
         }
 
+        // HSQLDB 實體檔案路徑防呆檢查
+        if (url.toLowerCase().startsWith("jdbc:hsqldb:file:")) {
+            String pathPart = url.substring("jdbc:hsqldb:file:".length());
+            int semicolon = pathPart.indexOf(';');
+            if (semicolon != -1) {
+                pathPart = pathPart.substring(0, semicolon);
+            }
+            pathPart = pathPart.trim();
+            java.io.File scriptFile = new java.io.File(pathPart + ".script");
+            java.io.File propFile = new java.io.File(pathPart + ".properties");
+            java.io.File lckFile = new java.io.File(pathPart + ".lck");
+
+            if (!scriptFile.exists() && !propFile.exists() && !lckFile.exists()) {
+                String currentDir = new java.io.File(".").getAbsolutePath();
+                throw new java.io.FileNotFoundException("\n[錯誤] 找不到指定的 HSQLDB 資料庫檔案！\n" +
+                        "  -> 找不到資料庫檔案: " + pathPart + ".script 或 .properties\n" +
+                        "  -> 目前所在工作目錄: " + currentDir + "\n" +
+                        "  💡 請確認相對路徑或絕對路徑是否正確（例如 JTrac 預設資料庫通常位於 ../../../jtrac-2.3.3/data/db/jtrac）。");
+            }
+
+            if (!url.toLowerCase().contains("ifexists=")) {
+                url = url + ";ifexists=true";
+            }
+        }
+
         String driver = config.getDbDriver();
         if (driver == null || driver.trim().isEmpty()) {
             driver = autoDetectDriver(url);
@@ -90,6 +115,8 @@ public class DatabaseReader implements AutoCloseable {
                 String email = rs.getString(findCol(rs, "email"));
                 map.put(id, new UserDto(id, login, name, email));
             }
+        } catch (SQLException e) {
+            throw new SQLException("[錯誤] 無法讀取使用者資料表 (USERS)。請確認連線之資料庫是否為已初始化的 JTrac 資料庫。\n原因: " + e.getMessage(), e);
         }
         return map;
     }
