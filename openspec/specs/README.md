@@ -13,6 +13,7 @@
 | [`html-exporter`](html-exporter/spec.md) | 獨立命令列與網頁即時串流 HTML 討論串匯出工具 | 定義獨立命令列工具 `jtrac-exporter.jar` 與網頁即時串流 ZIP 下載之功能規格與資料處理邏輯。支援指定 JDBC 連線字串或既有 Spring DataSource 存取資料庫，相容 HSQLDB 1.8 歷史庫，在零舊版依賴或行內連線下將議題、討論串歷程與附件匯出為支援離線明暗主題與 5 國多語系之高對比靜態 HTML 報表與 ZIP 串流下載。 | Active |
 | [`backend-security`](backend-security/spec.md) | Spring Security 5.8 現代化安全認證與授權規範 | 規範 JTrac 系統以 Spring Security 5.8 替代過時 Acegi 1.0.7 之現代化安全認證與授權機制，包含雙模無痛密碼雜湊升級、LDAP/AD 整合與權限上下文管理。 | Active |
 | [`backend-persistence`](backend-persistence/spec.md) | Hibernate 5.6 持久層 DAO 與原生 Lucene 全文檢索規範 | 規範 JTrac 資料持久層現代化架構，以原生 Hibernate 5.6 `SessionFactory` 重構 `HibernateJtracDao`，徹底解耦過時之 `HibernateDaoSupport` 與 `HibernateTemplate`，並整合資料表結構自動同步與原生輕量 Lucene 全文檢索。 | Active |
+| [`mobile-rwd`](mobile-rwd/spec.md) | 全站行動端 RWD 響應式體驗與深色主題適配 | 為 JTrac 提供全站行動端響應式網頁設計（RWD），透過純 CSS 技術重構導航列、問題清單、詳細頁與儀表板，支援小螢幕卡片化呈現、漢堡折疊選單與系統深色模式自動切換，實現零外部依賴、輕量流暢的行動端 Issue 查閱體驗。 | Active |
 
 ---
 
@@ -158,7 +159,52 @@ flowchart TD
     Indexer --> LuceneDir
     IndexSearcher --> LuceneDir
 ```
+ 
+### 6. `mobile-rwd` 行動端響應式與漢堡選單架構
+
+```mermaid
+flowchart TD
+    Start([使用者瀏覽器載入頁面]) --> ReadViewport[讀取 Viewport Meta: width=device-width]
+    ReadViewport --> CheckWidth{檢測螢幕視窗寬度}
+    
+    CheckWidth -->|> 768px 桌機 / 寬平板| DesktopLayout[桌機標準佈局]
+    DesktopLayout --> D1[頂部雙向水平導航列]
+    DesktopLayout --> D2[完整欄位多欄資料表格]
+    DesktopLayout --> D3[顯示 Excel / XML 匯出按鈕]
+    
+    CheckWidth -->|<= 768px 手機 / 直向平板| MobileLayout[行動端 RWD 佈局]
+    MobileLayout --> M1[頂部純 CSS 漢堡折疊選單]
+    MobileLayout --> M2[清單自動轉為直立卡片流]
+    MobileLayout --> M3[清單工具列隱藏次要匯出, 放大分頁按鈕]
+    MobileLayout --> M4[詳細頁欄位堆疊, 回覆表單預設折疊]
+    MobileLayout --> M5[後台管理表格套用平滑滾動容器]
+    
+    MobileLayout --> CheckTheme{檢測系統色彩模式}
+    CheckTheme -->|深色模式 prefers-color-scheme: dark| DarkTheme[啟用夜間高對比暗色主題]
+    CheckTheme -->|淺色模式 / 預設| LightTheme[套用經典標準藍白主題]
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Collapsed: 預設載入狀態 (Checkbox 未勾選)
+    
+    state Collapsed {
+        Header: 頂部常駐 Bar (Logo + Space Name)
+        ToggleBtn: 漢堡圖示 [☰]
+        Drawer: 抽屜選單隱藏 (display: none / max-height: 0)
+    }
+    
+    Collapsed --> Expanded: 使用者觸控點擊 [☰] (觸發 label 勾選 checkbox)
+    
+    state Expanded {
+        HeaderActive: 頂部常駐 Bar (高亮)
+        CloseBtn: 關閉圖示 [✕]
+        DrawerActive: 抽屜選單垂直滑出展開 (展示所有導覽連結, 高度 44px+)
+    }
+    
+    Expanded --> Collapsed: 使用者點擊 [✕] 或點擊任一導航項目
+```
 
 ---
 
-*最後自動更新時間：2026-09-08*
+*最後自動更新時間：2026-09-09*

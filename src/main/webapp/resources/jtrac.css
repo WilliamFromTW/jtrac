@@ -6,8 +6,30 @@
 	--gray: #CCCCCC;
 	--error: #CC2200;
 	--errorbg: #FFB6C1;
+	--bg-body: #FFFFFF;
+	--text-color: #333333;
+	--card-bg: #FFFFFF;
+	--card-border: #E2E8F0;
+	--card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+	--border-color: #CCCCCC;
 }
-body { font-family: Arial; background: #FFF; font-size: 80%; }
+body {
+	font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	background: var(--bg-body);
+	color: var(--text-color);
+	font-size: 85%;
+}
+.table-responsive {
+	width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 1em;
+}
+.nav-toggle-checkbox { display: none; }
+.nav-mobile-bar { display: none; }
+.nav-menu-wrapper { display: block; }
+.reply-toggle-checkbox { display: none; }
+.reply-toggle-label { display: none; }
 table.jtrac th, table.jtrac td.label { background: var(--gray); padding-left: 0.2em; padding-right: 0.2em; }
 tr.center td { text-align: center; }
 .label { font-weight: bold; text-align: right; }
@@ -141,4 +163,412 @@ code {
 .changed { background:#ccffff }
 .diff { text-align:center }
 .lineno { text-align:center }
+
+/* ==========================================================================
+   Responsive Web Design (RWD) & Mobile Layout (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+	body {
+		padding: 6px;
+		font-size: 90%;
+	}
+
+	/* --- Pure CSS Hamburger Navigation --- */
+	.nav-header {
+		padding: 0;
+		border-radius: 6px;
+		overflow: hidden;
+		background: var(--header);
+		border: 1px solid var(--border-color);
+	}
+
+	.nav-mobile-bar {
+		display: flex !important;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px 14px;
+		background: var(--header);
+		user-select: none;
+	}
+
+	.nav-brand-title {
+		font-weight: bold;
+		font-size: 1.15em;
+		color: var(--darkblue);
+		letter-spacing: 0.5px;
+	}
+
+	.nav-toggle-btn {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		width: 26px;
+		height: 20px;
+		cursor: pointer;
+		padding: 3px;
+		box-sizing: border-box;
+	}
+
+	.nav-toggle-btn span {
+		display: block;
+		height: 2.5px;
+		width: 100%;
+		background-color: var(--darkblue);
+		border-radius: 2px;
+		transition: all 0.25s ease-in-out;
+	}
+
+	#nav-toggle:checked + .nav-mobile-bar .nav-toggle-btn span:nth-child(1) {
+		transform: translateY(6px) rotate(45deg);
+	}
+
+	#nav-toggle:checked + .nav-mobile-bar .nav-toggle-btn span:nth-child(2) {
+		opacity: 0;
+	}
+
+	#nav-toggle:checked + .nav-mobile-bar .nav-toggle-btn span:nth-child(3) {
+		transform: translateY(-6px) rotate(-45deg);
+	}
+
+	.nav-menu-wrapper {
+		display: none;
+		background: var(--card-bg);
+		border-top: 1px solid var(--border-color);
+		padding: 8px 10px;
+	}
+
+	#nav-toggle:checked ~ .nav-menu-wrapper {
+		display: block !important;
+		animation: navSlideDown 0.2s ease-out;
+	}
+
+	@keyframes navSlideDown {
+		from { opacity: 0; transform: translateY(-6px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	.nav-table-left, .nav-table-right {
+		float: none !important;
+		width: 100% !important;
+		display: block !important;
+		margin: 0 !important;
+	}
+
+	.nav-table-left tbody, .nav-table-right tbody,
+	.nav-table-left tr, .nav-table-right tr {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.nav-header td {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		margin-bottom: 6px !important;
+		padding: 10px 14px !important;
+		min-height: 44px !important;
+		text-align: left !important;
+		border-radius: 6px !important;
+		background-color: var(--lightblue);
+	}
+
+	.nav-header td a, .nav-header td .nav-item-content {
+		width: 100%;
+		justify-content: flex-start !important;
+		font-size: 1.05em;
+	}
+
+	/* --- Issue List Toolbar Mobile Focus --- */
+	.item-list-toolbar {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.item-list-toolbar tbody, .item-list-toolbar tr {
+		display: flex !important;
+		flex-direction: column !important;
+		width: 100% !important;
+	}
+
+	.item-list-toolbar td {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		padding: 6px 2px !important;
+	}
+
+	.item-list-toolbar td:last-child {
+		display: none !important; /* Hide Excel / XML export on mobile */
+	}
+
+	.item-list-toolbar .page-links a, .item-list-toolbar .page-links span {
+		display: inline-block;
+		min-width: 32px;
+		min-height: 32px;
+		line-height: 32px;
+		text-align: center;
+		margin: 2px;
+		border-radius: 4px;
+		font-size: 1.05em;
+	}
+
+	/* --- Issue List Table to Card Conversion --- */
+	table.jtrac-list {
+		display: block !important;
+		width: 100% !important;
+		border: none !important;
+	}
+
+	table.jtrac-list tbody {
+		display: flex !important;
+		flex-direction: column !important;
+		gap: 10px;
+		width: 100% !important;
+	}
+
+	table.jtrac-list tr.sortable {
+		display: none !important;
+	}
+
+	table.jtrac-list tr[wicket\:id="itemList"],
+	table.jtrac-list tr:not(.sortable) {
+		display: flex !important;
+		flex-direction: column !important;
+		background: var(--card-bg) !important;
+		border: 1px solid var(--card-border) !important;
+		border-radius: 8px !important;
+		box-shadow: var(--card-shadow) !important;
+		padding: 12px 14px !important;
+		margin-bottom: 8px !important;
+		box-sizing: border-box !important;
+	}
+
+	table.jtrac-list td {
+		display: block !important;
+		width: 100% !important;
+		border: none !important;
+		padding: 4px 0 !important;
+		box-sizing: border-box !important;
+	}
+
+	table.jtrac-list td:first-child {
+		font-size: 1.1em;
+		font-weight: bold;
+		border-bottom: 1px dashed var(--gray) !important;
+		padding-bottom: 6px !important;
+		margin-bottom: 4px !important;
+	}
+
+	/* --- Dashboard Mobile Cards --- */
+	table[wicket\:id="table"] {
+		display: block !important;
+		width: 100% !important;
+		border: none !important;
+	}
+
+	table[wicket\:id="table"] > tbody > tr:first-child {
+		display: none !important;
+	}
+
+	table[wicket\:id="table"] tbody[wicket\:id="dashboardRow"] {
+		display: flex !important;
+		flex-direction: column !important;
+		background: var(--card-bg) !important;
+		border: 1px solid var(--card-border) !important;
+		border-radius: 8px !important;
+		box-shadow: var(--card-shadow) !important;
+		padding: 12px !important;
+		margin-bottom: 12px !important;
+	}
+
+	table[wicket\:id="table"] tbody[wicket\:id="dashboardRow"] tr {
+		display: flex !important;
+		flex-wrap: wrap !important;
+		align-items: center !important;
+		padding: 6px 0 !important;
+		border-bottom: 1px solid #F1F5F9;
+	}
+
+	table[wicket\:id="table"] tbody[wicket\:id="dashboardRow"] tr:last-child {
+		border-bottom: none;
+	}
+
+	table[wicket\:id="table"] tr.nav-table {
+		display: flex !important;
+		flex-wrap: wrap !important;
+		border-radius: 6px;
+		margin-top: 10px;
+	}
+
+	/* --- Item View Detail & History Timeline --- */
+	table.jtrac-view {
+		display: block !important;
+		width: 100% !important;
+		border-radius: 8px !important;
+		box-sizing: border-box !important;
+	}
+
+	table.jtrac-view tbody, table.jtrac-view tr {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	table.jtrac-view tr {
+		margin-bottom: 8px !important;
+	}
+
+	table.jtrac-view td {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		padding: 6px 10px !important;
+	}
+
+	table.jtrac-view td.label {
+		text-align: left !important;
+		background-color: var(--lightblue) !important;
+		font-weight: bold;
+		border-radius: 4px 4px 0 0;
+		margin-top: 6px;
+	}
+
+	table.jtrac-view tr[wicket\:id="history"] {
+		position: relative;
+		margin-left: 8px;
+		padding-left: 12px !important;
+		border-left: 3px solid var(--mediumblue) !important;
+		border-bottom: 1px solid var(--card-border) !important;
+		margin-bottom: 14px !important;
+		background: var(--card-bg);
+		border-radius: 0 6px 6px 0;
+	}
+
+	.reply-toggle-label {
+		display: flex !important;
+		align-items: center;
+		justify-content: center;
+		background-color: var(--lightblue);
+		color: var(--darkblue);
+		border: 1px solid var(--mediumblue);
+		padding: 12px 16px;
+		margin: 14px 0 8px 0;
+		border-radius: 6px;
+		font-weight: bold;
+		font-size: 1.05em;
+		cursor: pointer;
+		text-align: center;
+		box-sizing: border-box;
+		transition: background-color 0.2s;
+	}
+
+	.reply-toggle-label:hover {
+		background-color: var(--mediumblue);
+	}
+
+	.item-view-form {
+		display: none;
+	}
+
+	#reply-toggle:checked ~ .item-view-form {
+		display: block !important;
+		animation: fadeIn 0.2s ease-in;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(-4px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	table.bdr-collapse, table.bdr-collapse tr, table.bdr-collapse td {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+
+	table.bdr-collapse textarea {
+		width: 100% !important;
+		box-sizing: border-box !important;
+	}
+
+	table.bdr-collapse input, table.bdr-collapse select {
+		max-width: 100% !important;
+		box-sizing: border-box !important;
+	}
+}
+
+/* ==========================================================================
+   Dark Mode System Preference (@media prefers-color-scheme: dark)
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--header: #1E293B;
+		--lightblue: #1E293B;
+		--mediumblue: #334155;
+		--darkblue: #60A5FA;
+		--gray: #334155;
+		--error: #F87171;
+		--errorbg: #7F1D1D;
+		--bg-body: #0F172A;
+		--text-color: #E2E8F0;
+		--card-bg: #1E293B;
+		--card-border: #334155;
+		--card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+		--border-color: #334155;
+	}
+
+	body {
+		background: var(--bg-body) !important;
+		color: var(--text-color) !important;
+	}
+
+	table.jtrac th, table.jtrac td.label {
+		background: var(--gray) !important;
+		color: var(--text-color) !important;
+	}
+
+	.alt {
+		background: var(--header) !important;
+	}
+
+	table.jtrac {
+		color: var(--text-color);
+	}
+
+	input, select, textarea {
+		background: #1E293B;
+		color: #E2E8F0;
+		border: 1px solid #475569;
+	}
+
+	input[type="submit"], input[type="button"] {
+		background: #334155;
+		color: #FFFFFF;
+		border: 1px solid #475569;
+		padding: 4px 10px;
+		border-radius: 4px;
+	}
+
+	a {
+		color: var(--darkblue);
+	}
+
+	a:hover {
+		color: #93C5FD;
+	}
+
+	.multiselect {
+		background: #1E293B;
+		color: #E2E8F0;
+		border-color: #475569;
+	}
+
+	code {
+		background: #1E293B;
+		color: #E2E8F0;
+		border-color: #475569;
+	}
+}
+
 

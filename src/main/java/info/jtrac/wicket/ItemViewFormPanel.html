@@ -1,6 +1,8 @@
 <wicket:panel>
     <span wicket:id="feedback"></span>
-    <form wicket:id="form">
+    <input type="checkbox" id="reply-toggle" class="reply-toggle-checkbox"/>
+    <label for="reply-toggle" class="reply-toggle-label"><span>💬 <wicket:message key="item_view_form.comment"/> / <wicket:message key="submit"/></span></label>
+    <form wicket:id="form" class="item-view-form">
         <table class="bdr-collapse" width="100%">
             <tr valign="top">
                 <td>

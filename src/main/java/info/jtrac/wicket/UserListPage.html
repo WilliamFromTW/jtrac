@@ -11,28 +11,30 @@
                 &nbsp;&nbsp;&nbsp;&nbsp;
                 <wicket:message key="item_search_form.resultsPerPage"/> <select wicket:id="pageSize"/>
             </form>            
-            <table class="jtrac">
-                <tr>
-                    <th><wicket:message key="user_list.userName"/></th>
-                    <th><wicket:message key="user_list.loginName"/></th>
-                    <th><wicket:message key="user_list.email"/></th>
-                    <th><wicket:message key="user_list.info"/></th>
-                    <th><wicket:message key="user_list.locale"/></th>
-                    <th><wicket:message key="user_list.locked"/></th>
-                    <th><wicket:message key="user_list.editProfile"/></th>                                        
-                    <th><wicket:message key="user_list.allocateSpaceRole"/></th>
-                </tr>            
-                <tr wicket:id="users">
-                    <td wicket:id="name"></td>
-                    <td wicket:id="loginName"></td>
-                    <td wicket:id="email"></td>
-                    <td wicket:id="info"></td>
-                    <td wicket:id="locale"></td>
-                    <td align="center"><img src="resources/error.gif" wicket:id="locked"/></td>
-                    <td wicket:id="edit" align="center"><a href="#"><img src="resources/edit.gif"/></a></td>
-                    <td wicket:id="allocate" align="center"><a href="#"><img src="resources/spaces.gif"/></a></td>
-                </tr>                
-            </table>
+            <div class="table-responsive">
+                <table class="jtrac">
+                    <tr>
+                        <th><wicket:message key="user_list.userName"/></th>
+                        <th><wicket:message key="user_list.loginName"/></th>
+                        <th><wicket:message key="user_list.email"/></th>
+                        <th><wicket:message key="user_list.info"/></th>
+                        <th><wicket:message key="user_list.locale"/></th>
+                        <th><wicket:message key="user_list.locked"/></th>
+                        <th><wicket:message key="user_list.editProfile"/></th>                                        
+                        <th><wicket:message key="user_list.allocateSpaceRole"/></th>
+                    </tr>            
+                    <tr wicket:id="users">
+                        <td wicket:id="name"></td>
+                        <td wicket:id="loginName"></td>
+                        <td wicket:id="email"></td>
+                        <td wicket:id="info"></td>
+                        <td wicket:id="locale"></td>
+                        <td align="center"><img src="resources/error.gif" wicket:id="locked"/></td>
+                        <td wicket:id="edit" align="center"><a href="#"><img src="resources/edit.gif"/></a></td>
+                        <td wicket:id="allocate" align="center"><a href="#"><img src="resources/spaces.gif"/></a></td>
+                    </tr>                
+                </table>
+            </div>
             <div style="margin-top: 8px;">
                 <span wicket:id="navigator"></span>
             </div>
