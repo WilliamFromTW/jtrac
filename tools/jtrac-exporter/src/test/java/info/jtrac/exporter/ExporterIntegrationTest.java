@@ -30,6 +30,7 @@ public class ExporterIntegrationTest {
         Files.write(testFile, "This is a test patch content.".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
         // 初始化模擬 JTrac 資料庫結構
+        Class.forName("org.hsqldb.jdbcDriver");
         try (Connection conn = DriverManager.getConnection(dbUrl, "sa", "");
              Statement stmt = conn.createStatement()) {
 

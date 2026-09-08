@@ -21,3 +21,6 @@ tools/*.jar
 *.jar
 !src/main/webapp/WEB-INF/lib/*.jar
 !etc/maven-ant-tasks.jar
+# Application runtime data & export outputs
+data/
+export*/
