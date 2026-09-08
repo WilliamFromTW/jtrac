@@ -20,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {
     "file:src/main/webapp/WEB-INF/applicationContext.xml",
-    "file:src/main/webapp/WEB-INF/applicationContext-lucene.xml"
+    "file:src/main/webapp/WEB-INF/applicationContext-lucene.xml",
+    "file:src/main/webapp/WEB-INF/applicationContext-scheduler.xml"
 })
 @Transactional
 public abstract class JtracTestBase {

@@ -2,8 +2,8 @@
 
 ## 1. Servlet 容器相容性修復與排程器現代化
 
-- [ ] 1.1 清理 `web.xml`：徹底移除已廢棄之 `Log4jConfigListener` 與 `webAppRootKey` / `log4jConfigLocation`，並確認 XML 格式驗證通過
-- [ ] 1.2 重構 `applicationContext-scheduler.xml`：以 Spring 5 原生 `ScheduledExecutorFactoryBean` 取代過時 `TimerFactoryBean`，並驗證 Spring 載入無 ClassNotFound 錯誤
+- [x] 1.1 清理 `web.xml`：徹底移除已廢棄之 `Log4jConfigListener` 與 `webAppRootKey` / `log4jConfigLocation`，並確認 XML 格式驗證通過
+- [x] 1.2 重構 `applicationContext-scheduler.xml`：以 Spring 5 原生 `ScheduledExecutorFactoryBean` 取代過時 `TimerFactoryBean`，並驗證 Spring 載入無 ClassNotFound 錯誤
 
 ## 2. Wicket 9.16.x 核心相依性與 Application 基礎重構
 
