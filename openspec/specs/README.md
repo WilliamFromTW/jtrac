@@ -10,7 +10,7 @@
 |---|---|---|---|
 | [`i18n-resources`](i18n-resources/spec.md) | 多國語系資源與過濾規範 | 定義 JTrac 專案中多國語系資源檔案之 UTF-8 編碼規範與 Maven 資源處理隔離規則，確保在不同作業系統與 JDK 環境下建置及執行時皆能正確處理字元編碼，並避免框架變數被構建工具誤替換。 | Active |
 | [`build-documentation`](build-documentation/spec.md) | 多語系建置與編譯文件規範 | 規範 JTrac 專案之多語系建置與編譯技術文件結構，確保全球開發者皆能在其母語或慣用語言環境下，清楚理解 Maven 建置指令、依賴套件本機快取下載機制，以及 WAR 封裝檔內部依賴整合原理。 | Active |
-| [`html-exporter`](html-exporter/spec.md) | 獨立命令列 HTML 討論串匯出工具 | 定義獨立命令列工具 `jtrac-exporter.jar` 之功能規格與資料處理邏輯。透過指定 JDBC 連線字串存取遠端或本地資料庫，相容 HSQLDB 1.8 歷史庫，在零舊版依賴下將議題、討論串歷程與附件匯出為支援離線明暗主題與 5 國多語系之高對比靜態 HTML 報表。 | Active |
+| [`html-exporter`](html-exporter/spec.md) | 獨立命令列與網頁即時串流 HTML 討論串匯出工具 | 定義獨立命令列工具 `jtrac-exporter.jar` 與網頁即時串流 ZIP 下載之功能規格與資料處理邏輯。支援指定 JDBC 連線字串或既有 Spring DataSource 存取資料庫，相容 HSQLDB 1.8 歷史庫，在零舊版依賴或行內連線下將議題、討論串歷程與附件匯出為支援離線明暗主題與 5 國多語系之高對比靜態 HTML 報表與 ZIP 串流下載。 | Active |
 
 ---
 
@@ -48,8 +48,9 @@ flowchart TD
     H --> I[WAR WEB-INF/lib 第三方套件封裝解析]
 ```
 
-### 3. `html-exporter` 命令列 JDBC 討論串匯出架構
+### 3. `html-exporter` 討論串匯出架構
 
+#### 3.1 命令列獨立 CLI 匯出架構
 ```mermaid
 flowchart TD
     A[使用者命令列啟動 CLI] --> B{解析參數}
@@ -72,6 +73,34 @@ flowchart TD
     N --> O[產出 index.html 專案空間導覽索引]
     N --> P[產出 各 Space 討論串 HTML 頁面]
     M --> Q[輸出 attachments/ 靜態附件目錄]
+```
+
+#### 3.2 網頁介面即時串流 ZIP 下載架構
+```mermaid
+flowchart TD
+    User([登入使用者]) -->|點擊導覽列 [📦 匯出 HTML]| Nav[HeaderPanel 導覽連結]
+    Nav --> Page[HtmlExportPage 匯出確認頁面]
+    
+    subgraph Mode2 [模式二：匯出確認與參數配置]
+        Page --> OptScope[選擇範圍: 全部專案空間 / 目前專案空間]
+        Page --> OptLang[選擇 UI 語系: zh-TW / en / zh-CN / ja / vi]
+        Page --> OptAttach[包含實體附件打包: 是 / 否]
+        Page --> Disclaimer[⚠️ 醒目警示: 語系僅套用於介面框架，議題內容無法翻譯]
+    end
+    
+    Page -->|點擊「開始匯出並下載 ZIP」| Action[ZipDownloadRequest]
+    
+    subgraph CoreEngine [行內記憶體串流匯出引擎 (ZipStreamExporter)]
+        Action --> Conn[取得 Spring DataSource 既有連線]
+        Conn --> Extract[讀取 Spaces / Items / History / Attachments]
+        Extract --> Render[依指定語系渲染 HTML 頁面]
+        OptAttach -->|勾選| CopyAttach[讀取實體附件串流]
+        OptAttach -->|未勾選| SkipAttach[略過實體附件]
+        Render & CopyAttach & SkipAttach --> ZipStream[寫入 ZipOutputStream]
+    end
+    
+    ZipStream --> Response[Wicket WebResponse 直接串流下載]
+    Response --> Browser([瀏覽器接收 jtrac-export-YYYYMMDD.zip])
 ```
 
 ---
