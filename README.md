@@ -1,123 +1,109 @@
-# JTrac - Open Source Issue Tracking Web Application
+# JTrac (Enhanced Fork)
 
 [![Java](https://img.shields.io/badge/Java-8%20%7C%2011-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
-[![OpenSpec](https://img.shields.io/badge/OpenSpec-spec--driven-brightgreen.svg)](openspec/specs/README.md)
+[![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
+[![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
+
+本專案為 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 的現代化增強 Fork 版本。致力於提供更輕量、高相容性、具備離線靜態歸檔與現代化 UI 體驗的 Issue Tracking 系統。本專案開發過程中使用 OpenSpec v1.12.0 規格驅動流程，並由 Antigravity 1.1.27 輔助開發、架構重構與品質把關。
 
 ---
 
-## 🌐 Language Navigation / 多語系導覽 / 言語ナビゲーション / Điều hướng ngôn ngữ
+## 多語系建置手冊 / Multilingual Build Guides
 
-| Language / 語言 / 言語 / Ngôn ngữ | Build Guide / 建置指南 / ビルドガイド / Hướng dẫn |
+| 語言 / Language | 建置指南 / Build Guide |
 |---|---|
-| **English** | [📖 English Build & Compilation Guide](docs/build/BUILD_en.md) |
-| **繁體中文 (Traditional Chinese)** | [📖 繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
-| **简体中文 (Simplified Chinese)** | [📖 简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
-| **日本語 (Japanese)** | [📖 日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
-| **Tiếng Việt (Vietnamese)** | [📖 Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
+| **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
+| **English** | [English Build & Compilation Guide](docs/build/BUILD_en.md) |
+| **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
+| **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
+| **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
 
 ---
 
-## 📌 Project Overview / 專案簡介
+## 本 Fork 版本重點更新 (Changelog & Major Updates)
 
-**JTrac** is a fast, easy-to-use, and highly customizable generic issue-tracking web-application. 
+### 1. 模組清理：完全移除 Wiki (Removed Wiki Module)
+- 徹底移除非核心且過時的 Wiki 模組代碼、頁面元件及導航列圖示，精簡系統架構，專注於高效穩定的 Issue 追蹤核心。
 
-### Key Features:
-- **Customizable Workflow & Fields**: Easily configure custom fields, drop-down selections, and permissions per space.
-- **Detailed History View**: Follow-up discussion threads (similar to forum threads) keeping all updates, status changes, and notes organized together.
-- **File Attachments**: Upload and link attachments directly into discussion history entries.
-- **Email Integration**: Automated email notifications upon ticket creation, updates, and reassignment.
-- **Flexible Database**: Out-of-the-box embedded HSQLDB; also supports MySQL, PostgreSQL, MS SQL Server, and Oracle.
+### 2. 新增功能 (New Features)
+- **Web 端批次 HTML 匯出與 ZIP 下載**：
+  - 於主導航列整合「匯出 HTML」功能，使用者可於網頁直接勾選複數專案空間（支援「全選 / 全部取消」），線上即時打包下載完整靜態 HTML 討論串與附件 ZIP 檔。
+- **嚴格空間權限守門員 (Permission Guardrails)**：
+  - 前後端雙層嚴格把關：一般使用者僅能檢視、選擇並下載自己具有成員權限的專案空間（系統管理員維持全域權限），具備空清單阻擋機制與友善提醒。
+- **獨立命令列 HTML 匯出工具 (`tools/jtrac-exporter.jar`)**：
+  - 無需啟動 Web 伺服器，直接透過 JDBC 連線字串將資料庫匯出為離線響應式 HTML 報表。
+  - 支援多語系靜態報表、附件直接連結，並內建 100% 離線純 CSS 深色主題 (Dark Mode 切換開關)，完全不依賴外部網路或 CDN。
+- **多語系支援完整補完 (Full i18n Coverage)**：
+  - 重新校訂並補齊繁體中文 (`zh_TW`) 與簡體中文 (`zh_CN`) 翻譯。
+  - 補齊各語系遺漏之狀態與按鈕鍵值（如專案空間啟用狀態 `space_form.isActive` 等）。
+
+### 3. Bug 修復 (Bug Fixes)
+- **導航列按鈕與標籤置中問題 (Navigation Header Centering)**：
+  - 修復導航列中「儀表板、搜尋、匯出、選項、登出、帳號名稱」等按鈕文字與圖示垂直基準線不一致及靠右偏移問題。
+  - 全面採用 Flexbox inline-flex 置中對齊，按鈕加上 3px 微圓角與 hover 互動底色，資訊徽章標籤獨立呈現。
+- **歷史討論串歷程優化 (Thread History Cleanup)**：
+  - 修復匯出 HTML 時討論串第一筆總是重複出現無任何備註的「Open」冗餘記錄，僅保留具備實質意義的留言與狀態變更歷程。
+- **解決 Hibernate `LazyInitializationException`**：
+  - 修復空間中繼資料 (`space.metadata`) 延遲載入產生的 Session 關閉異常，改採預先積極載入 (Eager Fetch / Initialize) 保障穩定運行。
+- **解決 Maven UTF-8 資源過濾與二進位圖檔損壞**：
+  - 移除過時的 `native2ascii` 轉換，全專案規範化純 UTF-8 編碼。
+  - 修正 Maven resource filtering 誤將二進位檔案（gif、png、jar）當文字過濾導致圖檔損壞之問題。
 
 ---
 
-## 🛠 Tech Stack / 技術棧
+## 開發技術與架構 (Technologies & Architecture)
 
-- **Core Language**: Java 1.8 / 11
-- **Web Framework**: Apache Wicket
-- **Inversion of Control & MVC**: Spring Framework
-- **ORM & Database**: Hibernate / HSQLDB (Embedded)
-- **Build & Dependency Tool**: Apache Maven (Packaging: WAR)
-- **Character Encoding**: 100% UTF-8 Compliant
+- **核心語言**：Java 1.8 / 11
+- **Web 框架**：Apache Wicket 1.3
+- **IoC 與控制反轉**：Spring Framework 2.5
+- **ORM 與資料庫**：Hibernate 3 / HSQLDB（內建）、支援 MySQL, PostgreSQL, MS SQL, Oracle
+- **建置工具**：Apache Maven 3.9+（輸出 WAR 套件）
+- **輔助工具與開發規格**：OpenSpec v1.12.0、Antigravity 1.1.27
+- **編碼規範**：全系統 100% UTF-8
 
 ---
 
-## 🚀 Quick Start / 快速建置
+## 快速開始：編譯與部署 (Quick Start)
 
-### 1. Environment Setup / 環境準備 (Windows)
-In Windows Command Prompt (CMD), load the environment script:
-```cmd
-call W:\developer\maven.bat
-```
-
-### 2. Build & Package / 編譯與打包
-```cmd
-# Compile source code / 編譯主程式碼
+### 1. 編譯主程式 (WAR)
+```bash
+# 編譯主程式碼
 mvn compile
 
-# Package WAR file (skipping tests) / 快速打包 WAR 檔
+# 快速打包 WAR 檔（跳過測試）
 mvn package -DskipTests
 ```
-The output WAR package will be generated at:
-`target/jtrac.war`
+產出套件位於：`target/jtrac.war`，可直接部署於 Jetty 或 Tomcat。
 
----
-
-## 💡 Important Build Architecture Notes / 重要建置機制說明
-
-1. **Automatic Dependency Cache (`~/.m2/repository`) / 依賴自動下載**
-   - Maven automatically downloads all required third-party libraries into your local cache directory (`~/.m2/repository`). 
-   - **No manual JAR downloads are required.**
-
-2. **Self-Contained WAR (`WEB-INF/lib/`) / 第三方套件全數封裝**
-   - When running `mvn package`, all 53 third-party JARs are automatically bundled inside `target/jtrac.war` under `WEB-INF/lib/`.
-   - When deploying to Servlet containers (Jetty 9.4, Jetty 12 `ee8`, Tomcat 9), simply deploy `jtrac.war`. **No external libraries need to be copied to the server.**
-
----
-
-## 📦 Tools: JTrac Standalone HTML Exporter / 討論串靜態匯出工具
-
-A zero-legacy-dependency, standalone CLI tool to export any JTrac database into static, responsive HTML discussion threads with attachments:
-無需啟動 Web 伺服器，直接透過 JDBC 連線字串將 JTrac 議題、歷史討論串與附件匯出為多語系靜態 HTML 報表。
-
-### Build & Run / 建置與執行:
+### 2. 建置獨立 HTML 匯出工具 (CLI)
 ```bash
-# 1. Build the standalone executable JAR / 在專案根目錄打包獨立可執行檔
+# 建置獨立可執行檔
 mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-
 # 產出位置: tools/jtrac-exporter.jar
 
-# 2. Run with Local HSQLDB (Relative Path) / 連線本地 HSQLDB (相對路徑)
+# 執行本地 HSQLDB 匯出範例
 java -jar tools/jtrac-exporter.jar \
   --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" \
   --attachments-dir="./data/attachments" \
-  --out="./export-hsqldb" \
+  --out="./export-output" \
   --lang=zh-TW
-
-# 3. Run with Remote Database (MySQL / PostgreSQL / SQL Server)
-java -jar tools/jtrac-exporter.jar \
-  --db-url="jdbc:mysql://host:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
-  --db-user="jtrac" \
-  --db-password="password" \
-  --attachments-dir="/path/to/attachments" \
-  --out="./export-mysql" \
-  --lang=en
 ```
-For full options, run: `java -jar tools/jtrac-exporter.jar --help`
 
 ---
 
-## 📚 Documentation & Specifications / 相關規格文件
+## 專案規格文件 (Specifications)
 
-- [Master Specifications / 專案主規格目錄](openspec/specs/README.md)
-- [HTML Exporter Specification / 討論串匯出規格](openspec/specs/html-exporter/spec.md)
-- [Build Documentation Specification / 編譯文件規格](openspec/specs/build-documentation/spec.md)
-- [i18n & Resources Specification / 語系與資源規格](openspec/specs/i18n-resources/spec.md)
-- [Project Rules / 專案鐵律規範](.agents/AGENTS.md)
+本專案採用 OpenSpec 規格驅動開發：
+- [專案主規格目錄](openspec/specs/README.md)
+- [HTML Exporter 規格文件](openspec/specs/html-exporter/spec.md)
+- [語系與資源規格文件](openspec/specs/i18n-resources/spec.md)
+- [建置手冊規格文件](openspec/specs/build-documentation/spec.md)
+- [專案開發鐵律](.agents/AGENTS.md)
 
 ---
 
-## 📄 License
+## 授權條款 (License)
 
-JTrac is open-source software released under the [Apache Software License, Version 2.0](license.txt).
+JTrac 為開源軟體，遵循 [Apache Software License, Version 2.0](license.txt)。
