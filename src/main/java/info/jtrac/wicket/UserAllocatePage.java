@@ -84,6 +84,22 @@ public class UserAllocatePage extends BasePage {
         private RoleAllocatePanel roleAllocatePanel;      
         private Button allocateButton;                
         
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public Space getSpace() {
+            return space;
+        }
+
+        public void setSpace(Space space) {
+            this.space = space;
+        }
+
         private void initRoleChoice(Space space) {
             List<String> roleKeys = user.getRoleKeys(space);
             List<String> list = space.getMetadata().getAllRoleKeys();
@@ -96,7 +112,7 @@ public class UserAllocatePage extends BasePage {
                 list.remove(Role.ROLE_ADMIN);
             }
             roleAllocatePanel.setChoices(list);
-            allocateButton.setEnabled(true);
+            allocateButton.setEnabled(!list.isEmpty());
         }        
         
         public UserAllocateForm(String id) {
@@ -190,14 +206,17 @@ public class UserAllocatePage extends BasePage {
             
             add(spaceChoice);
             
-            spaceChoice.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+            spaceChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     Space s = (Space) getFormComponent().getConvertedInput();
                     if (s == null) {
+                        space = null;
                         roleAllocatePanel.setChoices(new ArrayList<String>());
                         allocateButton.setEnabled(false);
                     } else {
                         Space temp = getJtrac().loadSpace(s.getId());
+                        space = temp;
                         // populate choice, enable button etc
                         initRoleChoice(temp);
                     }
@@ -214,7 +233,7 @@ public class UserAllocatePage extends BasePage {
                 @Override
                 public void onSubmit() {  
                     List<String> roleKeys = roleAllocatePanel.getSelected();
-                    if(space == null || roleKeys.size() == 0) {
+                    if(space == null || roleKeys == null || roleKeys.isEmpty()) {
                         return;
                     }
                     for(String roleKey : roleKeys) {

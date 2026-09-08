@@ -17,6 +17,7 @@
 package info.jtrac.wicket;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Check;
@@ -35,10 +36,19 @@ public class RoleAllocatePanel extends BasePanel {
 
     public void setChoices(List<String> choices) {
         this.choices = choices;
+        this.selected.clear();
     }    
 
     public List<String> getSelected() {
         return selected;
+    }
+
+    public void setSelected(List<String> selected) {
+        this.selected = selected == null ? new ArrayList<String>() : selected;
+    }
+
+    public void setSelected(Collection<String> selected) {
+        this.selected = selected == null ? new ArrayList<String>() : new ArrayList<String>(selected);
     }        
 
     public RoleAllocatePanel(String id) {

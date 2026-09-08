@@ -1,21 +1,23 @@
-# JTrac (Bản Fork Nâng Cấp)
+# JTrac (Phiên bản Fork Hiện đại Hóa Nâng cao)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
 ---
 
-[![Java](https://img.shields.io/badge/Java-8%20%7C%2011-orange.svg)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](pom.xml)
+[![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
+[![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-Dự án này là phiên bản fork hiện đại hóa và nâng cấp từ [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Dự án hướng đến việc cung cấp một hệ thống theo dõi vấn đề (Issue Tracking) gọn nhẹ, tương thích cao, hỗ trợ lưu trữ tĩnh ngoại tuyến và giao diện hiện đại. Quá trình phát triển được điều phối theo quy chuẩn OpenSpec v1.12.0 với sự hỗ trợ của Antigravity 1.1.27 trong việc tái cấu trúc, kiểm thử và đảm bảo chất lượng.
+Dự án này là phiên bản fork hiện đại hóa và nâng cấp toàn diện từ [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Dự án hướng đến việc cung cấp một hệ thống theo dõi vấn đề (Issue Tracking) gọn nhẹ, độ tương thích cao, hỗ trợ lưu trữ tĩnh ngoại tuyến, giao diện hiện đại và các tiêu chuẩn bảo mật doanh nghiệp mới nhất. Dự án được phát triển theo quy trình OpenSpec v1.12.0 với sự hỗ trợ của Antigravity.
 
 ---
 
-## Hướng Dẫn Biên Dịch Đa Ngôn Ngữ / Multilingual Build Guides
+## Hướng dẫn Biên dịch Đa ngôn ngữ / Multilingual Build Guides
 
 | Ngôn ngữ / Language | Hướng dẫn / Build Guide |
 |---|---|
@@ -24,15 +26,15 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp từ [JTr
 | **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
 | **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
 | **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
-| **Deutsch (German)** | [Hướng dẫn biên dịch tiếng Đức](docs/build/BUILD_de.md) |
-| **Español (Spanish)** | [Hướng dẫn biên dịch tiếng Tây Ban Nha](docs/build/BUILD_es.md) |
-| **Français (French)** | [Hướng dẫn biên dịch tiếng Pháp](docs/build/BUILD_fr.md) |
+| **Deutsch (German)** | [Deutscher Kompilierungs- und Build-Leitfaden](docs/build/BUILD_de.md) |
+| **Español (Spanish)** | [Guía de compilación y construcción en español](docs/build/BUILD_es.md) |
+| **Français (French)** | [Guide complet de compilation et de construction en français](docs/build/BUILD_fr.md) |
 
 ---
 
-## Hướng Dẫn Quản Trị Hệ Thống Đa Ngôn Ngữ / Multilingual Administrator Guides
+## Hướng dẫn Quản trị Hệ thống Đa ngôn ngữ / Multilingual Administrator Guides
 
-| Ngôn ngữ / Language | Hướng dẫn quản trị / Admin Guide |
+| Ngôn ngữ / Language | Hướng dẫn Quản trị / Admin Guide |
 |---|---|
 | **Tiếng Việt (Vietnamese)** | [Hướng dẫn Quản trị viên và Cấu hình Hệ thống](docs/admin/ADMIN_GUIDE_vi.md) |
 | **English** | [English Administrator & System Configuration Guide](docs/admin/ADMIN_GUIDE_en.md) |
@@ -45,88 +47,81 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp từ [JTr
 
 ---
 
-## Các Cập Nhật Quan Trọng (Changelog & Major Updates)
+## Nhật ký Cập nhật Quan trọng (Changelog & Major Updates)
 
-### 1. Dọn dẹp mô-đun: Loại bỏ hoàn toàn Wiki (Removed Wiki Module)
-- Loại bỏ hoàn toàn mã nguồn, trang giao diện và biểu tượng menu của mô-đun Wiki cũ để tinh giản hệ thống, tập trung tối đa vào hiệu năng theo dõi vấn đề cốt lõi.
+### 🚀 Phiên bản 2.3.3-2.0.0 Nâng cấp Lớn (Major Architectural Modernization)
 
-### 2. Tính năng mới (New Features)
-- **Xuất HTML hàng loạt và tải ZIP trực tiếp trên Web**:
-  - Tích hợp tính năng "Xuất HTML" trên thanh điều hướng chính. Cho phép người dùng chọn nhiều không gian dự án (hỗ trợ "Chọn tất cả / Bỏ chọn tất cả") và tải về tệp nén ZIP chứa toàn bộ lịch sử thảo luận HTML cùng tệp đính kèm.
-- **Kiểm soát phân quyền dự án nghiêm ngặt (Permission Guardrails)**:
-  - Bảo vệ hai lớp ở cả phía máy chủ và giao diện: người dùng thông thường chỉ có thể thấy, chọn và tải dữ liệu từ các dự án mình có quyền thành viên (quản trị viên hệ thống giữ toàn quyền). Bổ sung cơ chế chặn khi danh sách rỗng và thông báo thân thiện.
-- **Công cụ dòng lệnh xuất HTML độc lập (`tools/jtrac-exporter.jar`)**:
-  - Không cần khởi động máy chủ Web, kết nối trực tiếp qua JDBC để xuất toàn bộ dữ liệu ra báo cáo HTML phản hồi nhanh và đa ngôn ngữ.
-  - Tích hợp chế độ nền tối (Dark Mode toggle) 100% ngoại tuyến bằng CSS thuần, hoàn toàn không phụ thuộc vào CDN bên ngoài hay Internet.
-- **Hoàn thiện bản địa hóa đa ngôn ngữ (Full i18n Coverage)**:
-  - Hiệu đính và bổ sung đầy đủ bản dịch tiếng Trung phồn thể (`zh_TW`) và giản thể (`zh_CN`).
-  - Bổ sung các nhãn còn thiếu trên tất cả các ngôn ngữ (như trạng thái kích hoạt không gian `space_form.isActive`).
-
-### 3. Sửa lỗi (Bug Fixes)
-- **Căn giữa các nút và nhãn trên thanh điều hướng (Navigation Header Centering)**:
-  - Khắc phục lỗi lệch trục thẳng đứng và bị ép sang phải của các nút như "Bảng điều khiển", "Tìm kiếm", "Xuất HTML", "Tùy chọn", "Đăng xuất", tên tài khoản.
-  - Áp dụng cấu trúc Flexbox inline-flex căn giữa hoàn hảo cả chiều ngang và chiều dọc, bổ sung bo góc viền 3px, hiệu ứng đổi màu khi rê chuột (hover) và phân tách nhãn thông tin.
-- **Tối ưu lịch sử luồng thảo luận (Thread History Cleanup)**:
-  - Loại bỏ bản ghi trạng thái "Open" ban đầu không có ghi chú hoặc thay đổi thực tế khi xuất HTML, chỉ giữ lại các nội dung thảo luận và biến động trạng thái có ý nghĩa.
-- **Xử lý dứt điểm lỗi Hibernate `LazyInitializationException`**:
-  - Khắc phục lỗi đóng phiên truy cập (Session) khi tải siêu dữ liệu không gian (`space.metadata`) bằng phương thức tải trước tích cực (Eager Fetch / Initialize).
-- **Sửa lỗi lọc tài nguyên Maven UTF-8 và hỏng tệp nhị phân**:
-  - Loại bỏ phương thức `native2ascii` cũ, chuẩn hóa 100% mã hóa UTF-8.
-  - Sửa lỗi cấu hình Maven lọc tài nguyên khiến các tệp hình ảnh nhị phân (gif, png, jar) bị lỗi khi đóng gói.
-
----
-
-## Công Nghệ & Kiến Trúc Phát Triển (Technologies & Architecture)
-
-- **Ngôn ngữ chính**: Java 1.8 / 11
-- **Khung Web**: Apache Wicket 1.3
-- **IoC & Container**: Spring Framework 2.5
-- **ORM & Cơ sở dữ liệu**: Hibernate 3 / HSQLDB tích hợp; hỗ trợ MySQL, PostgreSQL, MS SQL Server, Oracle
-- **Công cụ đóng gói**: Apache Maven 3.9+ (định dạng WAR)
-- **Công cụ hỗ trợ phát triển & quy chuẩn**: OpenSpec v1.12.0, Antigravity 1.1.27
-- **Bộ mã ký tự**: 100% UTF-8
+1. **Hiện đại hóa Kiến trúc Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
+   - Nâng cấp lên Spring Framework 5.3.37, loại bỏ hoàn toàn `HibernateTemplate` và `TimerFactoryBean`.
+   - Nâng cấp lên Hibernate ORM 5.6.15.Final với quản lý `SessionFactory` nguyên bản và truy vấn chuẩn JPA.
+   - Chuyển đổi tìm kiếm toàn văn sang API Lucene nguyên bản, tách biệt khỏi thư viện cũ `spring-modules-lucene`.
+   - Nâng cấp kiểm thử đơn vị sang JUnit 5 (Jupiter).
+2. **Cải tiến Bảo mật Toàn diện (Spring Security 5.8 + Tự động chuyển đổi BCrypt)**:
+   - Thay thế Acegi Security 1.0.7 cũ kỹ bằng Spring Security 5.8.14 chuẩn mực.
+   - Cung cấp `JtracHybridPasswordEncoder`: tương thích mã băm MD5 cũ và tự động tái băm sang BCrypt an toàn ngay khi người dùng đăng nhập thành công.
+3. **Hiện đại hóa Tầng Web (Apache Wicket 9.16.0)**:
+   - Thay thế Wicket 1.3.7 từ năm 2008 bằng Wicket 9.16.0 hiện đại với Generics toàn diện (`IModel<T>`).
+   - Tương thích hoàn hảo với các Servlet Container chuẩn Servlet 4.0 (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
+4. **Phân trang Danh sách Người dùng & Không gian Dự án (Pagination & Settings)**:
+   - Danh sách người dùng (`UserListPage`) và không gian (`SpaceListPage`) hỗ trợ phân trang linh hoạt (10, 25, 50, 100, Tất cả).
+   - Thêm tham số `users.list.pageSize` và `spaces.list.pageSize` vào bảng `config`.
+5. **Sửa lỗi Sự kiện Ajax Phân quyền Dự án**:
+   - Chuyển đổi sự kiện Ajax sang chuẩn DOM `"change"`, xử lý chống lỗi khi bỏ chọn quyền.
+6. **Bộ lọc Tài nguyên Tĩnh Toàn cục (StaticResourceFilter)**:
+   - Giải quyết triệt để lỗi 404 hình ảnh `../resources/*` ở các đường dẫn URL lồng nhau và bổ sung các biểu tượng còn thiếu.
+7. **Sửa lỗi Gắn kết Model cho Upload Tệp (FileUpload Model Binding)**:
+   - Gắn kết `ListModel` độc lập cho `FileUploadField` trong `ItemFormPage`, `ItemViewFormPanel`, và `ExcelImportPage`, loại bỏ lỗi ngoại lệ thuộc tính `file`.
+8. **Nâng cấp Cơ sở dữ liệu và Kịch bản SQL**:
+   - Cung cấp kịch bản nâng cấp [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) cho MySQL, PostgreSQL, SQL Server, Oracle.
+   - Tích hợp `HsqldbDatabaseMigrator` tự động sao lưu và nâng cấp HSQLDB 1.8 lên 2.x khi khởi động.
 
 ---
 
-## Bắt Đầu Nhanh: Biên Dịch & Triển Khai (Quick Start)
+## Công nghệ & Kiến trúc (Technologies & Architecture)
 
-### 1. Đóng gói ứng dụng chính (WAR)
+- **Ngôn ngữ chính**: Java 11 / 17
+- **Web Framework**: Apache Wicket 9.16.0
+- **IoC Container**: Spring Framework 5.3.37
+- **Bảo mật**: Spring Security 5.8.14 (Mã hóa BCrypt)
+- **ORM & Persistence**: Hibernate ORM 5.6.15.Final
+- **Cơ sở dữ liệu hỗ trợ**: HSQLDB 2.x (mặc định), MySQL / MariaDB, PostgreSQL, Microsoft SQL Server, Oracle
+- **Máy chủ Web hỗ trợ**:
+  - **Jetty 10.x** (Hỗ trợ trực tiếp, đã kiểm thử thực tế trên Jetty 10.0.26)
+  - **Jetty 12.x** (Bật module `ee8` để chạy trực tiếp)
+  - **Tomcat 9.x** (Hỗ trợ trực tiếp)
+  - **Tomcat 10.x / 11.x** (Hỗ trợ thông qua thư mục tự động chuyển đổi `webapps-javaee/` hoặc công cụ `jakartaee-migration`)
+- **Công cụ đóng gói**: Apache Maven 3.9+
+- **Quy chuẩn phát triển**: OpenSpec v1.12.0, Antigravity
+
+---
+
+## Bắt đầu Nhanh (Quick Start)
+
+### 1. Đóng gói Ứng dụng Web (WAR)
 ```bash
-# Biên dịch mã nguồn
-mvn compile
+# Biên dịch mã nguồn (yêu cầu JDK 11 hoặc JDK 17)
+mvn clean compile
 
-# Đóng gói tệp WAR (bỏ qua kiểm thử)
+# Chạy kiểm thử và đóng gói WAR
+mvn package
+
+# Đóng gói nhanh (bỏ qua kiểm thử)
 mvn package -DskipTests
 ```
-Tệp gói hoàn chỉnh nằm tại: `target/jtrac.war`, sẵn sàng triển khai trên Jetty hoặc Tomcat.
+Tệp gói xuất ra: `target/jtrac.war`.
 
-### 2. Đóng gói và chạy công cụ xuất HTML (CLI)
+### 2. Nâng cấp Cơ sở dữ liệu (Khi nâng cấp từ 2.3.3-1.0.0)
+- Với MySQL / PostgreSQL / SQL Server / Oracle: Chạy tệp [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql).
+- Với HSQLDB nhúng: Hệ thống sẽ tự động sao lưu và nâng cấp cấu trúc dữ liệu khi khởi động máy chủ.
+
+### 3. Đóng gói Công cụ Xuất HTML Độc lập (CLI)
 ```bash
-# Đóng gói tệp JAR thực thi độc lập
 mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-# Kết quả: tools/jtrac-exporter.jar
-
-# Ví dụ chạy xuất dữ liệu từ HSQLDB cục bộ
-java -jar tools/jtrac-exporter.jar \
-  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" \
-  --attachments-dir="./data/attachments" \
-  --out="./export-output" \
-  --lang=vi
+# Đầu ra: tools/jtrac-exporter.jar
 ```
 
 ---
 
-## Tài Liệu & Quy Chuẩn Dự Án (Specifications)
+## Giấy phép (License)
 
-Dự án phát triển dựa trên tài liệu đặc tả OpenSpec:
-- [Mục lục thông số kỹ thuật](openspec/specs/README.md)
-- [Đặc tả công cụ xuất HTML](openspec/specs/html-exporter/spec.md)
-- [Đặc tả tài nguyên đa ngôn ngữ](openspec/specs/i18n-resources/spec.md)
-- [Đặc tả tài liệu biên dịch](openspec/specs/build-documentation/spec.md)
-- [Quy tắc phát triển](.agents/AGENTS.md)
-
----
-
-## Giấy Phép (License)
-
-JTrac là phần mềm mã nguồn mở phát hành theo [Giấy phép Phần mềm Apache, Phiên bản 2.0](license.txt).
+JTrac là phần mềm mã nguồn mở theo giấy phép [Apache Software License, Version 2.0](license.txt).

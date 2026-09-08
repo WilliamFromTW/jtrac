@@ -1,150 +1,100 @@
-# Guide d'administration et de configuration du système JTrac (Administrator Guide)
+# Guide d'Administration et de Configuration Système (Français)
 
 [English](ADMIN_GUIDE_en.md) | [繁體中文](ADMIN_GUIDE_zh-TW.md) | [简体中文](ADMIN_GUIDE_zh-CN.md) | [日本語](ADMIN_GUIDE_ja.md) | [Tiếng Việt](ADMIN_GUIDE_vi.md) | [Deutsch](ADMIN_GUIDE_de.md) | [Español](ADMIN_GUIDE_es.md) | [Français](ADMIN_GUIDE_fr.md)
 
 ---
 
 ## Sommaire
-1. [Première connexion et identifiants par défaut](#1-première-connexion-et-identifiants-par-défaut)
-2. [Paramètres système initiaux critiques (Obligatoire)](#2-paramètres-système-initiaux-critiques-obligatoire)
-3. [Architecture du système et organigrammes d'e-mail (Mermaid)](#3-architecture-du-système-et-organigrammes-de-mail-mermaid)
-4. [Aperçu des fonctionnalités d'administration](#4-aperçu-des-fonctionnalités-dadministration)
-5. [Bonnes pratiques de sécurité et de maintenance](#5-bonnes-pratiques-de-sécurité-et-de-maintenance)
+1. [Première Connexion & Identifiants par Défaut](#1-première-connexion--identifiants-par-défaut)
+2. [Paramètres d'Initialisation Obligatoires](#2-paramètres-dinitialisation-obligatoires)
+3. [Architecture et Flux E-mail (Mermaid)](#3-architecture-et-flux-e-mail-mermaid)
+4. [Fonctions d'Administration Principales](#4-fonctions-dadministration-principales)
+5. [Sécurité, Mise à Niveau de la Base de Données et Maintenance](#5-sécurité-mise-à-niveau-de-la-base-de-données-et-maintenance)
 
 ---
 
-## 1. Première connexion et identifiants par défaut
+## 1. Première Connexion & Identifiants par Défaut
 
-Lorsque JTrac démarre pour la première fois et initialise la base de données, un compte administrateur global par défaut est créé automatiquement :
-
-- **URL d'accès au système** : `http://<IP-ou-domaine-du-serveur>:<port>/` (exemple local : `http://localhost:8888/`)
-- **Nom d'utilisateur par défaut (Username)** : `admin`
-- **Mot de passe par défaut (Password)** : `admin`
+- **URL du système** : `http://<IP-Serveur>:<Port>/` (ex: `http://localhost:8888/`)
+- **Nom d'utilisateur par défaut** : `admin`
+- **Mot de passe par défaut** : `admin`
 
 > [!WARNING]
-> **Avertissement de sécurité important** :
-> Dès votre première connexion réussie, accédez sans tarder au menu situé en haut à droite **OPTIONS** ➜ **Edit User Profile** pour modifier le mot de passe du compte `admin`. Ne laissez jamais les identifiants par défaut sur un environnement de production ou public !
+> Changez immédiatement le mot de passe après votre première connexion via **OPTIONS** ➜ **Edit User Profile**.
 
 ---
 
-## 2. Paramètres système initiaux critiques (Obligatoire)
+## 2. Paramètres d'Initialisation Obligatoires
 
-Connectez-vous et rendez-vous dans **OPTIONS** ➜ **Manage Settings**. Les paramètres suivants conditionnent l'accès externe et l'envoi des notifications par e-mail, et **doivent impérativement être configurés avant toute mise en production** :
+Accédez à **OPTIONS** ➜ **Manage Settings** :
 
-### 1. `jtrac.url.base` (URL de base du système - Obligatoire / Critique)
+### 1. `jtrac.url.base` (URL de base du système - CRITIQUE)
 - **Valeur par défaut** : `http://localhost/jtrac/`
-- **Configuration recommandée obligatoire** : Indiquez l'URL complète par laquelle les utilisateurs finaux accèdent réellement au service (incluant le protocole `http://` ou `https://`, l'adresse IP ou le nom de domaine, le port et le chemin de contexte, **et se terminant impérativement par une barre oblique `/`**).
-  - Exemple réseau d'entreprise : `http://192.168.1.100:8888/`
-  - Exemple domaine de production : `https://issues.yourcompany.com/`
-- **Pourquoi cette configuration est-elle obligatoire ?** :
-  JTrac envoie automatiquement des notifications par e-mail :
-  1. Courriels de bienvenue contenant les identifiants initiaux lors de la création d'un utilisateur par un administrateur.
-  2. Liens de réinitialisation sécurisés en cas d'oubli de mot de passe ("Forgot Password").
-  3. Notifications de suivi lors de la création, de l'assignation et des changements de statut des demandes (Issues).
-  
-  L'ensemble des hyperliens de ces courriels est généré dynamiquement à partir du préfixe `jtrac.url.base`.
-- **Conséquences d'un défaut de configuration** :
-  Si ce champ reste vide ou conserve la valeur par défaut, tous les liens des e-mails pointeront vers `http://localhost/...`. Lorsque les destinataires cliqueront sur un lien depuis leur propre poste, leur navigateur tentera de se connecter à leur propre machine (localhost), ce qui provoquera une **erreur de connexion et l'impossibilité totale de réinitialiser leur mot de passe** !
+- **Recommandation** : URL accessible aux utilisateurs finaux, **terminée par un slash `/`** (ex: `http://192.168.1.100:8888/` ou `https://issues.yourcompany.com/`).
+- **Importance** : Tous les liens des e-mails s'appuient sur ce préfixe. S'il reste sur `localhost`, les destinataires distants ne pourront pas ouvrir les liens.
 
 ---
 
-### 2. `locale.default` (Langue par défaut du système - Recommandé)
-- **Valeur par défaut** : `en` (Anglais)
-- **Valeurs recommandées** :
-  - Français : `fr`
-  - Chinois traditionnel : `zh_TW`
-  - Chinois simplifié : `zh_CN`
-  - Japonais : `ja`
-  - Anglais : `en`
-- **Pourquoi renseigner ce paramètre ?** :
-  Ce paramètre définit la langue de l'interface affichée aux visiteurs anonymes, aux nouveaux utilisateurs et à ceux n'ayant pas encore configuré de préférence linguistique dans leur profil.
+### 2. `locale.default` (Langue par défaut)
+- Recommandé : `fr` ou `en`.
 
 ---
 
-### 3. Paramètres du serveur de messagerie SMTP (`mail.server.*`)
-Pour activer l'envoi de courriels, configurez les informations SMTP dans **Manage Settings** :
-- `mail.server.host` : Nom d'hôte ou adresse IP du serveur SMTP (ex. : `smtp.yourcompany.com`).
-- `mail.server.port` : Port SMTP (`25` non chiffré, `587` pour STARTTLS, `465` pour SSL).
-- `mail.server.username` : Nom d'utilisateur pour l'authentification SMTP.
-- `mail.server.password` : Mot de passe d'authentification SMTP.
-- `mail.server.starttls.enable` : Définir sur `true` si le serveur requiert le chiffrement TLS.
-- `mail.from` : Adresse e-mail d'expédition (ex. : `jtrac-no-reply@yourcompany.com`).
+### 3. Paramètres du Serveur SMTP
+- `mail.server.host`, `mail.server.port`, `mail.server.username`, `mail.server.password`, `mail.server.starttls.enable`, `mail.from`.
 
 ---
 
-### 4. Autres paramètres avancés
-- `attachment.maxsize` : Taille maximale par pièce jointe en Mo (par défaut `10`, ajustable à `50` selon les besoins).
-- `session.timeout` : Délai d'expiration de session Web en secondes (par défaut `1800` = 30 minutes).
+### 4. Paramètres Avancés & Pagination
+- `users.list.pageSize` : Nombre d'éléments par page pour la liste des utilisateurs (défaut : `25` ; choix : 10, 25, 50, 100, Tout).
+- `spaces.list.pageSize` : Nombre d'éléments par page pour la liste des espaces (défaut : `25` ; choix : 10, 25, 50, 100, Tout).
+- `attachment.maxsize` : Taille maximale des pièces jointes en Mo (défaut `10`).
 
 ---
 
-## 3. Architecture du système et organigrammes d'e-mail (Mermaid)
+## 3. Architecture et Flux E-mail (Mermaid)
 
-### 1. Procédure d'installation initiale de l'administrateur
 ```mermaid
 flowchart TD
-    Start([Démarrer le service JTrac]) --> Login[Première connexion<br/>Utilisateur : admin / Mot de passe : admin]
-    Login --> ChangePwd[Changer immédiatement le mot de passe<br/>OPTIONS ➜ Edit User Profile]
-    ChangePwd --> ConfigSettings[Configurer les paramètres de base<br/>OPTIONS ➜ Manage Settings]
+    Start([Démarrer JTrac]) --> Login[Première Connexion<br/>admin / admin]
+    Login --> ChangePwd[Changer le mot de passe<br/>OPTIONS ➜ Edit User Profile]
+    ChangePwd --> ConfigSettings[Configurer les paramètres<br/>OPTIONS ➜ Manage Settings]
     
-    subgraph CriticalSettings [Paramètres critiques obligatoires]
-        ConfigSettings --> SetUrlBase["Configurer jtrac.url.base<br/>(ex. : http://192.168.1.100:8888/)<br/>★ Empêche les liens vers localhost"]
-        ConfigSettings --> SetLocale["Configurer locale.default<br/>(ex. : fr ou zh_TW)<br/>★ Définit la langue par défaut"]
-        ConfigSettings --> SetSMTP["Configurer le serveur SMTP<br/>(host / port / from)<br/>★ Active les notifications et réinitialisations"]
+    subgraph CriticalSettings [Configuration Essentielle]
+        ConfigSettings --> SetUrlBase["Définir jtrac.url.base<br/>(ex: http://192.168.1.100:8888/)"]
+        ConfigSettings --> SetLocale["Définir locale.default<br/>(ex: fr)"]
+        ConfigSettings --> SetSMTP["Configurer le serveur SMTP<br/>(host / port / from)"]
+        ConfigSettings --> SetPaging["Configurer la pagination<br/>(users/spaces.list.pageSize)"]
     end
     
-    CriticalSettings --> CreateSpaces[Créer les espaces de suivi<br/>OPTIONS ➜ Manage Spaces]
-    CreateSpaces --> CreateUsers[Créer les utilisateurs et rôles<br/>OPTIONS ➜ Manage Users]
-    CreateUsers --> Finish([Système prêt pour la production])
-```
-
-### 2. Comparaison du mécanisme de génération de lien par `jtrac.url.base`
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as Administrateur
-    actor User as Utilisateur final
-    participant JTrac as Noyau JTrac
-    participant SMTP as Serveur SMTP
-
-    Admin->>JTrac: Créer utilisateur / Mettre à jour Issue
-    Note over JTrac: Lecture de jtrac.url.base dans les paramètres
-    alt Non configuré ou valeur par défaut (http://localhost/jtrac/)
-        JTrac->>SMTP: Envoi de l'e-mail (lien : http://localhost/jtrac/app/item/...)
-        SMTP->>User: Réception du courriel
-        User->>User: Clic sur le lien ❌<br/>(Le navigateur pointe sur le localhost de l'utilisateur : échec !)
-    else Correctement configuré (ex. : http://192.168.1.100:8888/)
-        JTrac->>SMTP: Envoi de l'e-mail (lien : http://192.168.1.100:8888/app/item/...)
-        SMTP->>User: Réception du courriel
-        User->>JTrac: Clic sur le lien ✔️<br/>(Accès immédiat à la demande ou à la réinitialisation)
-    end
+    CriticalSettings --> CreateSpaces[Créer les espaces<br/>OPTIONS ➜ Manage Spaces]
+    CreateSpaces --> CreateUsers[Créer utilisateurs & attribuer rôles<br/>OPTIONS ➜ Manage Users]
+    CreateUsers --> Finish([Prêt pour la production])
 ```
 
 ---
 
-## 4. Aperçu des fonctionnalités d'administration
+## 4. Fonctions d'Administration Principales
 
-Accédez au menu d'administration via le bouton **OPTIONS** situé sur la barre de navigation :
-
-| Élément de menu | Usage et description |
+| Fonction | Description |
 |---|---|
-| **Edit User Profile** | Modifier l'e-mail, le nom complet et le mot de passe de l'administrateur connecté. |
-| **Manage Users** | Gestion des utilisateurs : création de comptes, réinitialisation de mots de passe, verrouillage de comptes et attribution des droits Administrateur global. |
-| **Manage Spaces** | Gestion des espaces projets : création d'espaces, configuration des champs personnalisés (Custom Fields), personnalisation des listes de statuts et de sévérité, attribution des rôles (Admin / Senior / Normal / Guest). |
-| **Configure Links** | Liens de navigation globaux : ajout de raccourcis externes dans l'en-tête (vers votre CI/CD, documentation interne, etc.). |
-| **Manage Settings** | Paramètres généraux du système (`jtrac.url.base`, `locale.default`, identifiants SMTP). |
-| **Rebuild Indexes** | Reconstruction des index Lucene : regénère intégralement l'index de recherche textuelle en cas de besoin. |
-| **Import From Excel** | Importation Excel par lot : permet d'importer des demandes depuis une feuille Excel standardisée. |
-| **Export HTML** | Exportation HTML et téléchargement ZIP : archive statique complète d'un ou plusieurs espaces avec pièces jointes via le Web ou l'outil en ligne de commande `tools/jtrac-exporter.jar`. |
+| **Edit User Profile** | Modifier e-mail, nom d'affichage et mot de passe de l'administrateur. |
+| **Manage Users** | Gestion des utilisateurs, pagination, réinitialisation mot de passe, rôle Admin. |
+| **Manage Spaces** | Gestion des espaces, pagination, champs personnalisés, rôles des membres. |
+| **Configure Links** | Configurer des liens externes dans la barre de navigation. |
+| **Manage Settings** | Paramètres globaux (URL de base, SMTP, pagination). |
+| **Rebuild Indexes** | Reconstruire l'index de recherche plein texte Lucene. |
+| **Import From Excel** | Importation en masse de tickets via Excel. |
+| **Export HTML** | Exportation HTML et téléchargement ZIP directement depuis le Web. |
 
 ---
 
-## 5. Bonnes pratiques de sécurité et de maintenance
+## 5. Sécurité, Mise à Niveau de la Base de Données et Maintenance
 
-1. **Hachage moderne des mots de passe** :
-   - Migration complète vers Spring Security 5.8 avec hachage BCrypt. Les anciens hachages MD5 sont automatiquement et de manière transparente convertis en BCrypt lors de la connexion des utilisateurs.
-2. **Sauvegardes périodiques** :
-   - Base de données : située par défaut sous `data/db/` (HSQLDB) ou sur un SGBDR externe (MySQL / PostgreSQL / MSSQL).
-   - Pièces jointes : stockées sous `data/attachments/`. Intégrez ces deux répertoires dans vos sauvegardes régulières.
-3. **Proxy inverse et HTTPS** :
-   - En cas de déploiement derrière Nginx, Apache ou Caddy avec certificat SSL, configurez `jtrac.url.base` avec `https://...` et assurez-vous de transmettre les en-têtes `Host` et `X-Forwarded-Proto`.
+1. **Sécurité des Mots de Passe (Migration BCrypt)** :
+   - Migration vers Spring Security 5.8 avec hachage BCrypt. Les anciens hachages MD5 sont automatiquement convertis en BCrypt lors de la connexion réussie.
+2. **Mise à Niveau de la Base de Données (Depuis 2.3.3-1.0.0)** :
+   - Bases externes : Exécutez [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
+   - HSQLDB intégrée : Sauvegarde et mise à niveau automatiques vers 2.x au démarrage du serveur.
+3. **Sauvegardes Régulières** :
+   - Sauvegardez régulièrement les dossiers `data/db/` et `data/attachments/`.

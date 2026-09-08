@@ -8,6 +8,8 @@
             <form wicket:id="form">
                 <wicket:message key="user_list.filterBy"/> <select wicket:id="searchOn"/>
                 <input wicket:id="searchText"/><input type="submit" wicket:message="value:search"/>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <wicket:message key="item_search_form.resultsPerPage"/> <select wicket:id="pageSize"/>
             </form>            
             <table class="jtrac">
                 <tr>
@@ -26,11 +28,14 @@
                     <td wicket:id="email"></td>
                     <td wicket:id="info"></td>
                     <td wicket:id="locale"></td>
-                    <td align="center"><img src="../resources/error.gif" wicket:id="locked"/></td>
+                    <td align="center"><img src="resources/error.gif" wicket:id="locked"/></td>
                     <td wicket:id="edit" align="center"><a href="#"><img src="resources/edit.gif"/></a></td>
                     <td wicket:id="allocate" align="center"><a href="#"><img src="resources/spaces.gif"/></a></td>
                 </tr>                
             </table>
+            <div style="margin-top: 8px;">
+                <span wicket:id="navigator"></span>
+            </div>
         </wicket:extend>
     </body>
 </html>

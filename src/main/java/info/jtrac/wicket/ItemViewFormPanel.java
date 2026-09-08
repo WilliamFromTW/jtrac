@@ -43,6 +43,7 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.util.lang.Bytes;
 
 /**
@@ -121,7 +122,8 @@ public class ItemViewFormPanel extends BasePanel {
             });
             statusChoice.setNullValid(true);
             statusChoice.add(new ErrorHighlighter());
-            statusChoice.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+            statusChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     Integer selectedStatus = (Integer) getFormComponent().getConvertedInput();
                     if (selectedStatus == null) {                        
@@ -150,7 +152,7 @@ public class ItemViewFormPanel extends BasePanel {
             }, true);
             add(itemUsers);
             // attachment ======================================================
-            fileUploadField = new FileUploadField("file");
+            fileUploadField = new FileUploadField("file", new ListModel<FileUpload>());
             add(fileUploadField);
             setMaxSize(Bytes.megabytes(getJtrac().getAttachmentMaxSizeInMb()));
             // send notifications===============================================

@@ -1,11 +1,16 @@
 <html>
     <body>
         <wicket:extend>
-            <div class="heading">
-                <wicket:message key="space_list.spaceList"/>
-                <wicket:enclosure>
-                    [ <a href="#" wicket:id="create"><wicket:message key="space_list.createNewSpace"/></a> ]
-                </wicket:enclosure>
+            <div class="heading" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <wicket:message key="space_list.spaceList"/>
+                    <wicket:enclosure>
+                        [ <a href="#" wicket:id="create"><wicket:message key="space_list.createNewSpace"/></a> ]
+                    </wicket:enclosure>
+                </div>
+                <form wicket:id="form" style="margin: 0; display: inline-block;">
+                    <wicket:message key="item_search_form.resultsPerPage"/> <select wicket:id="pageSize"/>
+                </form>
             </div>            
             <table class="jtrac">
                 <tr>                    
@@ -25,6 +30,9 @@
                     <td wicket:id="allocate" align="center"><a href="#"><img src="resources/users.gif"/></a></td>
                 </tr>                
             </table>
+            <div style="margin-top: 8px;">
+                <span wicket:id="navigator"></span>
+            </div>
         </wicket:extend>
     </body>
 </html>

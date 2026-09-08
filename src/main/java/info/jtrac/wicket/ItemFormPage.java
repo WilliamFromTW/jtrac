@@ -42,6 +42,7 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.util.lang.Bytes;
 
 /**
@@ -74,7 +75,7 @@ public class ItemFormPage extends BasePage {
      */
     private class ItemForm extends Form {
         private JtracFeedbackMessageFilter filter;
-        private FileUploadField fileUploadField = new FileUploadField("file");
+        private FileUploadField fileUploadField = new FileUploadField("file", new ListModel<FileUpload>());
         private boolean editMode;
         private int version;
         

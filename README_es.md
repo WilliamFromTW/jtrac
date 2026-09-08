@@ -1,36 +1,38 @@
-# JTrac (Fork Mejorado)
+# JTrac (Fork Modernizado y Mejorado)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
 ---
 
-[![Java](https://img.shields.io/badge/Java-8%20%7C%2011-orange.svg)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](pom.xml)
+[![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
+[![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-Este proyecto es un fork modernizado y mejorado de [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Su objetivo es proporcionar un sistema de seguimiento de incidencias ligero y altamente compatible, con capacidades de archivado estático fuera de línea y una interfaz de usuario renovada. El desarrollo está guiado por la metodología de especificaciones OpenSpec v1.12.0 y cuenta con la asistencia de Antigravity 1.1.27 en la refactorización arquitectónica, verificación y control de calidad del código.
+Este proyecto es un fork modernizado y mejorado de [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Su objetivo es proporcionar un sistema de seguimiento de incidencias ligero y altamente compatible, con capacidades de archivado estático fuera de línea, una interfaz moderna y altos estándares de seguridad empresarial. El desarrollo está guiado por OpenSpec v1.12.0 y cuenta con la asistencia de Antigravity.
 
 ---
 
-## Guías de Compilación Multilingüe / Multilingual Build Guides
+## Guías de Compilación Multilingües / Multilingual Build Guides
 
-| Idioma / Language | Guía de compilación / Build Guide |
+| Idioma / Language | Guía de Compilación / Build Guide |
 |---|---|
-| **Español (Spanish)** | [Guía de construcción y compilación en español](docs/build/BUILD_es.md) |
+| **Español (Spanish)** | [Guía de compilación y construcción en español](docs/build/BUILD_es.md) |
 | **English** | [English Build & Compilation Guide](docs/build/BUILD_en.md) |
 | **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
 | **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
 | **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
 | **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
-| **Deutsch (German)** | [Deutsche Bau- und Kompilierungsanleitung](docs/build/BUILD_de.md) |
-| **Français (French)** | [Guide de compilation et d'exécution en français](docs/build/BUILD_fr.md) |
+| **Deutsch (German)** | [Deutscher Kompilierungs- und Build-Leitfaden](docs/build/BUILD_de.md) |
+| **Français (French)** | [Guide complet de compilation et de construction en français](docs/build/BUILD_fr.md) |
 
 ---
 
-## Guías del Administrador del Sistema Multilingüe / Multilingual Administrator Guides
+## Guías del Administrador del Sistema / Multilingual Administrator Guides
 
 | Idioma / Language | Guía del Administrador / Admin Guide |
 |---|---|
@@ -45,88 +47,81 @@ Este proyecto es un fork modernizado y mejorado de [JTrac 2.3.3 (https://jtrac.i
 
 ---
 
-## Actualizaciones Principales en este Fork (Changelog & Major Updates)
+## Novedades Principales (Changelog & Major Updates)
 
-### 1. Limpieza de Módulos: Eliminación Completa del Módulo Wiki (Removed Wiki Module)
-- Eliminación total del código fuente, componentes de página e iconos de navegación del módulo Wiki heredado, simplificando la arquitectura para enfocarse en el núcleo de seguimiento de incidencias.
+### 🚀 Versión 2.3.3-2.0.0 (Gran Modernización Arquitectónica)
 
-### 2. Nuevas Funcionalidades (New Features)
-- **Exportación masiva a HTML y descarga en ZIP desde la Web**:
-  - Se añadió la acción "Exportar HTML" en la barra de navegación superior. Los usuarios pueden seleccionar múltiples espacios de proyecto (con atajos "Seleccionar todo / Deseleccionar todo") y descargar un archivo comprimido ZIP con todo el historial de discusión en HTML y sus archivos adjuntos.
-- **Control estricto de permisos de espacio (Permission Guardrails)**:
-  - Doble verificación de seguridad en servidor y cliente: los usuarios estándar solo pueden visualizar, seleccionar y descargar espacios en los que tienen membresía autorizada (los administradores conservan acceso global). Se incluye bloqueo ante listas vacías y avisos amigables.
-- **Herramienta independiente de línea de comandos para exportar a HTML (`tools/jtrac-exporter.jar`)**:
-  - Permite conectarse directamente mediante JDBC para generar informes HTML responsivos y multilingües sin necesidad de iniciar el servidor web.
-  - Modo oscuro (Dark Mode) 100% autónomo y fuera de línea implementado en CSS puro, sin dependencias externas de CDN o internet.
-- **Localización multilingüe completa (Full i18n Coverage)**:
-  - Revisión y completado de las traducciones en chino tradicional (`zh_TW`) y chino simplificado (`zh_CN`).
-  - Incorporación de etiquetas faltantes en todos los paquetes de idiomas (por ejemplo, el estado de activación de espacio `space_form.isActive`).
-
-### 3. Corrección de Errores (Bug Fixes)
-- **Centrado de botones y etiquetas de navegación (Navigation Header Centering)**:
-  - Corrección de problemas de alineación donde los elementos de cabecera ("Panel", "Búsqueda", "Exportar HTML", "Opciones", "Cerrar sesión", usuario) aparecían desplazados a la derecha y desalineados verticalmente.
-  - Adopción de Flexbox inline-flex para centrado horizontal y vertical perfecto, bordes redondeados de 3px, animaciones hover para botones interactivos y estilos específicos para distintivos informativos.
-- **Depuración del historial de discusiones (Thread History Cleanup)**:
-  - Se eliminó el registro de estado inicial "Open" redundante que no contenía notas ni cambios de campo al exportar a HTML, conservando solo el historial con valor real.
-- **Resolución de `LazyInitializationException` de Hibernate**:
-  - Solución a excepciones por cierre de sesión al acceder a los metadatos de configuración de espacios mediante carga anticipada activa (Eager Fetch / Initialize).
-- **Corrección del filtrado de recursos Maven UTF-8 y prevención de archivos corruptos**:
-  - Adopción de codificación nativa UTF-8 eliminando conversiones `native2ascii`.
-  - Corrección en el filtrado de recursos de Maven que corrompía imágenes binarias (gif, png, jar) al empaquetar.
-
----
-
-## Tecnologías y Arquitectura (Technologies & Architecture)
-
-- **Lenguaje principal**: Java 1.8 / 11
-- **Framework Web**: Apache Wicket 1.3
-- **Contenedor e IoC**: Spring Framework 2.5
-- **ORM y Base de Datos**: Hibernate 3 / HSQLDB integrado; compatible con MySQL, PostgreSQL, MS SQL Server, Oracle
-- **Herramienta de construcción**: Apache Maven 3.9+ (paquete WAR)
-- **Herramientas de apoyo y especificación**: OpenSpec v1.12.0, Antigravity 1.1.27
-- **Codificación de caracteres**: 100% UTF-8
+1. **Modernización del Núcleo Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
+   - Actualización a Spring Framework 5.3.37; eliminación de `HibernateTemplate` y `TimerFactoryBean`.
+   - Migración a Hibernate ORM 5.6.15.Final con gestión nativa de `SessionFactory` y consultas JPA estándar.
+   - Búsqueda de texto completo con API Lucene nativa, desacoplada de `spring-modules-lucene`.
+   - Pruebas unitarias modernizadas a JUnit 5 (Jupiter).
+2. **Reestructuración de Seguridad (Spring Security 5.8 + Migración Transparente a BCrypt)**:
+   - Reemplazo completo de Acegi Security 1.0.7 por Spring Security 5.8.14.
+   - `JtracHybridPasswordEncoder`: Valida contraseñas MD5 antiguas y las convierte automáticamente a BCrypt tras el inicio de sesión exitoso del usuario sin tiempos de inactividad.
+3. **Capa Web Moderna (Apache Wicket 9.16.0)**:
+   - Migración de Wicket 1.3.7 a Wicket 9.16.0 con soporte tipado completo (`IModel<T>`).
+   - Compatible con contenedores Servlet 4.0 (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
+4. **Paginación en Listas de Usuarios y Proyectos (Pagination & Config)**:
+   - Soporte para paginación configurable en `UserListPage` y `SpaceListPage` (10, 25, 50, 100, Todos).
+   - Incorporación de parámetros `users.list.pageSize` y `spaces.list.pageSize` en la tabla `config`.
+5. **Corrección de Eventos Ajax en Asignación de Roles**:
+   - Ajuste de eventos a estándar DOM `"change"` y protección contra deselección.
+6. **Filtro Global de Recursos Estáticos (StaticResourceFilter)**:
+   - Resuelve el problema de imágenes 404 en `../resources/*` en rutas URL anidadas y restaura iconos faltantes.
+7. **Corrección de Enlace de Modelo en Carga de Archivos**:
+   - Asignación explícita de `ListModel` independiente en `FileUploadField` en `ItemFormPage`, `ItemViewFormPanel` y `ExcelImportPage`.
+8. **Actualización de Base de Datos y Guía SQL**:
+   - Script oficial de actualización [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) para MySQL, PostgreSQL, SQL Server y Oracle.
+   - Herramienta integrada `HsqldbDatabaseMigrator` para migración automática de HSQLDB 1.8 a 2.x con respaldo preventivo.
 
 ---
 
-## Inicio Rápido: Compilación y Despliegue (Quick Start)
+## Tecnologías y Arquitectura
 
-### 1. Compilar aplicación principal (WAR)
+- **Lenguaje**: Java 11 / 17
+- **Framework Web**: Apache Wicket 9.16.0
+- **Contenedor IoC**: Spring Framework 5.3.37
+- **Seguridad**: Spring Security 5.8.14 (BCrypt)
+- **ORM y Persistencia**: Hibernate ORM 5.6.15.Final
+- **Bases de Datos Soportadas**: HSQLDB 2.x (embebida), MySQL / MariaDB, PostgreSQL, Microsoft SQL Server, Oracle
+- **Contenedores Web Soportados**:
+  - **Jetty 10.x** (Nativo, verificado en Jetty 10.0.26)
+  - **Jetty 12.x** (Nativo habilitando módulo `ee8`)
+  - **Tomcat 9.x** (Nativo)
+  - **Tomcat 10.x / 11.x** (Mediante `webapps-javaee/` o herramienta `jakartaee-migration`)
+- **Herramienta de Construcción**: Apache Maven 3.9+
+- **Especificaciones**: OpenSpec v1.12.0, Antigravity
+
+---
+
+## Inicio Rápido (Quick Start)
+
+### 1. Construir la Aplicación (WAR)
 ```bash
-# Compilar código fuente
-mvn compile
+# Compilar código fuente (requiere JDK 11 o JDK 17)
+mvn clean compile
 
-# Empaquetar archivo WAR (omitiendo pruebas)
+# Ejecutar pruebas y empaquetar WAR
+mvn package
+
+# Empaquetado rápido (sin pruebas)
 mvn package -DskipTests
 ```
-El archivo generado se ubica en: `target/jtrac.war`, listo para desplegarse en Jetty o Tomcat.
+Archivo generado: `target/jtrac.war`.
 
-### 2. Compilar y ejecutar la herramienta de exportación HTML (CLI)
+### 2. Actualización de Base de Datos (Desde 2.3.3-1.0.0)
+- Bases de datos externas (MySQL, PostgreSQL, etc.): Ejecute [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql).
+- HSQLDB embebida: El proceso se realiza automáticamente con copia de seguridad al iniciar el servidor.
+
+### 3. Construir Herramienta de Exportación HTML (CLI)
 ```bash
-# Empaquetar JAR ejecutable independiente
 mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
 # Salida: tools/jtrac-exporter.jar
-
-# Ejemplo de exportación desde HSQLDB local
-java -jar tools/jtrac-exporter.jar \
-  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" \
-  --attachments-dir="./data/attachments" \
-  --out="./export-output" \
-  --lang=es
 ```
 
 ---
 
-## Especificaciones y Documentación (Specifications)
+## Licencia
 
-Este proyecto se desarrolla bajo la metodología de especificaciones OpenSpec:
-- [Directorio principal de especificaciones](openspec/specs/README.md)
-- [Especificación del exportador HTML](openspec/specs/html-exporter/spec.md)
-- [Especificación de idiomas y recursos](openspec/specs/i18n-resources/spec.md)
-- [Especificación de guías de compilación](openspec/specs/build-documentation/spec.md)
-- [Reglas de desarrollo](.agents/AGENTS.md)
-
----
-
-## Licencia (License)
-
-JTrac es software de código abierto publicado bajo la [Licencia de Software Apache, Versión 2.0](license.txt).
+JTrac es software de código abierto bajo la [Apache Software License, Version 2.0](license.txt).

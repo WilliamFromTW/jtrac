@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.form.CheckGroup;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -42,6 +43,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +73,7 @@ public class ExcelImportPage extends BasePage {
     
     public ExcelImportPage() {
         add(new FeedbackPanel("feedback"));
-        final FileUploadField fileUploadField = new FileUploadField("file");        
+        final FileUploadField fileUploadField = new FileUploadField("file", new ListModel<FileUpload>());        
         Form uploadForm = new Form("uploadForm") {
             @Override
             public void onSubmit() {

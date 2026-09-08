@@ -71,6 +71,8 @@ public class Config implements Serializable {
         PARAMS.add("markdown.enabled");
         PARAMS.add("attachments.openNewWindow");
         PARAMS.add("items.search.num");
+        PARAMS.add("users.list.pageSize");
+        PARAMS.add("spaces.list.pageSize");
 
         BOOLEAN_PARAMS = new LinkedHashSet<String>();
         BOOLEAN_PARAMS.add("mail.server.starttls.enable");
@@ -85,6 +87,8 @@ public class Config implements Serializable {
         NUMBER_PARAMS.add("attachment.maxsize");
         NUMBER_PARAMS.add("pwd.minLength");
         NUMBER_PARAMS.add("items.search.num");
+        NUMBER_PARAMS.add("users.list.pageSize");
+        NUMBER_PARAMS.add("spaces.list.pageSize");
 
         COLOR_PARAMS = new LinkedHashSet<String>();
         COLOR_PARAMS.add("jtrac.color.gray");

@@ -99,12 +99,12 @@ public class SpacePermissionsPage extends BasePage {
             List<Integer> stateKeys = new ArrayList(statesMap.keySet());
             final List<Role> roles = new ArrayList(space.getMetadata().getRoleList());
             final SimpleAttributeModifier rowspan = new SimpleAttributeModifier("rowspan", roles.size() + "");
-            final SimpleAttributeModifier yes = new SimpleAttributeModifier("src", "../resources/status-green.gif");
-            final SimpleAttributeModifier no = new SimpleAttributeModifier("src", "../resources/status-grey.gif");            
-            final SimpleAttributeModifier readonly = new SimpleAttributeModifier("src", "../resources/field-readonly.gif");
-            final SimpleAttributeModifier mandatory = new SimpleAttributeModifier("src", "../resources/field-mandatory.gif");            
-            final SimpleAttributeModifier optional = new SimpleAttributeModifier("src", "../resources/field-optional.gif");
-            final SimpleAttributeModifier hidden = new SimpleAttributeModifier("src", "../resources/field-hidden.gif");
+            final SimpleAttributeModifier yes = new SimpleAttributeModifier("src", "resources/status-green.gif");
+            final SimpleAttributeModifier no = new SimpleAttributeModifier("src", "resources/status-grey.gif");            
+            final SimpleAttributeModifier readonly = new SimpleAttributeModifier("src", "resources/field-readonly.gif");
+            final SimpleAttributeModifier mandatory = new SimpleAttributeModifier("src", "resources/field-mandatory.gif");            
+            final SimpleAttributeModifier optional = new SimpleAttributeModifier("src", "resources/field-optional.gif");
+            final SimpleAttributeModifier hidden = new SimpleAttributeModifier("src", "resources/field-hidden.gif");
             final SimpleAttributeModifier altClass = new SimpleAttributeModifier("class", "alt");
             //==================================================================
             add(new ListView("states", stateKeys) {               

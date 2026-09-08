@@ -81,9 +81,25 @@ public class SpaceAllocatePage extends BasePage {
         private RoleAllocatePanel roleAllocatePanel;
         private Button allocateButton;  
         
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public Space getSpace() {
+            return space;
+        }
+
+        public void setSpace(Space space) {
+            this.space = space;
+        }
+
         /**
          * function that attempts to pre-select roleKey for convenience
-         * used on form init and also on Ajax onChange event for User choice
+         * used on form init and also on Ajax change event for User choice
          */
         private void initRoleChoice(User u) {            
             List<String> roleKeys = space.getMetadata().getAllRoleKeys();            
@@ -95,7 +111,7 @@ public class SpaceAllocatePage extends BasePage {
                 roleKeys.remove(Role.ROLE_ADMIN);
             }
             roleAllocatePanel.setChoices(roleKeys);         
-            allocateButton.setEnabled(true);            
+            allocateButton.setEnabled(!roleKeys.isEmpty());            
         }        
                 
         public SpaceAllocateForm(String id) {
@@ -165,14 +181,17 @@ public class SpaceAllocatePage extends BasePage {
 
             add(userChoice);
                         
-            userChoice.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+            userChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+                @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     User u = (User) getFormComponent().getConvertedInput();
-                    if (u == null) {              
+                    if (u == null) {
+                        user = null;
                         roleAllocatePanel.setChoices(new ArrayList<String>());
                         allocateButton.setEnabled(false);
                     } else {
                         User temp = getJtrac().loadUser(u.getId());
+                        user = temp;
                         // populate choice, enable button etc
                         initRoleChoice(temp);
                     }
@@ -189,7 +208,7 @@ public class SpaceAllocatePage extends BasePage {
                 @Override
                 public void onSubmit() {    
                     List<String> roleKeys = roleAllocatePanel.getSelected();
-                    if(user == null || roleKeys.size() == 0) {
+                    if(user == null || roleKeys == null || roleKeys.isEmpty()) {
                         return;
                     }
                     // avoid lazy init problem

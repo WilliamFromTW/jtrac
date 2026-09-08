@@ -1,135 +1,84 @@
-# JTrac Bau- und Kompilierungsanleitung (Deutsch)
+# JTrac Kompilierungs- und Build-Leitfaden (Deutsch)
 
-Diese Anleitung bietet eine Schritt-für-Schritt-Erklärung zum Erstellen, Kompilieren und Paketieren des JTrac-Projekts sowie eine detaillierte Erläuterung des Maven-Abhängigkeitsmanagements und der WAR-Paketierungsarchitektur.
+[English](BUILD_en.md) | [繁體中文](BUILD_zh-TW.md) | [简体中文](BUILD_zh-CN.md) | [日本語](BUILD_ja.md) | [Tiếng Việt](BUILD_vi.md) | [Deutsch](BUILD_de.md) | [Español](BUILD_es.md) | [Français](BUILD_fr.md)
+
+Dieser Leitfaden beschreibt das Erstellen, Kompilieren und Paketieren des JTrac 2.3.3-2.0.0 Projekts sowie das Deployment auf modernen Web-Containern (Jetty 10/12, Tomcat 9/10/11).
 
 ---
 
 ## 1. Voraussetzungen
 
-Stellen Sie vor dem Erstellen des Projekts sicher, dass Ihre Umgebung folgende Anforderungen erfüllt:
-
 - **Betriebssystem**: Windows / Linux / macOS
-- **Java Development Kit (JDK)**: JDK 8 oder JDK 11 (JDK 11 empfohlen, z. B. `W:\developer\jdk-11.0.28`)
-- **Apache Maven**: Version 3.9.x oder höher (z. B. `W:\developer\apache-maven-3.9.9`)
+- **Java Development Kit (JDK)**: **JDK 11 oder JDK 17** (JDK 17 empfohlen, z. B. `W:\developer\jdk-17.0.9` oder JDK 11 `W:\developer\jdk-11.0.28`)
+  > [!IMPORTANT]
+  > Durch die Modernisierung auf Spring 5.3, Hibernate 5.6 und Wicket 9 ist das Kompilierungsziel Java 11. **JDK 8 wird nicht mehr unterstützt**.
+- **Apache Maven**: Version 3.9.x oder höher
 
-### Einrichtung der Windows-Umgebung
-Laden Sie unter Windows in der Eingabeaufforderung (CMD) vor dem Ausführen von Maven das Umgebungsskript:
-```cmd
-call W:\developer\maven.bat
+### Windows Umgebungsvariablen
+```powershell
+$env:JAVA_HOME = "W:\developer\jdk-17.0.9"
+$env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
 ```
-Dieses Skript konfiguriert `PATH` und `JAVA_HOME` für die aktuelle Terminalsitzung.
 
-Umgebung überprüfen:
-```cmd
+Überprüfung:
+```bash
 mvn -version
 ```
-Die Ausgabe sollte die aktive Maven- und Java-Version bestätigen.
 
 ---
 
-## 2. Häufige Build-Befehle
-
-Führen Sie folgende Befehle im JTrac-Projektstammverzeichnis aus (wo sich die `pom.xml` befindet):
+## 2. Gängige Build-Befehle
 
 | Befehl | Beschreibung |
 |---|---|
-| `mvn compile` | Kompiliert 137 Java-Quelldateien unter `src/main/java` und verarbeitet Ressourcen |
-| `mvn test-compile` | Kompiliert alle Unit-Test-Klassen unter `src/test/java` |
-| `mvn test` | Führt Unit-Tests aus (verwendet eingebettetes In-Memory-HSQLDB; keine externe DB nötig) |
-| `mvn package` | Führt Tests aus und bündelt die vollständige Webanwendung in `target/jtrac.war` |
-| `mvn package -DskipTests` | Schnelles Erstellen und Paketieren von `target/jtrac.war` ohne Unit-Tests |
-| `mvn clean` | Bereinigt das `target/`-Verzeichnis und Build-Artefakte |
-| `mvn clean compile` | Bereinigt vorherige Artefakte und kompiliert den gesamten Quellcode neu |
+| `mvn clean compile` | Bereinigt den Cache und kompiliert `src/main/java` neu |
+| `mvn test-compile` | Kompiliert die Unit-Tests |
+| `mvn test` | Führt alle Unit-Tests aus (JUnit 5 + eingebettete HSQLDB) |
+| `mvn package` | Erstellt das produktive WAR-Archiv (`target/jtrac.war`) |
+| `mvn package -DskipTests` | Schnelles Paketieren (ohne Tests) |
+| `mvn clean` | Löscht den `target/`-Ordner |
 
 ---
 
-## 3. Automatisches Abhängigkeitsmanagement über Maven (`~/.m2/repository`)
+## 3. WAR-Paketstruktur (`WEB-INF/lib/`)
 
-JTrac ist mit dem Standard-Maven-Abhängigkeitsmanagement konfiguriert. Alle erforderlichen Drittanbieter-Bibliotheken (einschließlich Spring Framework, Apache Wicket, Hibernate, Acegi Security, Lucene usw.) sind in der [`pom.xml`](../../pom.xml) deklariert.
-
-### Automatischer Download- & Cache-Ablauf:
-1. Beim ersten Ausführen von `mvn compile` oder `mvn package` verbindet sich Maven mit dem zentralen Repository (Maven Central).
-2. Alle deklarierten Abhängigkeiten und transitiven Bibliotheken werden automatisch in den lokalen Cache heruntergeladen:
-   - **Windows**: `%USERPROFILE%\.m2\repository\`
-   - **Linux / macOS**: `~/.m2/repository/`
-3. Nachfolgende Builds lesen direkt aus dem lokalen `.m2`-Cache. **Sie müssen niemals JAR-Dateien manuell suchen, herunterladen oder konfigurieren.**
+Die generierte [`target/jtrac.war`](../../target/jtrac.war) enthält alle modernen Abhängigkeiten:
+- `spring-core-5.3.37.jar`
+- `wicket-core-9.16.0.jar`
+- `hibernate-core-5.6.15.Final.jar`
+- `spring-security-core-5.8.14.jar`
+- `hsqldb-2.7.2.jar`
 
 ---
 
-## 4. Bündelung von Drittanbieter-Bibliotheken im WAR (`WEB-INF/lib/`)
+## 4. Web-Container-Matrix und Bereitstellung
 
-Eine häufige Frage lautet: "Muss ich beim Bereitstellen von JTrac auf einem Servlet-Container wie Jetty oder Tomcat Drittanbieter-JARs manuell in das `lib/`-Verzeichnis des Servers kopieren?"
+JTrac 2.3.3-2.0.0 basiert auf der Servlet 4.0-Spezifikation (`javax.servlet`):
 
-**Antwort: Keinesfalls!**
-
-### WAR-Paketarchitektur:
-Beim Ausführen von `mvn package` erstellt Maven automatisch ein in sich geschlossenes Web Application Archive: [`target/jtrac.war`](../../target/jtrac.war):
-
-```text
-jtrac.war
-├── META-INF/
-│   └── MANIFEST.MF
-├── WEB-INF/
-│   ├── classes/                 <-- Kompilierte Klassen und UTF-8-Ressourcendateien
-│   │   ├── info/jtrac/...
-│   │   └── messages*.properties
-│   ├── lib/                     <-- [ALLE 53 Drittanbieter-JARs sind hier enthalten!]
-│   │   ├── spring-2.5.6.jar
-│   │   ├── wicket-1.3.7.jar
-│   │   ├── hibernate-3.2.7.ga.jar
-│   │   └── ...
-│   └── web.xml                  <-- Servlet-Konfiguration
-└── resources/
-```
-
-### Wichtige Bereitstellungshinweise:
-- **Klassenlader-Isolation**: Servlet-Container (Jetty, Tomcat) isolieren die Bibliotheken in `WEB-INF/lib/` für jede Webanwendung automatisch.
-- **Sauberes Serververzeichnis**: Das `lib/`-Verzeichnis des Servers bleibt sauber; kopieren Sie keine Anwendungs-JARs dorthin.
-- **Einfache Bereitstellung**: Platzieren Sie einfach `target/jtrac.war` (oder umbenannt in `ROOT.war`) im `webapps/`-Verzeichnis des Servers und starten Sie den Dienst.
+| Web-Container | Version | Bereitstellungsmethode |
+|---|---|---|
+| **Jetty 10.x** | 10.0.x (Empfohlen) | **Direkt**: Kopieren Sie `target/jtrac.war` nach `webapps/ROOT.war`. |
+| **Jetty 12.x** | 12.0.x (Aktuell) | **Nativ**: Aktivieren Sie das `ee8`-Modul:<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp` |
+| **Tomcat 9.x** | 9.0.x (Empfohlen) | **Direkt**: Kopieren Sie `target/jtrac.war` nach `webapps/ROOT.war`. |
+| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Automatische Migration**: Platzieren Sie die WAR in `webapps-javaee/` oder konvertieren Sie via `jakartaee-migration`. |
 
 ---
 
-## 5. Lokales Testen & Ausführen
+## 5. Datenbank-Upgrade
 
-Um JTrac nach der Paketierung lokal interaktiv auszuführen:
-
-### Mit Jetty:
-1. Kopieren Sie `target/jtrac.war` nach `W:\developer\jtrac-2.3.3\webapps\ROOT.war`.
-2. Führen Sie `W:\developer\jtrac-2.3.3\start.bat` aus.
-3. Öffnen Sie Ihren Browser unter: `http://localhost:8888` (Standard-Administratorzugang: `admin` / `admin`).
+Beim Upgrade von 2.3.3-1.0.0:
+- Externe Datenbanken (MySQL, PostgreSQL etc.): Führen Sie [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) aus.
+- Eingebettete HSQLDB: Die Migration erfolgt beim Serverstart vollautomatisch mit Backup.
 
 ---
 
-## 6. Eigenständigen CLI-HTML-Exporter erstellen und ausführen (jtrac-exporter)
+## 6. Eigenständiges HTML-Export-Tool (`jtrac-exporter`)
 
-Das Projekt enthält ein eigenständiges CLI-Werkzeug `jtrac-exporter`, das JTrac-Datenbankeinträge direkt über Standard-JDBC in statische, responsive HTML-Diskussionsverläufe mit Anhängen exportiert.
-
-### 6.1 Werkzeug bauen (Fat JAR)
-Führen Sie diesen Befehl im Projektstammverzeichnis aus:
 ```cmd
 mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-```
-Nach erfolgreichem Build liegt die ausführbare JAR-Datei direkt unter:
-`tools/jtrac-exporter.jar`
-
-### 6.2 Export ausführen (Kommandozeilenmodus)
-Vom Projektstammverzeichnis aus einer lokalen HSQLDB exportieren:
-```cmd
 java -jar tools/jtrac-exporter.jar ^
   --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
   --attachments-dir="./data/attachments" ^
-  --out="./export-hsqldb" ^
+  --out="./export-output" ^
   --lang=de
 ```
-
-Für entfernte MySQL-, PostgreSQL- oder SQL-Server-Datenbanken:
-```cmd
-java -jar tools/jtrac-exporter.jar ^
-  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
-  --db-user="jtrac" ^
-  --db-password="your_password" ^
-  --attachments-dir="/path/to/attachments" ^
-  --out="./export-mysql" ^
-  --lang=de
-```
-Alle Optionen anzeigen mit: `java -jar tools/jtrac-exporter.jar --help`.

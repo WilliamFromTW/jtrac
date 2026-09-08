@@ -1,138 +1,119 @@
 # JTrac 编译与构建指南 (简体中文)
 
-本指南详细说明如何构建、编译与打包 JTrac 项目，并深入解析 Maven 依赖管理与 WAR 封包机制。
+[English](BUILD_en.md) | [繁體中文](BUILD_zh-TW.md) | [简体中文](BUILD_zh-CN.md) | [日本語](BUILD_ja.md) | [Tiếng Việt](BUILD_vi.md) | [Deutsch](BUILD_de.md) | [Español](BUILD_es.md) | [Français](BUILD_fr.md)
+
+本指南详细说明如何构建、编译与打包 JTrac 2.3.3-2.0.0 项目，并解析 Maven 依赖管理、WAR 封装结构以及跨世代 Web 容器（Jetty 10/12、Tomcat 9/10/11）的部署方案。
 
 ---
 
-## 1. 前置环境要求
+## 1. 前置环境需求
 
 在开始编译之前，请确认您的本地开发环境符合以下条件：
 
 - **操作系统**：Windows / Linux / macOS
-- **Java 开发工具包 (JDK)**：JDK 8 或 JDK 11（推荐使用 JDK 11，例如 `W:\developer\jdk-11.0.25.9-hotspot`）
+- **Java 开发套件 (JDK)**：**JDK 11 或 JDK 17**（推荐使用 JDK 17，例如 `W:\developer\jdk-17.0.9` 或 JDK 11 `W:\developer\jdk-11.0.28`）
+  > [!IMPORTANT]
+  > 本现代化版本已升级至 Spring 5.3、Hibernate 5.6 与 Wicket 9，编译目标为 Java 11。**JDK 8 已不再支持**，请勿使用 JDK 8 进行编译。
 - **Apache Maven**：Maven 3.9.x 以上版本（例如 `W:\developer\apache-maven-3.9.9`）
 
-### Windows 本地环境配置
-若您在 Windows 环境开发，请先在命令提示符 (CMD) 中运行环境配置批处理脚本：
-```cmd
-call W:\developer\maven.bat
+### Windows 本地环境配置示例
+在 CMD 或 PowerShell 中加载环境变量：
+```powershell
+$env:JAVA_HOME = "W:\developer\jdk-17.0.9"
+$env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
 ```
-该脚本会自动将 Maven 与 JDK 11 添加到当前终端会话的 `PATH` 与 `JAVA_HOME` 中。
 
 验证环境命令：
-```cmd
+```bash
 mvn -version
 ```
-输出应显示正确的 Maven 与 Java 11 版本信息。
 
 ---
 
 ## 2. 常用编译与构建命令
 
-请在 JTrac 项目根目录（包含 `pom.xml` 的目录）下执行以下命令：
+请在 JTrac 根目录下执行以下命令：
 
 | 命令 | 说明 |
 |---|---|
-| `mvn compile` | 编译 `src/main/java` 下的 137 个 Java 源文件，并处理 resources 资源过滤 |
-| `mvn test-compile` | 编译 `src/test/java` 下的所有单元测试类 |
-| `mvn test` | 运行所有单元测试（使用内置内存型 HSQLDB，无需外部数据库） |
-| `mvn package` | 运行测试并打包为标准 Web 应用包（生成 `target/jtrac.war`） |
+| `mvn clean compile` | 清理旧缓存并重新编译 `src/main/java`，处理 resources 资源过滤 |
+| `mvn test-compile` | 编译 `src/test/java` 下的单体测试类 |
+| `mvn test` | 执行所有单元测试（使用 JUnit 5 与内置 HSQLDB，免外部数据库） |
+| `mvn package` | 执行测试并打包为正式 Web 应用程序包（产出 `target/jtrac.war`） |
 | `mvn package -DskipTests` | 跳过单元测试，快速打包生成 `target/jtrac.war` |
-| `mvn clean` | 清理 `target/` 目录下所有先前构建的编译缓存与临时产物 |
-| `mvn clean compile` | 清除旧产物并重新完整编译 |
+| `mvn clean` | 清理 `target/` 目录下的编译缓存与产物 |
 
 ---
 
-## 3. Maven 依赖自动下载机制 (`~/.m2/repository`)
+## 3. Maven 依赖套件自动下载机制 (`~/.m2/repository`)
 
-JTrac 基于标准 Maven 架构开发，其所有的第三方依赖库（包括 Spring Framework、Apache Wicket、Hibernate、Acegi Security、Lucene 等）均已声明于 [`pom.xml`](../../pom.xml) 中。
-
-### 自动下载与缓存机制：
-1. 当您首次执行 `mvn compile` 或 `mvn package` 时，Maven 会自动连接到远程中央仓库（Maven Central）。
-2. Maven 会自动下载项目声明的所有依赖包到用户本地缓存目录：
-   - **Windows**：`%USERPROFILE%\.m2\repository\`（例如 `C:\Users\username\.m2\repository\`）
-   - **Linux / macOS**：`~/.m2/repository/`
-3. 后续无论进行多少次编译或离线打包，Maven 都会直接从本地 `.m2` 缓存读取依赖库，**开发者完全不需要手动搜索、下载或配置任何第三方 JAR 文件**！
+JTrac 基于标准 Maven 架构开发，所有第三方依赖已在 [`pom.xml`](../../pom.xml) 中声明。
+首次执行构建时，Maven 会自动从中央仓库下载依赖并缓存在本地（Windows: `%USERPROFILE%\.m2\repository\`，Linux/macOS: `~/.m2/repository/`）。开发者无需手动拷贝 JAR 文件。
 
 ---
 
 ## 4. 第三方库封装于 WAR 文件机制 (`WEB-INF/lib/`)
 
-许多开发者常会询问：“将 JTrac 部署到 Jetty 或 Tomcat 服务器时，是否需要手动复制第三方 JAR 到服务器的 `lib/` 目录？”
-
-**答案是：完全不需要！**
-
-### WAR 包结构解析：
-当您执行 `mvn package` 打包后，Maven 会自动组装出标准的 Java Web 应用封装包：[`target/jtrac.war`](../../target/jtrac.war)。其内部结构如下：
+打包生成的 [`target/jtrac.war`](../../target/jtrac.war) 结构如下：
 
 ```text
 jtrac.war
 ├── META-INF/
 │   └── MANIFEST.MF
 ├── WEB-INF/
-│   ├── classes/                 <-- JTrac 自身编译后的 class 与 UTF-8 资源文件
+│   ├── classes/                 <-- 编译后的 class 与 UTF-8 资源文件
 │   │   ├── info/jtrac/...
 │   │   └── messages*.properties
-│   ├── lib/                     <-- 【核心所在：全部 53 个第三方 JAR 都在这里！】
-│   │   ├── spring-2.5.6.jar
-│   │   ├── wicket-1.3.7.jar
-│   │   ├── hibernate-3.2.7.ga.jar
-│   │   ├── stringtree.jar       <-- 项目自带之专用依赖亦自动打包于此
+│   ├── lib/                     <-- 现代第三方依赖库
+│   │   ├── spring-core-5.3.37.jar
+│   │   ├── wicket-core-9.16.0.jar
+│   │   ├── hibernate-core-5.6.15.Final.jar
+│   │   ├── spring-security-core-5.8.14.jar
 │   │   ├── hsqldb-2.7.2.jar
-│   │   └── ... (其余所有依赖库)
-│   └── web.xml                  <-- Servlet 3.1 规范配置
+│   │   └── ...
+│   └── web.xml                  <-- Servlet 4.0 规范配置
 └── resources/
 ```
 
-### 部署注意事项：
-- **独立隔离性**：Servlet 容器（如 Jetty 9.4、Jetty 12、Tomcat 9）在启动时，会自动读取并隔离每个 WAR 包内部的 `WEB-INF/lib/`。
-- **服务器端纯净**：因此，服务器本身的 `lib/` 目录请保持干净，**切勿手动将第三方 JAR 复制进去**。
-- **极简部署**：只需将 `target/jtrac.war` 复制到服务器的 `webapps/` 目录（或更名为 `ROOT.war`），服务器即可直接启动运行！
+- Servlet 容器会自动隔离每个 WAR 包的 `WEB-INF/lib/`。
+- 宿主容器本身的 `lib/` 目录应保持干净，无需放入任何第三方 JAR。
 
 ---
 
-## 5. 本地测试环境运行
+## 5. Web 容器兼容性与部署矩阵 (Web Container Matrix)
 
-打包完成后，若要在本地启动 JTrac 进行可视化测试：
+JTrac 2.3.3-2.0.0 采用 Servlet 4.0 规范（`javax.servlet`），兼容主流现代 Web 容器：
 
-### 使用 Jetty 运行：
-1. 将 `target/jtrac.war` 复制为 `W:\developer\jtrac-2.3.3\webapps\ROOT.war`。
-2. 运行 `W:\developer\jtrac-2.3.3\start.bat`。
-3. 打开浏览器访问：`http://localhost:8888`（默认管理员账号密码：`admin` / `admin`）。
+| Web 容器 | 版本支持 | 部署方式 |
+|---|---|---|
+| **Jetty 10.x** | 10.0.x（推荐首选） | **开箱即用**：直接将 `target/jtrac.war` 复制至 `webapps/ROOT.war` 即可启动。 |
+| **Jetty 12.x** | 12.0.x（最新版） | **原生支持**：启用内置 `ee8` 模块：<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp`，即可直接部署 `jtrac.war`。 |
+| **Tomcat 9.x** | 9.0.x（推荐首选） | **开箱即用**：直接将 `target/jtrac.war` 复制至 `webapps/ROOT.war` 即可启动。 |
+| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自动转换支持**：<br/>1. **方式 A**：将 `jtrac.war` 放入 Tomcat 的 `webapps-javaee/` 目录，容器启动时自动转换运行。<br/>2. **方式 B**：使用官方 `jakartaee-migration` 工具转换为 `jtrac-jakarta.war` 后部署至 `webapps/`。 |
 
 ---
 
-## 6. 独立 CLI 讨论串导出工具构建与运行 (jtrac-exporter)
+## 6. 数据库升级与迁移指引
 
-项目内置一个完全独立、零旧版框架依赖的命令行工具 `jtrac-exporter`，可直接通过 JDBC 连接字符串访问本地或远程数据库，并将问题、历史讨论串与附件导出为多语言静态 HTML 报表。
+若从 2.3.3-1.0.0 升级：
+1. **外部数据库 (MySQL / PostgreSQL / SQL Server / Oracle)**：
+   - 执行升级脚本：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)，注入默认分页大小参数。
+2. **内置 HSQLDB**：
+   - 系统启动时由 `HsqldbDatabaseMigrator` 自动备份并无缝迁移至 HSQLDB 2.x，无需手动干预。
 
-### 6.1 编译打包独立工具 (Fat JAR)
-在项目根目录执行以下命令（无需切换目录）：
+---
+
+## 7. 独立 CLI HTML 导出工具 (`jtrac-exporter`)
+
 ```cmd
+# 构建 Fat JAR
 mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-```
-编译成功后，可执行文件会自动输出至：
-`tools/jtrac-exporter.jar`
+# 产出: tools/jtrac-exporter.jar
 
-### 6.2 执行导出 (Command Mode)
-在项目根目录下，可使用相对路径直接连接本地 HSQLDB 数据库进行导出：
-```cmd
+# 执行导出
 java -jar tools/jtrac-exporter.jar ^
   --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
   --attachments-dir="./data/attachments" ^
-  --out="./export-hsqldb" ^
+  --out="./export-output" ^
   --lang=zh-CN
 ```
-
-亦支持连接远程 MySQL 或 PostgreSQL 自定义数据库：
-```cmd
-java -jar tools/jtrac-exporter.jar ^
-  --db-url="jdbc:mysql://192.168.1.100:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" ^
-  --db-user="jtrac" ^
-  --db-password="your_password" ^
-  --attachments-dir="/path/to/attachments" ^
-  --out="./export-mysql" ^
-  --lang=zh-CN
-```
-查看完整参数说明：`java -jar tools/jtrac-exporter.jar --help`。
-

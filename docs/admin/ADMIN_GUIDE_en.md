@@ -1,95 +1,79 @@
-# JTrac Administrator & System Configuration Guide
+# JTrac Administrator & System Configuration Guide (English)
 
 [English](ADMIN_GUIDE_en.md) | [繁體中文](ADMIN_GUIDE_zh-TW.md) | [简体中文](ADMIN_GUIDE_zh-CN.md) | [日本語](ADMIN_GUIDE_ja.md) | [Tiếng Việt](ADMIN_GUIDE_vi.md) | [Deutsch](ADMIN_GUIDE_de.md) | [Español](ADMIN_GUIDE_es.md) | [Français](ADMIN_GUIDE_fr.md)
 
 ---
 
 ## Table of Contents
-1. [First Login & Default Credentials](#1-first-login--default-credentials)
-2. [Critical Initial System Settings (Mandatory)](#2-critical-initial-system-settings-mandatory)
-3. [System Architecture & Email Flowcharts (Mermaid)](#3-system-architecture--email-flowcharts-mermaid)
+1. [Initial Login & Default Credentials](#1-initial-login--default-credentials)
+2. [Mandatory System Initialization Settings](#2-mandatory-system-initialization-settings)
+3. [Architecture & Mail Flowchart (Mermaid)](#3-architecture--mail-flowchart-mermaid)
 4. [Administrative Functions Overview](#4-administrative-functions-overview)
-5. [Security & Maintenance Best Practices](#5-security--maintenance-best-practices)
+5. [Security, Database Upgrade & Maintenance Recommendations](#5-security-database-upgrade--maintenance-recommendations)
 
 ---
 
-## 1. First Login & Default Credentials
+## 1. Initial Login & Default Credentials
 
-When JTrac starts for the first time and initializes the database schema, it automatically provisions an initial global administrator account:
+Upon first startup and schema initialization, JTrac creates a default global administrator account:
 
-- **System URL**: `http://<your-server-ip-or-domain>:<port>/` (e.g. `http://localhost:8888/`)
+- **System URL**: `http://<server-ip>:<port>/` (e.g. `http://localhost:8888/`)
 - **Default Username**: `admin`
 - **Default Password**: `admin`
 
 > [!WARNING]
-> **Security Notice**:
-> Immediately after logging in for the first time, navigate to the top-right menu **OPTIONS** ➜ **Edit User Profile** and change the `admin` password. Never expose the default password in a production or public environment!
+> Immediately upon your initial login, navigate to **OPTIONS** ➜ **Edit User Profile** to change the default `admin` password. Never expose default credentials to production environments.
 
 ---
 
-## 2. Critical Initial System Settings (Mandatory)
+## 2. Mandatory System Initialization Settings
 
-Navigate to **OPTIONS** ➜ **Manage Settings**. The following settings directly affect email notifications and external accessibility, and **must be configured before production rollout**:
+Navigate to **OPTIONS** ➜ **Manage Settings** to configure these vital parameters:
 
-### 1. `jtrac.url.base` (Base System URL - Mandatory)
-- **Default Value**: `http://localhost/jtrac/`
-- **Recommended Setting**: Enter the fully qualified URL accessible by your users (including protocol `http://` or `https://`, host or domain, port number, and context path, **ending with a trailing slash `/`**).
-  - Internal Network Example: `http://192.168.1.100:8888/`
-  - Production FQDN Example: `https://issues.yourcompany.com/`
-- **Why is this mandatory?**:
-  JTrac automatically generates email notifications for:
-  1. Welcome emails with initial login credentials when an admin creates a new user.
-  2. "Forgot Password" self-service verification and reset links.
-  3. Issue tracking notifications upon creation, assignment, and status updates.
-  
-  All clickable hyperlinks within these emails are dynamically constructed using `jtrac.url.base` as their prefix.
-- **Consequences of Not Configuring**:
-  If left empty or set to the default value, all links in notification emails will point to `http://localhost/...`. When users click links from their own machines, their browsers will try to connect to their own local machine, resulting in **connection errors and inability to reset passwords**!
+### 1. `jtrac.url.base` (Base System URL - CRITICAL)
+- **Default**: `http://localhost/jtrac/`
+- **Recommended**: The public or intranet URL accessible to end users, **ending with a trailing slash `/`** (e.g., `http://192.168.1.100:8888/` or `https://issues.yourcompany.com/`).
+- **Why this is critical**: All hyperlinks in notification emails (account credentials, password resets, issue updates) are built using this prefix. Leaving it as `localhost` prevents recipients from opening links from their remote machines.
 
 ---
 
-### 2. `locale.default` (Default System Locale - Recommended)
-- **Default Value**: `en` (English)
-- **Recommended Setting**:
-  - Traditional Chinese (Taiwan): `zh_TW`
-  - Simplified Chinese: `zh_CN`
-  - Japanese: `ja`
-  - English: `en`
-- **Why configure this?**:
-  This parameter determines the default language displayed to anonymous visitors, newly registered users, and users who have not specified a language preference in their profile.
+### 2. `locale.default` (Default System Language)
+- **Default**: `en`
+- Options: `zh_TW`, `zh_CN`, `ja`, `en`, `vi`, `de`, `es`, `fr`.
 
 ---
 
-### 3. SMTP Mail Server Settings (`mail.server.*`)
-To enable outbound email notifications, configure your SMTP server under **Manage Settings**:
-- `mail.server.host`: SMTP server hostname or IP address (e.g. `smtp.yourcompany.com`).
-- `mail.server.port`: SMTP port (`25` unencrypted, `587` for STARTTLS, `465` for SSL).
-- `mail.server.username`: SMTP authentication username.
-- `mail.server.password`: SMTP authentication password.
-- `mail.server.starttls.enable`: Set to `true` if your mail server requires TLS.
-- `mail.from`: Sender email address (e.g. `jtrac-notifications@yourcompany.com`).
+### 3. SMTP Mail Server Settings
+- `mail.server.host`: SMTP server host or IP.
+- `mail.server.port`: SMTP port (25, 587 for TLS, 465 for SSL).
+- `mail.server.username` & `mail.server.password`: Authentication credentials.
+- `mail.server.starttls.enable`: Set to `true` for TLS.
+- `mail.from`: Sender email address.
 
 ---
 
-### 4. Advanced Settings
-- `attachment.maxsize`: Maximum file upload size in megabytes (default: `10`, can be increased to `50` or higher as needed).
-- `session.timeout`: HTTP session timeout in seconds (default: `1800` = 30 minutes).
+### 4. Advanced Settings & Pagination
+- `users.list.pageSize`: Default page size for User Management List (default: `25`; selectable: 10, 25, 50, 100, All).
+- `spaces.list.pageSize`: Default page size for Space Management List (default: `25`; selectable: 10, 25, 50, 100, All).
+- `attachment.maxsize`: Maximum upload size in MB (default `10`).
+- `session.timeout`: Session timeout in seconds (default `1800` / 30 mins).
 
 ---
 
-## 3. System Architecture & Email Flowcharts (Mermaid)
+## 3. Architecture & Mail Flowchart (Mermaid)
 
-### 1. First-Time Setup Workflow
+### Administrator Setup Flow
 ```mermaid
 flowchart TD
-    Start([Launch JTrac Service]) --> Login[First Login<br/>Username: admin / Password: admin]
-    Login --> ChangePwd[Change Admin Password Immediately<br/>OPTIONS ➜ Edit User Profile]
-    ChangePwd --> ConfigSettings[Configure Core System Settings<br/>OPTIONS ➜ Manage Settings]
+    Start([Start JTrac Service]) --> Login[Initial Login<br/>admin / admin]
+    Login --> ChangePwd[Change Admin Password<br/>OPTIONS ➜ Edit User Profile]
+    ChangePwd --> ConfigSettings[Configure System Settings<br/>OPTIONS ➜ Manage Settings]
     
-    subgraph CriticalSettings [Mandatory Initial Settings]
-        ConfigSettings --> SetUrlBase["Set jtrac.url.base<br/>(e.g., http://192.168.1.100:8888/)<br/>★ Prevents email links from defaulting to localhost"]
-        ConfigSettings --> SetLocale["Set locale.default<br/>(e.g., zh_TW or en)<br/>★ Sets default system UI language"]
-        ConfigSettings --> SetSMTP["Configure SMTP Mail Server<br/>(host / port / from)<br/>★ Enables password reset and notifications"]
+    subgraph CriticalSettings [Core Configuration]
+        ConfigSettings --> SetUrlBase["Set jtrac.url.base<br/>(e.g., http://192.168.1.100:8888/)<br/>★ Prevents email links pointing to localhost"]
+        ConfigSettings --> SetLocale["Set locale.default<br/>(e.g., en)<br/>★ Sets default interface language"]
+        ConfigSettings --> SetSMTP["Configure SMTP Server<br/>(host / port / from)<br/>★ Enables issue & reset notifications"]
+        ConfigSettings --> SetPaging["Configure Page Sizes<br/>(users/spaces.list.pageSize)"]
     end
     
     CriticalSettings --> CreateSpaces[Create Tracking Spaces<br/>OPTIONS ➜ Manage Spaces]
@@ -97,53 +81,33 @@ flowchart TD
     CreateUsers --> Finish([System Ready for Production])
 ```
 
-### 2. `jtrac.url.base` Email Link Generation Flow
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin as Administrator
-    actor User as End User
-    participant JTrac as JTrac Core Service
-    participant SMTP as SMTP Mail Server
-
-    Admin->>JTrac: Create new user / Update issue status
-    Note over JTrac: Read jtrac.url.base from settings
-    alt Missing or Default (http://localhost/jtrac/)
-        JTrac->>SMTP: Dispatch email (link: http://localhost/jtrac/app/item/...)
-        SMTP->>User: Deliver notification email
-        User->>User: Click link ❌<br/>(Browser connects to user's localhost - connection refused!)
-    else Properly Configured (e.g. http://192.168.1.100:8888/)
-        JTrac->>SMTP: Dispatch email (link: http://192.168.1.100:8888/app/item/...)
-        SMTP->>User: Deliver notification email
-        User->>JTrac: Click link ✔️<br/>(Opens JTrac issue page or password reset smoothly)
-    end
-```
-
 ---
 
 ## 4. Administrative Functions Overview
 
-Access the administrative panel via **OPTIONS** in the top navigation bar:
-
-| Menu Item | Purpose & Details |
+| Menu Item | Purpose |
 |---|---|
-| **Edit User Profile** | Modify current administrator email, display name, and password. |
-| **Manage Users** | User management: create accounts, reset passwords, lock users, and assign global Administrator privileges. |
-| **Manage Spaces** | Space management: create spaces, define custom fields, customize status/severity options, and assign space roles (Admin / Senior / Normal / Guest). |
-| **Configure Links** | Configure global navigation links in the header bar for external corporate tools. |
-| **Manage Settings** | Configure global parameters (`jtrac.url.base`, `locale.default`, SMTP credentials). |
-| **Rebuild Indexes** | Full-text search index rebuild: re-indexes all spaces and items with native Lucene. |
-| **Import From Excel** | Batch import issues and items from standard Excel templates. |
-| **Export HTML** | Batch export issue histories and attachments into static HTML/ZIP archives or run offline CLI backups via `tools/jtrac-exporter.jar`. |
+| **Edit User Profile** | Update current administrator email, display name, and password. |
+| **Manage Users** | User management: create users, paginated browsing, reset passwords, lock accounts, assign global Admin role. |
+| **Manage Spaces** | Space management: create spaces, paginated browsing, custom fields, statuses, severities, member roles. |
+| **Configure Links** | Configure navigation bar external links. |
+| **Manage Settings** | Configure global system parameters (base URL, SMTP, pagination). |
+| **Rebuild Indexes** | Rebuild Lucene full-text search indexes. |
+| **Import From Excel** | Batch import issues via Excel spreadsheet templates. |
+| **Export HTML** | Web-based batch HTML export and ZIP download. |
 
 ---
 
-## 5. Security & Maintenance Best Practices
+## 5. Security, Database Upgrade & Maintenance Recommendations
 
-1. **Modern Password Hashing**:
-   - Upgraded to Spring Security 5.8 with native BCrypt password hashing. Legacy MD5 hashes are transparently upgraded upon successful login.
-2. **Backups**:
-   - Database: Defaults to `data/db/` (HSQLDB) or corporate RDBMS (MySQL / PostgreSQL / MSSQL).
-   - Attachments: Stored under `data/attachments/`. Regularly include both in automated backup routines.
-3. **Reverse Proxy & HTTPS**:
-   - When deploying behind Nginx, Apache, or Caddy with SSL termination, configure `jtrac.url.base` with `https://...` and ensure `Host` and `X-Forwarded-Proto` headers are preserved.
+1. **Password Security (BCrypt & Hybrid Migration)**:
+   - Upgraded to Spring Security 5.8 with BCrypt password hashing.
+   - Transparent hybrid migration: legacy MD5 hashes are automatically upgraded to BCrypt upon successful user login without database disruption.
+2. **Database Upgrade (Upgrading from 2.3.3-1.0.0)**:
+   - External DBs (MySQL, PostgreSQL, SQL Server, Oracle): Execute [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
+   - Embedded HSQLDB: Automatic backup and migration to HSQLDB 2.x is handled on server startup.
+3. **Backup Schedule**:
+   - Database: Backup `data/db/` or external database on a regular schedule.
+   - Attachments: Regularly backup `data/attachments/`.
+4. **Reverse Proxy & HTTPS**:
+   - When placing behind Nginx/Apache with HTTPS, set `jtrac.url.base` to `https://...` and preserve `Host` and `X-Forwarded-Proto` headers.

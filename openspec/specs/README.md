@@ -42,11 +42,17 @@ flowchart TD
     B --> E[BUILD_zh-CN.md 简体中文]
     B --> F[BUILD_ja.md 日本語]
     B --> G[BUILD_vi.md Tiếng Việt]
+    B --> J[BUILD_de.md Deutsch]
+    B --> K[BUILD_es.md Español]
+    B --> L[BUILD_fr.md Français]
     C --> H[Maven 編譯與依賴快取說明]
     D --> H
     E --> H
     F --> H
     G --> H
+    J --> H
+    K --> H
+    L --> H
     H --> I[WAR WEB-INF/lib 第三方套件封裝解析]
 ```
 

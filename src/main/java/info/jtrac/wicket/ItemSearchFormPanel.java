@@ -170,7 +170,8 @@ public class ItemSearchFormPanel extends BasePanel {
                 fragParent = getFilterUiFragment(ch);
                 fragParent.setOutputMarkupId(true);
                 listItem.add(fragParent);
-                expressionChoice.add(new AjaxFormComponentUpdatingBehavior("onChange") {
+                expressionChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+                    @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         if(!ch.getFilterCriteria().requiresUiFragmentUpdate()) {
                             return;
