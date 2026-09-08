@@ -1,6 +1,6 @@
 # JTrac (Enhanced Fork)
 
-[English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md)
+[English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
 ---
 
@@ -24,6 +24,9 @@ This project is a modernized, enhanced fork of [JTrac 2.3.3 (https://jtrac.info)
 | **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
 | **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
 | **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
+| **Deutsch (German)** | [Deutsche Bau- und Kompilierungsanleitung](docs/build/BUILD_de.md) |
+| **Español (Spanish)** | [Guía de construcción y compilación en español](docs/build/BUILD_es.md) |
+| **Français (French)** | [Guide de compilation et d'exécution en français](docs/build/BUILD_fr.md) |
 
 ---
 

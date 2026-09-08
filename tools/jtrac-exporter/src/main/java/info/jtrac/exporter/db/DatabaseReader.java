@@ -1,6 +1,7 @@
 package info.jtrac.exporter.db;
 
 import info.jtrac.exporter.config.ExportConfig;
+import info.jtrac.exporter.i18n.I18nMessages;
 import info.jtrac.exporter.model.*;
 
 import java.sql.*;
@@ -9,17 +10,20 @@ import java.util.*;
 public class DatabaseReader implements AutoCloseable {
 
     private final ExportConfig config;
+    private final I18nMessages i18n;
     private Connection connection;
     private boolean manageConnection = true;
 
     public DatabaseReader(ExportConfig config) {
         this.config = config;
+        this.i18n = new I18nMessages(config != null ? config.getLang() : "en");
         this.manageConnection = true;
     }
 
     public DatabaseReader(Connection connection, ExportConfig config) {
         this.connection = connection;
         this.config = config != null ? config : new ExportConfig();
+        this.i18n = new I18nMessages(this.config.getLang());
         this.manageConnection = false;
     }
 
@@ -67,30 +71,30 @@ public class DatabaseReader implements AutoCloseable {
             }
         }
 
-        System.out.println("正在連線至資料庫: " + url + " (帳號: " + config.getDbUser() + ")");
+        System.out.println(String.format(i18n.get("cli.connecting_db"), url, config.getDbUser()));
         this.connection = DriverManager.getConnection(url, config.getDbUser(), config.getDbPassword());
-        System.out.println("資料庫連線成功！");
+        System.out.println(i18n.get("cli.connected_db"));
     }
 
     public List<SpaceDto> readAllData() throws SQLException {
         // 1. 讀取使用者
         Map<Long, UserDto> usersMap = readUsers();
-        System.out.println("讀取到 " + usersMap.size() + " 位使用者資料。");
+        System.out.println(String.format(i18n.get("cli.loaded_users"), usersMap.size()));
 
         // 2. 讀取附加檔案記錄
         Map<Long, AttachmentDto> attachmentsById = new HashMap<>();
         Map<Long, List<AttachmentDto>> attachmentsByItemId = new HashMap<>();
         readAttachments(attachmentsById, attachmentsByItemId);
-        System.out.println("讀取到 " + attachmentsById.size() + " 筆附件資料。");
+        System.out.println(String.format(i18n.get("cli.loaded_attachments"), attachmentsById.size()));
 
         // 3. 讀取專案空間
         List<SpaceDto> spaces = readSpaces();
-        System.out.println("讀取到 " + spaces.size() + " 個專案空間。");
+        System.out.println(String.format(i18n.get("cli.loaded_spaces"), spaces.size()));
 
         // 篩選 Space (若有指定)
         if (config.hasSpaceFilter()) {
             spaces.removeIf(s -> !config.isSpaceAllowed(s.getPrefixCode()));
-            System.out.println("套用空間篩選，符合之空間數: " + spaces.size());
+            System.out.println(String.format(i18n.get("cli.space_filtered"), spaces.size()));
         }
 
         Map<Long, SpaceDto> spaceMap = new HashMap<>();
@@ -101,11 +105,11 @@ public class DatabaseReader implements AutoCloseable {
         // 4. 讀取議題
         Map<Long, ItemDto> itemsById = readItems(spaceMap, usersMap, attachmentsByItemId);
         int totalItems = itemsById.size();
-        System.out.println("讀取到 " + totalItems + " 個議題。");
+        System.out.println(String.format(i18n.get("cli.loaded_issues"), totalItems));
 
         // 5. 讀取討論串歷史追蹤
         int historyCount = readHistory(itemsById, usersMap, attachmentsById);
-        System.out.println("讀取到 " + historyCount + " 筆討論串歷史更新記錄。");
+        System.out.println(String.format(i18n.get("cli.loaded_history"), historyCount));
 
         return spaces;
     }

@@ -1,6 +1,6 @@
 # JTrac (增强版 Fork)
 
-[English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md)
+[English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
 ---
 
@@ -24,6 +24,9 @@
 | **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
 | **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
 | **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
+| **Deutsch (German)** | [德文编译与构建完整指南](docs/build/BUILD_de.md) |
+| **Español (Spanish)** | [西班牙文编译与构建完整指南](docs/build/BUILD_es.md) |
+| **Français (French)** | [法文编译与构建完整指南](docs/build/BUILD_fr.md) |
 
 ---
 

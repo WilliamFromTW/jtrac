@@ -42,7 +42,7 @@ public class HtmlGenerator {
             generateSpaceHtml(space, outDir, attachmentsOutDir);
         }
 
-        System.out.println("HTML 靜態報表產出完成！輸出目錄: " + outDir.getAbsolutePath());
+        System.out.println(String.format(i18n.get("cli.html_done"), outDir.getAbsolutePath()));
     }
 
     public String generateIndexHtmlString(List<SpaceDto> spaces) {
