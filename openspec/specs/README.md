@@ -9,12 +9,13 @@
 | 規格代碼 (Capability) | 名稱與範疇 | 目的說明 (Purpose) | 狀態 |
 |---|---|---|---|
 | [`i18n-resources`](i18n-resources/spec.md) | 多國語系資源與過濾規範 | 定義 JTrac 專案中多國語系資源檔案之 UTF-8 編碼規範與 Maven 資源處理隔離規則，確保在不同作業系統與 JDK 環境下建置及執行時皆能正確處理字元編碼，並避免框架變數被構建工具誤替換。 | Active |
+| [`build-documentation`](build-documentation/spec.md) | 多語系建置與編譯文件規範 | 規範 JTrac 專案之多語系建置與編譯技術文件結構，確保全球開發者皆能在其母語或慣用語言環境下，清楚理解 Maven 建置指令、依賴套件本機快取下載機制，以及 WAR 封裝檔內部依賴整合原理。 | Active |
 
 ---
 
 ## 系統架構與流程圖總覽
 
-### `i18n-resources` 資源過濾與 UTF-8 處理流程
+### 1. `i18n-resources` 資源過濾與 UTF-8 處理流程
 
 ```mermaid
 flowchart TD
@@ -26,6 +27,24 @@ flowchart TD
     E --> G[打包至 WAR 封裝檔]
     F --> G
     G --> H[執行期 Wicket / Spring 載入 UTF-8 資源]
+```
+
+### 2. `build-documentation` 系統文件導覽架構
+
+```mermaid
+flowchart TD
+    A[專案根目錄 README.md] -->|多語系連結導覽| B[docs/build/ 目錄]
+    B --> C[BUILD_zh-TW.md 繁體中文]
+    B --> D[BUILD_en.md English]
+    B --> E[BUILD_zh-CN.md 简体中文]
+    B --> F[BUILD_ja.md 日本語]
+    B --> G[BUILD_vi.md Tiếng Việt]
+    C --> H[Maven 編譯與依賴快取說明]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    H --> I[WAR WEB-INF/lib 第三方套件封裝解析]
 ```
 
 ---
