@@ -20,23 +20,19 @@ import info.jtrac.domain.Attachment;
 import info.jtrac.util.AttachmentUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
-import org.springframework.util.StringUtils;
-
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.IRequestCycle;
-import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.http.WebResponse;
-import org.apache.wicket.util.io.Streams;
+import org.apache.wicket.request.resource.ContentDisposition;
+import org.apache.wicket.util.resource.FileResourceStream;
+import org.apache.wicket.util.resource.IResourceStream;
+import org.springframework.util.StringUtils;
 
 /**
  * link for downloading an attachment
@@ -53,80 +49,64 @@ public class AttachmentLinkPanel extends BasePanel {
         }
 
         final String fileName = attachment.getFileName();
+        final String fileType = AttachmentUtils.guessFileType(attachment, getJtrac().getJtracHome());
+        final boolean isViewable = fileType != null && (fileType.startsWith("image") || fileType.startsWith("text"));
+        final boolean openInNewWindow = openNewWindow() && isViewable;
 
-        Link link = new Link("attachment") {
-            // adapted from wicket.markup.html.link.DownloadLink
-            // with the difference that the File is instantiated only after onClick
-			@Override
+        Link<Void> link = new Link<Void>("attachment") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
             public void onClick() {
-                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
+                File file = AttachmentUtils.getFile(attachment, getJtrac().getJtracHome());
+                if (file == null || !file.exists()) {
+                    error("Attachment file not found: " + fileName);
+                    return;
+                }
 
-					@Override
-                    public void detach (IRequestCycle requestCycle) { }
-
-					@Override
-                    public void respond (IRequestCycle requestCycle) {
-                        WebResponse r = (WebResponse) requestCycle.getResponse();
-						String fileType = AttachmentUtils.guessFileType(attachment, getJtrac().getJtracHome());
-						
-						// https://stackoverflow.com/questions/30307406/wicket-webresponse-attachment-header-with-utf-8-charackers
-						String encodedFileName = fileName;
-						try {
-							encodedFileName = URLEncoder.encode(attachment.getFileName(), "UTF-8");
-						} catch (UnsupportedEncodingException ex) { }
-
-						if (openNewWindow()) {
-							if (fileType != null && (fileType.startsWith("image") || fileType.startsWith("text"))) {
-								r.setHeader("Content-Disposition", "inline; filename=\""+fileName+"\"; filename*=UTF-8''"+encodedFileName);
-								//r.setInlineHeader(fileName);
-								// not available in Wicket 1.3.7
-							} else {
-								r.setHeader("Content-Disposition", "attachment; filename=\""+fileName+"\"; filename*=UTF-8''"+encodedFileName);
-							}
-						} else {
-							r.setHeader("Content-Disposition", "attachment; filename=\""+fileName+"\"; filename*=UTF-8''"+encodedFileName);
-						}
-                        try {
-                            File file = AttachmentUtils.getFile(attachment, getJtrac().getJtracHome());
-                            InputStream is = new FileInputStream(file);
-                            try {
-                                Streams.copy(is, r.getOutputStream());
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            } finally {
-                                try {
-                                    is.close();
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
+                IResourceStream resourceStream = new FileResourceStream(file) {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public String getContentType() {
+                        return fileType;
                     }
-                });
-            }
+                };
 
-			@Override
-			public void renderHead (IHeaderResponse response) {
-				if (openNewWindow()) {
-					response.render(CssHeaderItem.forCSS("#oldStyle { display: none; } #newStyle { display: inline}", "attachmentStyle"));
-				} else {
-					response.render(CssHeaderItem.forCSS("#oldStyle { display: inline; } #newStyle { display: none}", "attachmentStyle"));
-				}
-			}
+                ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(resourceStream, fileName) {
+                    @Override
+                    public void respond(IRequestCycle requestCycle) {
+                        WebResponse r = (WebResponse) requestCycle.getResponse();
+                        String disposition = openInNewWindow ? "inline" : "attachment";
+                        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+                        r.setHeader("Content-Disposition", disposition + "; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+                        super.respond(requestCycle);
+                    }
+                };
+
+                if (openInNewWindow) {
+                    handler.setContentDisposition(ContentDisposition.INLINE);
+                } else {
+                    handler.setContentDisposition(ContentDisposition.ATTACHMENT);
+                }
+
+                getRequestCycle().scheduleRequestHandlerAfterCurrent(handler);
+            }
         };
+
+        if (openInNewWindow) {
+            link.add(AttributeModifier.replace("target", "_blank"));
+        }
 
         link.add(new Label("fileName", fileName));
         add(link);
     }
 
-	protected boolean openNewWindow() {
-		String openNewWindow = getJtrac().loadConfig("attachments.openNewWindow");
-		if (StringUtils.hasText(openNewWindow)) {
-			return openNewWindow.trim().equalsIgnoreCase("true");
-		} else {
-			return true;
-		}
-	}
+    protected boolean openNewWindow() {
+        String openNewWindow = getJtrac().loadConfig("attachments.openNewWindow");
+        if (StringUtils.hasText(openNewWindow)) {
+            return openNewWindow.trim().equalsIgnoreCase("true");
+        } else {
+            return true;
+        }
+    }
 }

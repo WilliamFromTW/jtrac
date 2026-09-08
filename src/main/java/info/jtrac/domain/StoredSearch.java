@@ -10,16 +10,16 @@ public class StoredSearch implements Serializable {
     private Long id;
     private String name;
     private String query;
-    private boolean newWindow;
+    private Boolean newWindow = true;
 
     public StoredSearch() {
     }
 
-    public StoredSearch(Long id, String name, String query, boolean newWindow) {
+    public StoredSearch(Long id, String name, String query, Boolean newWindow) {
         this.id = id;
         this.query = query;
         this.name = name;
-        this.newWindow = newWindow;
+        this.newWindow = newWindow != null ? newWindow : Boolean.TRUE;
     }
 
     public String getName() {
@@ -39,11 +39,11 @@ public class StoredSearch implements Serializable {
     }
 
     public boolean getNewWindow() {
-        return newWindow;
+        return newWindow != null && newWindow;
     }
 
-    public void setNewWindow (boolean newWindow) {
-        this.newWindow = newWindow;
+    public void setNewWindow (Boolean newWindow) {
+        this.newWindow = newWindow != null ? newWindow : Boolean.TRUE;
     }
 
     public Long getId() {

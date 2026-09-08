@@ -55,7 +55,7 @@ public class User implements UserDetails, Serializable, Comparable<User> {
     private Metadata metadata;
     private String locale;
     private boolean locked;
-    private boolean prettyDates = true;
+    private Boolean prettyDates = true;
     private String info;
     private Set<UserSpaceRole> userSpaceRoles = new HashSet<UserSpaceRole>();
 
@@ -321,11 +321,11 @@ public class User implements UserDetails, Serializable, Comparable<User> {
     }
 
     public boolean isPrettyDates() {
-        return prettyDates;
+        return prettyDates != null && prettyDates;
     }
 
-    public void setPrettyDates (boolean prettyDates) {
-        this.prettyDates = prettyDates;
+    public void setPrettyDates (Boolean prettyDates) {
+        this.prettyDates = prettyDates != null ? prettyDates : Boolean.TRUE;
     }
 
     public Metadata getMetadata() {

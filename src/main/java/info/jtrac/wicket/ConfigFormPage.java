@@ -100,6 +100,11 @@ public class ConfigFormPage extends BasePage {
 				Fragment f = new Fragment("field", "numberField", ConfigFormPage.this);
 				TextField<String> numberField = new TextField<String>("value") {
 					@Override
+					protected String[] getInputTypes() {
+						return new String[] {"number", "text"};
+					}
+
+					@Override
 					protected void onComponentTag(org.apache.wicket.markup.ComponentTag tag) {
 						super.onComponentTag(tag);
 						tag.put("type", "number");
@@ -112,6 +117,11 @@ public class ConfigFormPage extends BasePage {
 				// only difference is type="color" instead of type="text"
 				Fragment f = new Fragment("field", "colorField", ConfigFormPage.this);
 				TextField<String> colorField = new TextField<String>("value") {
+					@Override
+					protected String[] getInputTypes() {
+						return new String[] {"color", "text"};
+					}
+
 					@Override
 					protected void onComponentTag(org.apache.wicket.markup.ComponentTag tag) {
 						super.onComponentTag(tag);

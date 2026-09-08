@@ -41,13 +41,29 @@ public class AttachmentUtils {
     }
 
 	public static String guessFileType (Attachment attachment, String jtracHome) {
-		String fileType ="application/octet-stream";
+		String fileType = null;
 		try {
 			File file = getFile(attachment, jtracHome);
-			fileType = Files.probeContentType(file.toPath());
-		} catch (IOException ioex) {
-			//System.out.println("can't determine file type of "+attachment.getFileName()+": "+ioex.getMessage());
+			if (file.exists()) {
+				fileType = Files.probeContentType(file.toPath());
+			}
+		} catch (Exception ignored) { }
+		if (fileType == null && attachment != null && attachment.getFileName() != null) {
+			String name = attachment.getFileName().toLowerCase();
+			if (name.endsWith(".jpg") || name.endsWith(".jpeg")) {
+				fileType = "image/jpeg";
+			} else if (name.endsWith(".png")) {
+				fileType = "image/png";
+			} else if (name.endsWith(".gif")) {
+				fileType = "image/gif";
+			} else if (name.endsWith(".txt") || name.endsWith(".log")) {
+				fileType = "text/plain";
+			} else if (name.endsWith(".pdf")) {
+				fileType = "application/pdf";
+			} else if (name.endsWith(".zip")) {
+				fileType = "application/zip";
+			}
 		}
-		return fileType;
+		return fileType != null ? fileType : "application/octet-stream";
 	}
 }

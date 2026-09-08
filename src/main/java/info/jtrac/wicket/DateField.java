@@ -41,6 +41,11 @@ public class DateField extends TextField<Date> {
     }
 
     @Override
+    protected String[] getInputTypes() {
+        return new String[] {"date", "text"};
+    }
+
+    @Override
     protected void onComponentTag(org.apache.wicket.markup.ComponentTag tag) {
         super.onComponentTag(tag);
         tag.put("type", "date");

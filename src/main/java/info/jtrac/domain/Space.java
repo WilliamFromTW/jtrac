@@ -35,7 +35,7 @@ public class Space implements Serializable, Comparable<Space> {
     private String name;
     private String description;
     private boolean guestAllowed;
-    private boolean isActive;
+    private Boolean isActive = true;
     private Metadata metadata;
 
     public Space() {
@@ -109,11 +109,11 @@ public class Space implements Serializable, Comparable<Space> {
     }
 
     public boolean getIsActive() {
-        return isActive;
+        return isActive != null && isActive;
     }
 
-    public void setIsActive (boolean isActive) {
-        this.isActive = isActive;
+    public void setIsActive (Boolean isActive) {
+        this.isActive = isActive != null ? isActive : Boolean.TRUE;
     }
 
     @Override

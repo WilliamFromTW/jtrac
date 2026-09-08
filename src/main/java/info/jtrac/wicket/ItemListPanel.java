@@ -48,6 +48,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 
 /**
  * item list panel
@@ -100,7 +101,7 @@ public class ItemListPanel extends BasePanel {
         };
         link.add(new Label("count", resultCount + ""));
         String resultCountMessage = resultCount == 1 ? "item_list.recordFound" : "item_list.recordsFound";
-        link.add(new Label("recordsFound", localize(resultCountMessage)));        
+        link.add(new Label("recordsFound", new ResourceModel(resultCountMessage)));        
         add(link);        
         
         WebMarkupContainer pagination = new WebMarkupContainer("pagination");

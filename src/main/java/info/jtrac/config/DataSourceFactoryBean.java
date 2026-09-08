@@ -16,6 +16,7 @@
 
 package info.jtrac.config;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.Statement;
 import javax.sql.DataSource;
@@ -155,6 +156,22 @@ public class DataSourceFactoryBean implements FactoryBean, DisposableBean {
             dataSource = (DataSource) factoryBean.getObject();
         } else if(url.startsWith("jdbc:hsqldb:file")) {
             logger.info("embedded HSQLDB mode detected, using Spring single connection data source");
+
+            try {
+                String path = url.substring("jdbc:hsqldb:file:".length());
+                int semicolonIdx = path.indexOf(';');
+                if (semicolonIdx != -1) {
+                    path = path.substring(0, semicolonIdx);
+                }
+                File dbFile = new File(path);
+                File dbDir = dbFile.getParentFile();
+                String dbName = dbFile.getName();
+                if (dbDir != null) {
+                    info.jtrac.tools.HsqldbDatabaseMigrator.checkAndMigrateIfNecessary(dbDir, dbName);
+                }
+            } catch (Exception e) {
+                logger.error("HSQLDB pre-migration check encountered error: {}", e.getMessage(), e);
+            }
 
             SingleConnectionDataSource ds = new SingleConnectionDataSource();
             ds.setUrl(url);
