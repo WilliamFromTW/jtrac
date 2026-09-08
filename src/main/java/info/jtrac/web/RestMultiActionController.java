@@ -30,9 +30,7 @@ import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.wicket.PageParameters;
-import org.apache.wicket.protocol.http.RequestUtils;
-import org.apache.wicket.util.value.ValueMap;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.springframework.web.servlet.ModelAndView;
@@ -180,13 +178,14 @@ public class RestMultiActionController extends AbstractMultiActionController {
     }
 
     public void itemSearchGet(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String queryString = request.getQueryString();
-        logger.debug("parsing queryString: {}", queryString);
-        ValueMap map = new ValueMap();
-        RequestUtils.decodeParameters(queryString, map);
-        logger.debug("decoded: {}", map);
+        logger.debug("parsing queryString: {}", request.getQueryString());
+        PageParameters params = new PageParameters();
+        for (java.util.Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            for (String val : entry.getValue()) {
+                params.add(entry.getKey(), val);
+            }
+        }
         User user = (User) request.getAttribute("user");
-        PageParameters params = new PageParameters(map);
         ItemSearch itemSearch = ItemUtils.getItemSearch(user, params, jtrac);
         initXmlResponse(response);
         ItemUtils.writeAsXml(itemSearch, jtrac, response.getWriter());

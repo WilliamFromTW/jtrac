@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -96,7 +95,7 @@ public class DashboardRowExpandedPanel extends BasePanel {
                         public void onClick(AjaxRequestTarget target) {
                             DashboardRowPanel dashboardRow = new DashboardRowPanel("dashboardRow", usr, counts);
                             DashboardRowExpandedPanel.this.replaceWith(dashboardRow);
-                            target.addComponent(dashboardRow);
+                            target.add(dashboardRow);
                         }
                     }.add(sam)); 
                     

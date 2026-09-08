@@ -20,8 +20,8 @@ import info.jtrac.Jtrac;
 import info.jtrac.domain.ItemSearch;
 import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
-import org.apache.wicket.auth.roles.AuthenticatedWebSession;
-import org.apache.wicket.auth.roles.Roles;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
+import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.springframework.util.StringUtils;
 import org.apache.wicket.request.Request;
@@ -55,13 +55,18 @@ public class JtracSession extends AuthenticatedWebSession {
     
     public void setUser(User user) {
         this.user = user;
-        if (user.getLocale() == null) {
-            // for downward compatibility, may be null in old JTrac versions
-            user.setLocale(JtracApplication.get().getJtrac().getDefaultLocale());
-        }
-        // flip locale only if different from existing
-        if (!getLocale().getDisplayName().equals(user.getLocale())) {
-            setLocale(StringUtils.parseLocaleString(user.getLocale()));
+        if (user != null) {
+            signIn(true);
+            if (user.getLocale() == null) {
+                // for downward compatibility, may be null in old JTrac versions
+                user.setLocale(JtracApplication.get().getJtrac().getDefaultLocale());
+            }
+            // flip locale only if different from existing
+            if (!getLocale().getDisplayName().equals(user.getLocale())) {
+                setLocale(StringUtils.parseLocaleString(user.getLocale()));
+            }
+        } else {
+            signIn(false);
         }
     }
     
@@ -109,11 +114,6 @@ public class JtracSession extends AuthenticatedWebSession {
             }
         }
         return roles;
-    }
-
-    @Override
-    public boolean isSignedIn() {
-        return user != null;
     }
 
     public boolean isAuthenticated() {

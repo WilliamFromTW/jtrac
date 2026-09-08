@@ -120,20 +120,35 @@ public class JtracApplication extends WebApplication {
                     
                     @Override
                     public String loadStringResource(Component component,
-                            String key, String style) {
-                        String value = loadStringResource(null, key,
-                                component == null ? null : component.getLocale(), style, null);
+                            String key, Locale locale, String style, String variation) {
+                        String value = loadStringResource((Class<?>) null, key,
+                                locale != null ? locale : (component == null ? null : component.getLocale()), style, variation);
                         if (logger.isDebugEnabled() && value == null) {
-                            logger.debug("i18n failed for key: '" + key + "', component: " + component);
+                            logger.debug("i18n failed for key: '{}', component: {}", key, component);
                         }
                         return value;
                     }
                 });
+        getResourceSettings().setThrowExceptionOnMissingResource(false);
+        getCspSettings().blocking().disabled();
         
+        getSecuritySettings().setUnauthorizedComponentInstantiationListener(
+                new org.apache.wicket.authorization.IUnauthorizedComponentInstantiationListener() {
+                    @Override
+                    public void onUnauthorizedInstantiation(Component component) {
+                        throw new RestartResponseAtInterceptPageException(LoginPage.class);
+                    }
+                });
+
         getSecuritySettings().setAuthorizationStrategy(
                 new IAuthorizationStrategy() {
                     @Override
                     public boolean isActionAuthorized(Component c, Action a) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean isResourceAuthorized(org.apache.wicket.request.resource.IResource resource, org.apache.wicket.request.mapper.parameter.PageParameters parameters) {
                         return true;
                     }
                     
@@ -174,10 +189,10 @@ public class JtracApplication extends WebApplication {
                             }
                             
                             /*
-                             * Not authenticated, go to login page.
+                             * Not authenticated, return false to trigger unauthorized listener redirect
                              */
                             logger.debug("not authenticated, forcing login, page requested was " + clazz.getName());
-                            throw new RestartResponseAtInterceptPageException(LoginPage.class);
+                            return false;
                         }
                         return true;
                     }
@@ -188,6 +203,7 @@ public class JtracApplication extends WebApplication {
          */
         mountPage("/login", LoginPage.class);
         mountPage("/logout", LogoutPage.class);
+        mountPage("/dashboard", DashboardPage.class);
         mountPage("/svn", SvnStatsPage.class);
         mountPage("/options", OptionsPage.class);
         mountPage("/item/form", ItemFormPage.class);
@@ -201,6 +217,11 @@ public class JtracApplication extends WebApplication {
      */
     public Class<? extends Page> getHomePage() {
         return DashboardPage.class;
+    }
+
+    @Override
+    public Session newSession(Request request, Response response) {
+        return new JtracSession(request);
     }
     
     /**

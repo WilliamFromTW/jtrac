@@ -24,9 +24,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.time.Duration;
+import java.time.Duration;
 
 /**
  * rebuild indexes admin option
@@ -79,7 +78,7 @@ public class IndexRebuildPage extends BasePage {
                     }.start();
                     
                     // poll and update the progress every 5 seconds
-                    progress.add(new AjaxSelfUpdatingTimerBehavior(Duration.seconds(5)));
+                    progress.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)));
                     IModel model = new AbstractReadOnlyModel() {
                         public Object getObject() {
                             if(complete) {
@@ -96,7 +95,7 @@ public class IndexRebuildPage extends BasePage {
                             return percent + "% [" + current + " / " + total + "]";
                         };
                     };
-                    progress.setModel(model);             
+                    progress.setDefaultModel(model);             
                 }
             };
             

@@ -29,12 +29,13 @@ import java.net.URLEncoder;
 
 import org.springframework.util.StringUtils;
 
-import org.apache.wicket.IRequestTarget;
-import org.apache.wicket.RequestCycle;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.protocol.http.WebResponse;
+import org.apache.wicket.request.IRequestCycle;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.util.io.Streams;
 
 /**
@@ -58,13 +59,13 @@ public class AttachmentLinkPanel extends BasePanel {
             // with the difference that the File is instantiated only after onClick
 			@Override
             public void onClick() {
-                getRequestCycle().setRequestTarget(new IRequestTarget() {
+                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
 
 					@Override
-                    public void detach (RequestCycle requestCycle) { }
+                    public void detach (IRequestCycle requestCycle) { }
 
 					@Override
-                    public void respond (RequestCycle requestCycle) {
+                    public void respond (IRequestCycle requestCycle) {
                         WebResponse r = (WebResponse) requestCycle.getResponse();
 						String fileType = AttachmentUtils.guessFileType(attachment, getJtrac().getJtracHome());
 						
@@ -107,11 +108,11 @@ public class AttachmentLinkPanel extends BasePanel {
             }
 
 			@Override
-			public void renderHead (HtmlHeaderContainer container) {
+			public void renderHead (IHeaderResponse response) {
 				if (openNewWindow()) {
-					container.getHeaderResponse().renderString("<style>#oldStyle { display: none; } #newStyle { display: inline}</style>");
+					response.render(CssHeaderItem.forCSS("#oldStyle { display: none; } #newStyle { display: inline}", "attachmentStyle"));
 				} else {
-					container.getHeaderResponse().renderString("<style>#oldStyle { display: inline; } #newStyle { display: none}</style>");
+					response.render(CssHeaderItem.forCSS("#oldStyle { display: inline; } #newStyle { display: none}", "attachmentStyle"));
 				}
 			}
         };

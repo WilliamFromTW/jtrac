@@ -19,19 +19,18 @@ package info.jtrac.wicket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.repeater.RefreshingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 /**
  * usage requires only passing a list dynamically by overriding
  */
-public abstract class ReadOnlyRefreshingView<T> extends RefreshingView {
+public abstract class ReadOnlyRefreshingView<T> extends RefreshingView<T> {
 
-    protected final SimpleAttributeModifier CLASS_ALT = new SimpleAttributeModifier("class", "alt");
-    protected final SimpleAttributeModifier CLASS_SELECTED = new SimpleAttributeModifier("class", "selected");
-    protected final SimpleAttributeModifier CLASS_ERROR_BACK = new SimpleAttributeModifier("class", "error-back");
+    protected final AttributeModifier CLASS_ALT = AttributeModifier.replace("class", "alt");
+    protected final AttributeModifier CLASS_SELECTED = AttributeModifier.replace("class", "selected");
+    protected final AttributeModifier CLASS_ERROR_BACK = AttributeModifier.replace("class", "error-back");
     
     public ReadOnlyRefreshingView(String id) {
         super(id);
@@ -40,13 +39,13 @@ public abstract class ReadOnlyRefreshingView<T> extends RefreshingView {
     public abstract List<T> getObjectList();
 
     @Override
-    protected Iterator getItemModels() {
+    protected Iterator<IModel<T>> getItemModels() {
         List<T> list = getObjectList();
-        List<IModel> models = new ArrayList<IModel>(list.size());
+        List<IModel<T>> models = new ArrayList<IModel<T>>(list.size());
         for (final T o : list) {
-            models.add(new AbstractReadOnlyModel() {
-
-                public Object getObject() {
+            models.add(new AbstractReadOnlyModel<T>() {
+                @Override
+                public T getObject() {
                     return o;
                 }
             });

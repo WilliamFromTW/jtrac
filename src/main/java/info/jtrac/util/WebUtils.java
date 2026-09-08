@@ -21,9 +21,10 @@ import info.jtrac.wicket.JtracApplication;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import info.jtrac.wicket.HeaderContributor;
+import info.jtrac.wicket.IHeaderContributor;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 
 /**
  * utilities for http, web related stuff etc
@@ -61,7 +62,7 @@ public class WebUtils {
 						+ "r.style.setProperty('--error', '"+colorError+"');\n"
 						+ "r.style.setProperty('--errorbg', '"+colorErrorBg+"');\n"
 						+ "r.style.setProperty('--gray', '"+colorGray+"');\n";
-				response.renderOnDomReadyJavascript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 			}
 		});
     }

@@ -28,7 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -72,21 +72,20 @@ public class ItemSearch implements Serializable {
     }      
 
     public void initFromPageParameters(PageParameters params, User user, Jtrac jtrac) {       
-        showHistory = params.getBoolean("showHistory");
+        showHistory = params.get("showHistory").toBoolean(false);
 		try {
-			pageSize = params.getInt("pageSize", Integer.parseInt(jtrac.loadConfig("items.search.num")));
+			pageSize = params.get("pageSize").toInt(Integer.parseInt(jtrac.loadConfig("items.search.num")));
 		} catch (RuntimeException rtex) { /* ignore, the default is fine */ }
-        sortDescending = !params.getBoolean("sortAscending");
-        sortFieldName = params.getString("sortFieldName", "id");
-        for(Object o : params.keySet()) {
-            String name = o.toString();
+        sortDescending = !params.get("sortAscending").toBoolean(false);
+        sortFieldName = params.get("sortFieldName").toString("id");
+        for(String name : params.getNamedKeys()) {
             if(ColumnHeading.isValidFieldOrColumnName(name)) {
                 ColumnHeading ch = getColumnHeading(name);
-                ch.loadFromQueryString(params.getString(name), user, jtrac);
+                ch.loadFromQueryString(params.get(name).toString(), user, jtrac);
             }
         }        
-        relatingItemRefId = params.getString("relatingItemRefId", null);
-        String visibleFlags = params.getString("cols", null);
+        relatingItemRefId = params.get("relatingItemRefId").toOptionalString();
+        String visibleFlags = params.get("cols").toOptionalString();
         if(visibleFlags != null) {
             int i = 0;
             for(ColumnHeading ch : columnHeadings) {
@@ -117,36 +116,36 @@ public class ItemSearch implements Serializable {
     }
     
     public PageParameters getAsQueryString() {
-        Map<String, String> map = new HashMap<String, String>();
+        PageParameters params = new PageParameters();
         if(space != null) {
-            map.put("s", space.getId() + "");
+            params.set("s", space.getId() + "");
         }                
         for(ColumnHeading ch : columnHeadings) {
             String s = ch.getAsQueryString();
             if(s != null) {
-                map.put(ch.getNameText(), s);
+                params.set(ch.getNameText(), s);
             }           
         }   
         String visibleFlags = getVisibleFlags();
         if(!visibleFlags.equals(defaultVisibleFlags)) {
-            map.put("cols", visibleFlags.toString());
+            params.set("cols", visibleFlags.toString());
         }        
         if(showHistory) {
-            map.put("showHistory", "true");
+            params.set("showHistory", "true");
         }
         if(pageSize != 25) {
-            map.put("pageSize", pageSize + "");
+            params.set("pageSize", pageSize + "");
         }
         if(!sortDescending) {
-            map.put("sortAscending", "true");
+            params.set("sortAscending", "true");
         }
         if(!sortFieldName.equals("id")) {
-            map.put("sortFieldName", sortFieldName);
+            params.set("sortFieldName", sortFieldName);
         }
         if(relatingItemRefId != null) {
-            map.put("relatingItemRefId", relatingItemRefId);
+            params.set("relatingItemRefId", relatingItemRefId);
         }
-        return new PageParameters(map);
+        return params;
     }    
         
     private DetachedCriteria parent; // temp working variable hack

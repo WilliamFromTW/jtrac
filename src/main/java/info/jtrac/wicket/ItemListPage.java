@@ -19,7 +19,7 @@ package info.jtrac.wicket;
 import info.jtrac.domain.ItemSearch;
 import info.jtrac.exception.JtracSecurityException;
 import info.jtrac.util.ItemUtils;
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * item list page

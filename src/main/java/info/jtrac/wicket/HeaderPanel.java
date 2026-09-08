@@ -27,13 +27,13 @@ import javax.servlet.http.Cookie;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.protocol.http.WebRequest;
-import org.apache.wicket.protocol.http.WebResponse;
+import org.apache.wicket.request.http.WebRequest;
+import org.apache.wicket.request.http.WebResponse;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * header navigation
@@ -57,7 +57,7 @@ public class HeaderPanel extends BasePanel {
             }
         }
         final Space space = currentSpace;
-        final List<Space> spaces = new ArrayList(user.getSpaces());
+        final List<Space> spaces = new ArrayList<Space>(user != null ? user.getSpaces() : java.util.Collections.<Space>emptyList());
 
         add(new Link("dashboard") {
             public void onClick() {
@@ -88,7 +88,7 @@ public class HeaderPanel extends BasePanel {
         } else {
             add(new Label("spaceName", space.getName()));   
             add(new Label("prefixCode", space.getPrefixCode())); 
-            if (user.getPermittedTransitions(space, State.NEW).size() > 0) {            
+            if (user != null && user.getPermittedTransitions(space, State.NEW).size() > 0) {            
                 add(new Link("new") {
                     public void onClick() {
                         setResponsePage(ItemFormPage.class);
@@ -105,7 +105,7 @@ public class HeaderPanel extends BasePanel {
             });            
         }
         
-        if(user.getId() == 0) {
+        if(user == null || user.getId() == 0) {
             add(new WebMarkupContainer("export").setVisible(false));
             add(new WebMarkupContainer("options").setVisible(false));
             add(new WebMarkupContainer("logout").setVisible(false));
@@ -134,14 +134,14 @@ public class HeaderPanel extends BasePanel {
             add(new Link("logout") {
                 public void onClick() {                                        
                     Cookie cookie = new Cookie("jtrac", "");                    
-                    String path = ((WebRequest) getRequest()).getHttpServletRequest().getContextPath();
+                    String path = ((WebRequest) getRequest()).getContextPath();
                     cookie.setPath(path);                    
                     ((WebResponse) getResponse()).clearCookie(cookie);                    
                     getSession().invalidate();
                     logger.debug("invalidated session and cleared cookie"); 
                     // clear security context and redirect to logout page
                     SecurityContextHolder.clearContext();
-                    setResponsePage(LogoutPage.class, new PageParameters("locale=" + user.getLocale()));
+                    setResponsePage(LogoutPage.class, new PageParameters().set("locale", user.getLocale()));
                 }            
             });
             add(new WebMarkupContainer("login").setVisible(false));

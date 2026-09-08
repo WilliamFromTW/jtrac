@@ -17,14 +17,14 @@
 package info.jtrac.wicket;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AbstractBehavior;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 
 /**
  * switches on css styling to highlight invalid form input
  */
-public class ErrorHighlighter extends AbstractBehavior {
+public class ErrorHighlighter extends Behavior {
     
     private FormComponent fc;
     
@@ -45,7 +45,7 @@ public class ErrorHighlighter extends AbstractBehavior {
     
     @Override
     public void onComponentTag(Component c, ComponentTag tag) {
-        if (!fc.isValid()) { 
+        if (fc != null && !fc.isValid()) { 
             tag.put("class", "error-input"); 
         }
     }    

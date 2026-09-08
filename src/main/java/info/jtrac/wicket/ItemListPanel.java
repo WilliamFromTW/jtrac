@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.IRequestTarget;
-import org.apache.wicket.PageParameters;
-import org.apache.wicket.RequestCycle;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.IRequestCycle;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -48,7 +48,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.protocol.http.WebResponse;
 
 /**
  * item list panel
@@ -179,13 +178,15 @@ public class ItemListPanel extends BasePanel {
         
         add(new Link("exportToXml") {            
             public void onClick() {
-                getRequestCycle().setRequestTarget(new IRequestTarget() {
-                    public void respond(RequestCycle requestCycle) {
+                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
+                    @Override
+                    public void respond(IRequestCycle requestCycle) {
                         WebResponse r = (WebResponse) requestCycle.getResponse();
                         r.setAttachmentHeader("jtrac-export.xml");     
                         ItemUtils.writeAsXml(itemSearch, getJtrac(), new OutputStreamWriter(r.getOutputStream()));                   
                     }
-                    public void detach(RequestCycle requestCycle) {                        
+                    @Override
+                    public void detach(IRequestCycle requestCycle) {                        
                     }                    
                 });
             }
@@ -200,8 +201,9 @@ public class ItemListPanel extends BasePanel {
                 final ExcelUtils eu = new ExcelUtils(getJtrac().findItems(itemSearch), itemSearch);
                 // restore page size
                 itemSearch.setPageSize(pageSize);
-                getRequestCycle().setRequestTarget(new IRequestTarget() {
-                    public void respond(RequestCycle requestCycle) {
+                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
+                    @Override
+                    public void respond(IRequestCycle requestCycle) {
                         WebResponse r = (WebResponse) requestCycle.getResponse();
                         r.setAttachmentHeader("jtrac-export.xls");
                         try {
@@ -211,7 +213,8 @@ public class ItemListPanel extends BasePanel {
                             throw new RuntimeException(e);
                         }
                     }
-                    public void detach(RequestCycle requestCycle) {
+                    @Override
+                    public void detach(IRequestCycle requestCycle) {
                     }                    
                 });
             }
@@ -278,7 +281,7 @@ public class ItemListPanel extends BasePanel {
                                     Fragment refIdFrag = new Fragment("column", "refId", ItemListPanel.this);
                                     refIdFrag.setRenderBodyOnly(true);
                                     listItem.add(refIdFrag);
-                                    Link refIdLink = new BookmarkablePageLink("refId", ItemViewPage.class, new PageParameters("0=" + refId));                                
+                                    Link refIdLink = new BookmarkablePageLink("refId", ItemViewPage.class, new PageParameters().set("0", refId));                                
                                     refIdFrag.add(refIdLink);
                                     refIdLink.add(new Label("refId", refId));
                                     if (showHistory) {                                                                                                            

@@ -24,17 +24,17 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
+import java.io.ByteArrayOutputStream;
+import javax.imageio.ImageIO;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.markup.html.image.resource.BufferedDynamicImageResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 
 /**
  * subversion statistics chart
@@ -116,9 +116,14 @@ public class SvnStatsPage extends BasePage {
                 }
             });
             JFreeChart chart = ChartFactory.createBarChart(null, null, null, dataset, PlotOrientation.VERTICAL, false, false, false);
-            BufferedDynamicImageResource resource = new BufferedDynamicImageResource();
-            resource.setImage(chart.createBufferedImage(600, 300));
-            hide.add(new Image("chart", resource));
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(chart.createBufferedImage(600, 300), "png", baos);
+                ByteArrayResource resource = new ByteArrayResource("image/png", baos.toByteArray());
+                hide.add(new Image("chart", resource));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             hide.setVisible(true);
             form.setVisible(false);
         }        

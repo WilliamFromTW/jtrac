@@ -46,7 +46,7 @@ public abstract class BasePage extends WebPage {
     public static Map<Name, String> getLocalizedLabels(Component c) {
         Map<Name, String> map = new EnumMap<Name, String>(Name.class);
         for(Name name : Name.values()) {
-            map.put(name, c.getLocalizer().getString("item_list." + name.getText(), null));
+            map.put(name, c.getLocalizer().getString("item_list." + name.getText(), c));
         }
         return map;
     }     
@@ -68,13 +68,11 @@ public abstract class BasePage extends WebPage {
     }                
     
     protected String localize(String key) {
-        return getLocalizer().getString(key, null);
+        return getLocalizer().getString(key, this);
     }
     
     protected String localize(String key, Object... params) {
-        StringResourceModel m = new StringResourceModel(key, null, null, params);
-        m.setLocalizer(getLocalizer());
-        return m.getString();
+        return new StringResourceModel(key, this).setParameters(params).getString();
     } 
 
     public BasePage() { 
@@ -84,5 +82,12 @@ public abstract class BasePage extends WebPage {
         add(new Label("version", jtracVersion));
         add(new Label("title", "JTrac"));
 		add(WebUtils.getColorChangeHeaderContributor());
+    }
+
+    @Override
+    public void renderHead(org.apache.wicket.markup.head.IHeaderResponse response) {
+        super.renderHead(response);
+        String cp = getRequest().getContextPath();
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css"));
     }
 }

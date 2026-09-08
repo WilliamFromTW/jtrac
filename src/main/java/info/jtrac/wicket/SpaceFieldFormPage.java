@@ -24,9 +24,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -37,10 +35,8 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
 
 /**
  * space field edit form
@@ -148,13 +144,11 @@ public class SpaceFieldFormPage extends BasePage {
             label.add(new ErrorHighlighter());            
             add(label);
             // intelligently set focus on right input field
-            add(new HeaderContributor(new IHeaderContributor() {
-                public void renderHead(IHeaderResponse response) {
-                    if(field.getLabel() == null) {
-                        response.renderOnLoadJavascript("document.getElementById('" + label.getMarkupId() + "').focus()");
-                    } else if(optionField != null) {
-                        response.renderOnLoadJavascript("document.getElementById('" + optionField.getMarkupId() + "').focus()");
-                    }                                        
+            add(new HeaderContributor(response -> {
+                if (field.getLabel() == null) {
+                    response.render(OnLoadHeaderItem.forScript("document.getElementById('" + label.getMarkupId() + "').focus()"));
+                } else if (optionField != null) {
+                    response.render(OnLoadHeaderItem.forScript("document.getElementById('" + optionField.getMarkupId() + "').focus()"));
                 }
             }));                    
             // options =========================================================
@@ -275,9 +269,9 @@ public class SpaceFieldFormPage extends BasePage {
         }
      
         @Override
-        protected void validate() {
+        protected void onValidate() {
             filter.reset();
-            super.validate();          
+            super.onValidate();          
         }                     
                 
     }

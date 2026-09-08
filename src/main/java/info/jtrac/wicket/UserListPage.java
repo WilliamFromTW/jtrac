@@ -19,10 +19,7 @@ package info.jtrac.wicket;
 import info.jtrac.domain.User;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -150,10 +147,8 @@ public class UserListPage extends BasePage {
             final TextField searchTextField = new TextField("searchText");
             searchTextField.setOutputMarkupId(true);
             add(searchTextField);
-            add(new HeaderContributor(new IHeaderContributor() {
-                public void renderHead(IHeaderResponse response) {
-                    response.renderOnLoadJavascript("document.getElementById('" + searchTextField.getMarkupId() + "').focus()");
-                }
+            add(new HeaderContributor(response -> {
+                response.render(OnLoadHeaderItem.forScript("document.getElementById('" + searchTextField.getMarkupId() + "').focus()"));
             }));            
         }
 

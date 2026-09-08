@@ -18,7 +18,7 @@ package info.jtrac.wicket;
 
 import info.jtrac.util.WebUtils;
 
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -35,15 +35,22 @@ public class LogoutPage extends WebPage {
     private static final Logger logger = LoggerFactory.getLogger(LogoutPage.class);
     
     public LogoutPage(PageParameters params) {
-        String locale = params.getString("locale");
+        String locale = params.get("locale").toOptionalString();
         if(locale != null) {
-            getRequestCycle().getSession().setLocale(StringUtils.parseLocaleString(locale));
+            getSession().setLocale(StringUtils.parseLocaleString(locale));
         }
         setVersioned(false);
         add(new IndividualHeadPanel().setRenderBodyOnly(true));
-        add(new Label("title", getLocalizer().getString("logout.title", null)));
+        add(new Label("title", getLocalizer().getString("logout.title", this)));
         String jtracVersion = JtracApplication.get().getJtrac().getReleaseVersion();
         add(new Label("version", jtracVersion));
 		add(WebUtils.getColorChangeHeaderContributor());
-    }    
+    }
+
+    @Override
+    public void renderHead(org.apache.wicket.markup.head.IHeaderResponse response) {
+        super.renderHead(response);
+        String cp = getRequest().getContextPath();
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css"));
+    }
 }

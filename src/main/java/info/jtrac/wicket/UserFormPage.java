@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Button;
@@ -38,9 +36,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
 
 import org.springframework.util.StringUtils;
 
@@ -160,10 +156,8 @@ public class UserFormPage extends BasePage {
             loginName.setRequired(true);
             loginName.add(new ErrorHighlighter());
             loginName.setOutputMarkupId(true);
-            add(new HeaderContributor(new IHeaderContributor() {
-                public void renderHead(IHeaderResponse response) {
-                    response.renderOnLoadJavascript("document.getElementById('" + loginName.getMarkupId() + "').focus()");
-                }
+            add(new HeaderContributor(response -> {
+                response.render(OnLoadHeaderItem.forScript("document.getElementById('" + loginName.getMarkupId() + "').focus()"));
             }));
             // validation: does user already exist with same loginName?
             loginName.add(new AbstractValidator() {
@@ -287,17 +281,17 @@ public class UserFormPage extends BasePage {
         // load form backing object in same transaction as onSubmit
         // and avoid lazy initialization exception
         @Override
-        public boolean process() {
+        public void process(org.apache.wicket.markup.html.form.IFormSubmitter submittingComponent) {
             if(user.getId() > 0) {
                 user = getJtrac().loadUser(user.getId());
             }
-            return super.process();
+            super.process(submittingComponent);
         }
 
-         @Override
-        protected void validate() {
+        @Override
+        protected void onValidate() {
             filter.reset();
-            super.validate();
+            super.onValidate();
         }
 
         @Override

@@ -28,7 +28,7 @@ import info.jtrac.domain.ItemSearch;
 import info.jtrac.domain.State;
 import info.jtrac.domain.User;
 
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -47,7 +47,7 @@ public class ItemViewPage extends BasePage {
     }    
     
     public ItemViewPage(PageParameters params) {        
-        String refId = params.getString("0");
+        String refId = params.get("0").isNull() ? params.get("refId").toOptionalString() : params.get("0").toString();
         logger.debug("item id parsed from url = '" + refId + "'");
         Item item;
         if(refId.indexOf('-') != -1) { 

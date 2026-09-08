@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -35,7 +34,6 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
@@ -178,8 +176,8 @@ public class SpaceAllocatePage extends BasePage {
                         // populate choice, enable button etc
                         initRoleChoice(temp);
                     }
-                    target.addComponent(roleAllocatePanel);
-                    target.addComponent(allocateButton);
+                    target.add(roleAllocatePanel);
+                    target.add(allocateButton);
                 }
             });             
             

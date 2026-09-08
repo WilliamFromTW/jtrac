@@ -24,7 +24,7 @@ import info.jtrac.wicket.yui.YuiDialog;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 
 /**
  * header that appears only witin relate items use case
@@ -70,7 +69,7 @@ public class ItemRelatePanel extends BasePanel {
                 public void onClick() {
                     Item item = getJtrac().loadItemByRefId(refId);
                     JtracSession.get().setItemSearch(null);
-                    setResponsePage(ItemViewPage.class, new PageParameters("0=" + item.getRefId()));
+                    setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
                 }
             });
         } else {
@@ -133,7 +132,7 @@ public class ItemRelatePanel extends BasePanel {
             item.setEditReason(comment);
             getJtrac().updateItem(item, getPrincipal());
             JtracSession.get().setItemSearch(null);
-            setResponsePage(ItemViewPage.class, new PageParameters("0=" + item.getRefId()));
+            setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
         }          
         
         

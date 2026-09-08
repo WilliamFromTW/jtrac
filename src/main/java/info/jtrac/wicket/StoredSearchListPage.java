@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import info.jtrac.domain.StoredSearch;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;

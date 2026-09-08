@@ -76,7 +76,7 @@ public class DashboardRowPanel extends BasePanel {
                 }
                 DashboardRowExpandedPanel dashboardRow = new DashboardRowExpandedPanel("dashboardRow", usr, tempCounts);
                 DashboardRowPanel.this.replaceWith(dashboardRow);
-                target.addComponent(dashboardRow);
+                target.add(dashboardRow);
             }
         });          
         

@@ -40,9 +40,11 @@ public class JtracFeedbackMessageFilter implements IFeedbackMessageFilter {
         // but if you added an error using the error(String) signature - will be just String
         if(fm.getMessage() instanceof String) {
             message = (String) fm.getMessage();
-        } else {
+        } else if (fm.getMessage() instanceof ValidationErrorFeedback) {
             ValidationErrorFeedback error = (ValidationErrorFeedback) fm.getMessage();
-            message = error.getMessage();
+            message = error.getMessage() != null ? error.getMessage().toString() : "";
+        } else if (fm.getMessage() != null) {
+            message = fm.getMessage().toString();
         }        
         if(!previous.contains(message)) {
             previous.add(message);

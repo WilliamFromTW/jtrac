@@ -21,9 +21,8 @@ import info.jtrac.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -32,7 +31,9 @@ import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.StatelessForm;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.http.WebRequest;
+import org.apache.wicket.request.http.WebResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +53,18 @@ public class LoginPage extends WebPage {
     public LoginPage() {
         setVersioned(false);
         add(new IndividualHeadPanel().setRenderBodyOnly(true));
-        add(new Label("title", getLocalizer().getString("login.title", null)));
+        add(new Label("title", getLocalizer().getString("login.title", this)));
         add(new LoginForm("form"));
         String jtracVersion = JtracApplication.get().getJtrac().getReleaseVersion();
         add(new Label("version", jtracVersion));
 		add(WebUtils.getColorChangeHeaderContributor());
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        String cp = getRequest().getContextPath();
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css"));
     }
     
     /**
@@ -169,7 +177,7 @@ public class LoginPage extends WebPage {
                     } else {
                         markupId = passwordField.getMarkupId();
                     }
-                    response.renderOnLoadJavascript("document.getElementById('" + markupId + "').focus()");
+                    response.render(OnLoadHeaderItem.forScript("document.getElementById('" + markupId + "').focus()"));
                 }
             }));
             add(new CheckBox("rememberMe"));
@@ -187,7 +195,7 @@ public class LoginPage extends WebPage {
                                 loginName.trim().length()+")" : "is null") + 
                         " and password " + 
                         (password!=null ? "is set" : "is null") + ".");
-                error(getLocalizer().getString("login.error", null));
+                error(getLocalizer().getString("login.error", this));
                 return;
             }
             
@@ -200,7 +208,7 @@ public class LoginPage extends WebPage {
                  */
                 logger.error("login failed - Authentication for login name '"+
                         loginName + "' not successful");
-                error(getLocalizer().getString("login.error", null));
+                error(getLocalizer().getString("login.error", this));
             } else {
                 /*
                  * ================================
@@ -214,9 +222,10 @@ public class LoginPage extends WebPage {
                 if(rememberMe) {
                     Cookie cookie = new Cookie("jtrac", loginName + ":" + JtracApplication.get().getJtrac().encodeClearText(password));
                     cookie.setMaxAge(30 * 24 * 60 * 60); // 30 days in seconds 
-                    String path = getWebRequestCycle().getWebRequest().getHttpServletRequest().getContextPath();
-                    cookie.setPath(path);
-                    getWebRequestCycle().getWebResponse().addCookie(cookie);
+                    WebRequest wr = (WebRequest) RequestCycle.get().getRequest();
+                    WebResponse wrsp = (WebResponse) RequestCycle.get().getResponse();
+                    cookie.setPath(wr.getContextPath());
+                    wrsp.addCookie(cookie);
                     logger.debug("remember me requested, cookie added, " + WebUtils.getDebugStringForCookie(cookie));
                 }
                 
@@ -227,9 +236,8 @@ public class LoginPage extends WebPage {
                 /*
                  * Proceed to bookmarkable page or default dashboard
                  */
-                if (!continueToOriginalDestination()) {
-                    setResponsePage(DashboardPage.class);
-                }
+                continueToOriginalDestination();
+                setResponsePage(DashboardPage.class);
             }
         } // end onSubmit()
     } // end inner class LoginForm

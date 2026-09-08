@@ -30,8 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.wicket.PageParameters;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
@@ -120,7 +119,7 @@ public class ItemViewPanel extends BasePanel {
                     listItem.add(new Label("message", message));
                     Link link = new Link("link") {
                         public void onClick() {
-                            setResponsePage(ItemViewPage.class, new PageParameters("0=" + refId));
+                            setResponsePage(ItemViewPage.class, new PageParameters().set("0", refId));
                         }
                     };
                     
@@ -169,7 +168,7 @@ public class ItemViewPanel extends BasePanel {
                     listItem.add(new Label("message", message));
                     Link link = new Link("link") {
                         public void onClick() {
-                            setResponsePage(ItemViewPage.class, new PageParameters("0=" + refId));
+                            setResponsePage(ItemViewPage.class, new PageParameters().set("0", refId));
                         }
                     };
                     

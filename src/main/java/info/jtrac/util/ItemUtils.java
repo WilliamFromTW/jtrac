@@ -35,7 +35,7 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import org.dom4j.Element;
 
@@ -538,7 +538,7 @@ public final class ItemUtils {
     }        
     
     public static ItemSearch getItemSearch(User user, PageParameters params, Jtrac jtrac) throws JtracSecurityException {
-        long spaceId = params.getLong("s", -1);        
+        long spaceId = params.get("s").toLong(-1L);        
         ItemSearch itemSearch = null;
         if(spaceId > 0) {            
             Space space = jtrac.loadSpace(spaceId);

@@ -19,9 +19,10 @@ package info.jtrac.wicket;
 import java.util.Map;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 
 import org.springframework.util.StringUtils;
 
@@ -44,24 +45,19 @@ public class IndividualHeadPanel extends BasePanel {
         
         final Map<String, String> configMap = getJtrac().loadAllConfig();
 
-		Image img = new Image("icon");
-		img.add(new AttributeModifier("src", true, new AbstractReadOnlyModel() {
-			@Override
-			public final Object getObject() {
-				// based on some condition return the image source
-				String url = configMap.get("jtrac.header.picture");
-				if (StringUtils.hasText(url)) {
-  				    return url;
-				} else {
-					String urlbase = configMap.get("jtrac.url.base");
-					if (urlbase == null) {
-						urlbase = "/";
-					} else if (! urlbase.endsWith("/")) {
-						// some servers, especially Jetty, can't handle multiple slashes
-						urlbase = urlbase + "/";
-					}
-					return urlbase + "resources/jtrac-logo.gif";
+		WebMarkupContainer img = new WebMarkupContainer("icon");
+		img.add(AttributeModifier.replace("src", (IModel<String>) () -> {
+			String url = configMap.get("jtrac.header.picture");
+			if (StringUtils.hasText(url)) {
+				return url;
+			} else {
+				String urlbase = configMap.get("jtrac.url.base");
+				if (urlbase == null) {
+					urlbase = "/";
+				} else if (!urlbase.endsWith("/")) {
+					urlbase = urlbase + "/";
 				}
+				return urlbase + "resources/jtrac-logo.gif";
 			}
 		}));
 		add(img);

@@ -18,7 +18,6 @@ package info.jtrac.wicket;
 
 import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;

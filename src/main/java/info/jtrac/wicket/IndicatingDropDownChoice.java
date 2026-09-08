@@ -18,22 +18,24 @@ package info.jtrac.wicket;
 
 import java.util.List;
 import org.apache.wicket.ajax.IAjaxIndicatorAware;
-import org.apache.wicket.extensions.ajax.markup.html.WicketAjaxIndicatorAppender;
+import org.apache.wicket.extensions.ajax.markup.html.AjaxIndicatorAppender;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 
 /**
  * wraps an ajax drop down so that the ajax "spinner" image shows
  */
-public class IndicatingDropDownChoice extends DropDownChoice implements IAjaxIndicatorAware {
+public class IndicatingDropDownChoice<T> extends DropDownChoice<T> implements IAjaxIndicatorAware {
+    private static final long serialVersionUID = 1L;
     
-    private final WicketAjaxIndicatorAppender indicatorAppender = new WicketAjaxIndicatorAppender();
+    private final AjaxIndicatorAppender indicatorAppender = new AjaxIndicatorAppender();
     
-    public IndicatingDropDownChoice(String id, List list, IChoiceRenderer cr){
+    public IndicatingDropDownChoice(String id, List<? extends T> list, IChoiceRenderer<? super T> cr){
         super(id, list, cr);
         add(indicatorAppender);
     }
     
+    @Override
     public java.lang.String getAjaxIndicatorMarkupId(){
         return indicatorAppender.getMarkupId();
     }

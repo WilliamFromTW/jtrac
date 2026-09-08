@@ -7,8 +7,6 @@ import info.jtrac.exporter.config.ExportConfig;
 import info.jtrac.exporter.db.DatabaseReader;
 import info.jtrac.exporter.model.SpaceDto;
 import org.springframework.security.access.AccessDeniedException;
-import org.apache.wicket.IRequestTarget;
-import org.apache.wicket.RequestCycle;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -19,7 +17,9 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
-import org.apache.wicket.protocol.http.WebResponse;
+import org.apache.wicket.request.IRequestCycle;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.http.WebResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -205,10 +205,10 @@ public class HtmlExportPage extends BasePage {
                         ? "jtrac-export-" + selectedSpaces.get(0) + "-" + dateStr + ".zip"
                         : "jtrac-export-" + dateStr + ".zip";
 
-                getRequestCycle().setRequestTarget(new IRequestTarget() {
-                    public void detach(RequestCycle requestCycle) {}
+                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
+                    public void detach(IRequestCycle requestCycle) {}
 
-                    public void respond(RequestCycle requestCycle) {
+                    public void respond(IRequestCycle requestCycle) {
                         WebResponse r = (WebResponse) requestCycle.getResponse();
                         r.setContentType("application/zip");
                         r.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");

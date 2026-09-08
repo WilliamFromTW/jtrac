@@ -30,6 +30,21 @@ Este proyecto es un fork modernizado y mejorado de [JTrac 2.3.3 (https://jtrac.i
 
 ---
 
+## Guías del Administrador del Sistema Multilingüe / Multilingual Administrator Guides
+
+| Idioma / Language | Guía del Administrador / Admin Guide |
+|---|---|
+| **Español (Spanish)** | [Guía del Administrador del Sistema y Configuración en Español](docs/admin/ADMIN_GUIDE_es.md) |
+| **English** | [English Administrator & System Configuration Guide](docs/admin/ADMIN_GUIDE_en.md) |
+| **繁體中文 (Traditional Chinese)** | [繁體中文系統管理者完整指南](docs/admin/ADMIN_GUIDE_zh-TW.md) |
+| **简体中文 (Simplified Chinese)** | [简体中文系统管理员完整指南](docs/admin/ADMIN_GUIDE_zh-CN.md) |
+| **日本語 (Japanese)** | [日本語システム管理者総合ガイド](docs/admin/ADMIN_GUIDE_ja.md) |
+| **Tiếng Việt (Vietnamese)** | [Hướng dẫn Quản trị viên và Cấu hình Hệ thống](docs/admin/ADMIN_GUIDE_vi.md) |
+| **Deutsch (German)** | [Deutscher Systemadministrator- und Konfigurationsleitfaden](docs/admin/ADMIN_GUIDE_de.md) |
+| **Français (French)** | [Guide d'administration et de configuration du système en français](docs/admin/ADMIN_GUIDE_fr.md) |
+
+---
+
 ## Actualizaciones Principales en este Fork (Changelog & Major Updates)
 
 ### 1. Limpieza de Módulos: Eliminación Completa del Módulo Wiki (Removed Wiki Module)

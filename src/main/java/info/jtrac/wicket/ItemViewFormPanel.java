@@ -28,7 +28,7 @@ import info.jtrac.util.UserUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -43,7 +43,6 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.util.lang.Bytes;
 
 /**
@@ -135,7 +134,7 @@ public class ItemViewFormPanel extends BasePanel {
                         assignedToChoice.setVisible(true);
                         hide.setVisible(false);
                     }
-                    target.addComponent(border);
+                    target.add(border);
                 }
             });
             add(statusChoice);
@@ -180,9 +179,9 @@ public class ItemViewFormPanel extends BasePanel {
         }
         
         @Override
-        protected void validate() {
+        protected void onValidate() {
             filter.reset();
-            super.validate();
+            super.onValidate();
         }
         
         @Override
@@ -192,7 +191,7 @@ public class ItemViewFormPanel extends BasePanel {
             User user = JtracSession.get().getUser();
             history.setLoggedBy(user);
             getJtrac().storeHistoryForItem(itemId, history, fileUpload);
-            setResponsePage(ItemViewPage.class, new PageParameters("0=" + history.getRefId()));
+            setResponsePage(ItemViewPage.class, new PageParameters().set("0", history.getRefId()));
         }
         
     }

@@ -28,7 +28,7 @@ import info.jtrac.exception.InvalidRefIdException;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.wicket.Component;
-import org.apache.wicket.PageParameters;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -118,7 +118,7 @@ public class ItemSearchFormPanel extends BasePanel {
                         return;
                     }
                     JtracSession.get().setItemSearch(itemSearch);
-                    setResponsePage(ItemViewPage.class, new PageParameters("0=" + item.getRefId()));
+                    setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
                     return;
                 }
                 String searchText = itemSearch.getSearchText();
@@ -178,8 +178,8 @@ public class ItemSearchFormPanel extends BasePanel {
                         Component fragment = getFilterUiFragment(ch);
                         fragment.setOutputMarkupId(true);
                         listItem.replace(fragment);
-                        target.addComponent(fragment);
-                        target.appendJavascript("document.getElementById('" + fragment.getMarkupId() + "').focus()");
+                        target.add(fragment);
+                        target.appendJavaScript("document.getElementById('" + fragment.getMarkupId() + "').focus()");
                     }
                 });
             }

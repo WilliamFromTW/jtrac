@@ -28,20 +28,16 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DateField;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.util.convert.converters.AbstractConverter;
-import org.apache.wicket.util.convert.converters.DoubleConverter;
 
 /**
  * This class is responsible for the panel of custom fields that
@@ -157,14 +153,36 @@ public class CustomFieldsFormPanel extends BasePanel {
                          * right of the decimal point).
                          */
                         textField = new TextField("field", Double.class) {
-                            public org.apache.wicket.util.convert.IConverter getConverter(Class type) {
-                                DoubleConverter converter = (DoubleConverter) DoubleConverter.INSTANCE;
-                                java.text.NumberFormat numberFormat = converter.getNumberFormat(getLocale());
-                                java.text.DecimalFormat decimalFormat = (java.text.DecimalFormat)numberFormat;
-                                decimalFormat.applyPattern("###,##0.######");
-                                converter.setNumberFormat(getLocale(), decimalFormat);
-                                return converter;
-                            };
+                            @SuppressWarnings("unchecked")
+                            @Override
+                            public <C> IConverter<C> getConverter(Class<C> type) {
+                                if (Double.class.isAssignableFrom(type)) {
+                                    return (IConverter<C>) new IConverter<Double>() {
+                                        private static final long serialVersionUID = 1L;
+                                        @Override
+                                        public Double convertToObject(String value, java.util.Locale locale) throws ConversionException {
+                                            if (value == null || value.trim().isEmpty()) {
+                                                return null;
+                                            }
+                                            try {
+                                                java.text.DecimalFormat df = new java.text.DecimalFormat("###,##0.######");
+                                                return df.parse(value.trim()).doubleValue();
+                                            } catch (Exception e) {
+                                                throw new ConversionException(e);
+                                            }
+                                        }
+                                        @Override
+                                        public String convertToString(Double value, java.util.Locale locale) {
+                                            if (value == null) {
+                                                return "";
+                                            }
+                                            java.text.DecimalFormat df = new java.text.DecimalFormat("###,##0.######");
+                                            return df.format(value);
+                                        }
+                                    };
+                                }
+                                return super.getConverter(type);
+                            }
                         };
                     }
 

@@ -6,7 +6,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.markup.html.form.Button;
 
 /**

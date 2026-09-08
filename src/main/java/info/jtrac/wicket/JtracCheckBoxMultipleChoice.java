@@ -16,6 +16,7 @@
 
 package info.jtrac.wicket;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -29,26 +30,26 @@ import org.apache.wicket.util.string.Strings;
  * custom multo select list / check box control that
  * is scrollable and selected entries "float" to the top
  */
-public class JtracCheckBoxMultipleChoice extends ListMultipleChoice {
+public class JtracCheckBoxMultipleChoice<T> extends ListMultipleChoice<T> {
     
     private boolean isForSet;
     
-    public JtracCheckBoxMultipleChoice(String id, List choices, IChoiceRenderer renderer) {
+    public JtracCheckBoxMultipleChoice(String id, List<T> choices, IChoiceRenderer<? super T> renderer) {
         super(id, choices, renderer);
     }
     
-    public JtracCheckBoxMultipleChoice(String id, List choices, IChoiceRenderer renderer, boolean isForSet) {
+    public JtracCheckBoxMultipleChoice(String id, List<T> choices, IChoiceRenderer<? super T> renderer, boolean isForSet) {
         super(id, choices, renderer);
         this.isForSet = isForSet;
     }
     
     @Override
-    protected java.lang.Object convertValue(String[] ids) {
-        List list = (List) super.convertValue(ids);
+    protected Collection<T> convertValue(String[] ids) {
+        Collection<T> collection = super.convertValue(ids);
         if(isForSet) {
-            return new HashSet(list);
+            return new HashSet<T>(collection);
         } else {
-            return list;
+            return collection;
         }
     }
     
@@ -57,9 +58,9 @@ public class JtracCheckBoxMultipleChoice extends ListMultipleChoice {
      * CheckBoxMultipleChoice component
      */
     @Override
-    protected void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
+    public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
         
-        final List choices = getChoices();
+        final List<? extends T> choices = getChoices();
         boolean scrollable = choices.size() > 6;
         
         final StringBuilder buffer = new StringBuilder();
@@ -79,9 +80,10 @@ public class JtracCheckBoxMultipleChoice extends ListMultipleChoice {
         
         for (int index = 0; index < choices.size(); index++) {
             
-            final Object choice = choices.get(index);
+            final T choice = choices.get(index);
             
-            final String label = getConverter(String.class).convertToString(getChoiceRenderer().getDisplayValue(choice), locale);
+            Object displayVal = getChoiceRenderer().getDisplayValue(choice);
+            final String label = displayVal != null ? displayVal.toString() : null;
             
             if (label != null) {
                 

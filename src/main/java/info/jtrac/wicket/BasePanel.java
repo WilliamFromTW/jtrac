@@ -57,13 +57,11 @@ public class BasePanel extends Panel {
     }               
     
     protected String localize(String key) {
-        return getLocalizer().getString(key, null);
+        return getLocalizer().getString(key, this);
     }
     
     protected String localize(String key, Object... params) {
-        StringResourceModel m = new StringResourceModel(key, null, null, params);
-        m.setLocalizer(getLocalizer());
-        return m.getString();
+        return new StringResourceModel(key, this).setParameters(params).getString();
     }
 
 	protected boolean renderMarkdown() {

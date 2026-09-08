@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.SimpleAttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,7 +38,6 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 
 /**
  * user allocate page
@@ -203,8 +201,8 @@ public class UserAllocatePage extends BasePage {
                         // populate choice, enable button etc
                         initRoleChoice(temp);
                     }
-                    target.addComponent(roleAllocatePanel);
-                    target.addComponent(allocateButton);
+                    target.add(roleAllocatePanel);
+                    target.add(allocateButton);
                 }
             });                                                
             

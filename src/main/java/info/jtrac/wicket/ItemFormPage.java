@@ -25,10 +25,8 @@ import info.jtrac.domain.User;
 import info.jtrac.domain.UserSpaceRole;
 import info.jtrac.util.UserUtils;
 import java.util.List;
-import org.apache.wicket.PageParameters;
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
@@ -43,7 +41,6 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.lang.Bytes;
 
@@ -129,11 +126,9 @@ public class ItemFormPage extends BasePage {
             summaryField.add(new ErrorHighlighter());
             summaryField.setOutputMarkupId(true);
             add(summaryField);
-            add(new HeaderContributor(new IHeaderContributor() {
-                public void renderHead(IHeaderResponse response) {
-                    response.renderOnLoadJavascript("document.getElementById('" + 
-                            summaryField.getMarkupId() + "').focus()");
-                }
+            add(new HeaderContributor(response -> {
+                response.render(OnLoadHeaderItem.forScript("document.getElementById('" + 
+                        summaryField.getMarkupId() + "').focus()"));
             }));
             
             /*
@@ -270,7 +265,7 @@ public class ItemFormPage extends BasePage {
              */
             add(new Link("cancel") {
                 public void onClick() {
-                    setResponsePage(ItemViewPage.class, new PageParameters("0=" + item.getRefId()));
+                    setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
                 }
             }.setVisible(editMode && JtracSession.get().getItemSearch() != null));
         }
@@ -279,7 +274,7 @@ public class ItemFormPage extends BasePage {
          * @see org.apache.wicket.markup.html.form.Form#validate()
          */
         @Override
-        protected void validate() {
+        protected void onValidate() {
             filter.reset();
             Item item = (Item) getModelObject();
             if (editMode && item.getVersion() != version) {
@@ -288,7 +283,7 @@ public class ItemFormPage extends BasePage {
                  */
                 error(localize("item_form.error.version"));
             }
-            super.validate();
+            super.onValidate();
         }
         
         /* (non-Javadoc)
@@ -311,7 +306,7 @@ public class ItemFormPage extends BasePage {
              * On creating an item, clear any search filter (especially the related item) from session.
              */
             JtracSession.get().setItemSearch(null);
-            setResponsePage(ItemViewPage.class, new PageParameters("0=" + item.getRefId()));
+            setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
         }
         
     } // end inner class ItemForm

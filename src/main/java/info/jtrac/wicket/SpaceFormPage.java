@@ -19,9 +19,7 @@ package info.jtrac.wicket;
 import info.jtrac.domain.Space;
 import info.jtrac.util.ValidationUtils;
 import java.util.List;
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Button;
@@ -33,9 +31,7 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
 
 /**
  * space edit form
@@ -127,10 +123,8 @@ public class SpaceFormPage extends BasePage {
             name.add(new ErrorHighlighter());
             name.setOutputMarkupId(true);
             add(name);
-            add(new HeaderContributor(new IHeaderContributor() {
-                public void renderHead(IHeaderResponse response) {
-                    response.renderOnLoadJavascript("document.getElementById('" + name.getMarkupId() + "').focus()");
-                }
+            add(new HeaderContributor(response -> {
+                response.render(OnLoadHeaderItem.forScript("document.getElementById('" + name.getMarkupId() + "').focus()"));
             }));
             // prefix Code =====================================================
             TextField prefixCode = new TextField("space.prefixCode");
@@ -229,9 +223,9 @@ public class SpaceFormPage extends BasePage {
         }
 
         @Override
-        protected void validate() {
+        protected void onValidate() {
             filter.reset();
-            super.validate();
+            super.onValidate();
         }
 
         @Override

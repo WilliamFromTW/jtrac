@@ -13,12 +13,12 @@
 
 ## 3. Wicket 頁面與組件模型泛型化重構
 
-- [ ] 3.1 重構基礎頁面 `BasePage.java`、`HeaderPanel.java` 與認證頁面（`LoginPage.java`、`LogoutPage.java`）
-- [ ] 3.2 重構核心業務頁面（`DashboardPage.java`、`ItemViewPage.java`、`ItemFormPage.java`）之泛型 Model 與 Form 綁定
-- [ ] 3.3 重構管理設定頁面與報表匯出頁面（`UserListPage.java`、`SpaceListPage.java`、`HtmlExportPage.java`）
+- [x] 3.1 重構基礎頁面 `BasePage.java`、`HeaderPanel.java` 與認證頁面（`LoginPage.java`、`LogoutPage.java`）
+- [x] 3.2 重構核心業務頁面（`DashboardPage.java`、`ItemViewPage.java`、`ItemFormPage.java`）之泛型 Model 與 Form 綁定
+- [x] 3.3 重構管理設定頁面與報表匯出頁面（`UserListPage.java`、`SpaceListPage.java`、`HtmlExportPage.java`）
 
 ## 4. 打包部署與 Jetty 10 實機上線驗證
 
-- [ ] 4.1 執行 `mvn clean package` 驗證專案編譯與 WAR 封裝產出
-- [ ] 4.2 自動將 `target/jtrac.war` 部署至 `W:\developer\jetty-10.0.26\webapps\ROOT.war`
-- [ ] 4.3 透過 `start-jtrac.bat` 在 Jetty 10 (Java 11) 實機啟動，驗證 WebContext 狀態為 STARTED 且首頁存取正常
+- [x] 4.1 執行 `mvn clean package` 驗證專案編譯與 WAR 封裝產出
+- [x] 4.2 自動將 `target/jtrac.war` 部署至 `W:\developer\jetty-10.0.26\webapps\ROOT.war`
+- [x] 4.3 透過 `start-jtrac.bat` 在 Jetty 10 (Java 11) 實機啟動，驗證 WebContext 狀態為 STARTED 且首頁存取正常

@@ -30,6 +30,21 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp từ [JTr
 
 ---
 
+## Hướng Dẫn Quản Trị Hệ Thống Đa Ngôn Ngữ / Multilingual Administrator Guides
+
+| Ngôn ngữ / Language | Hướng dẫn quản trị / Admin Guide |
+|---|---|
+| **Tiếng Việt (Vietnamese)** | [Hướng dẫn Quản trị viên và Cấu hình Hệ thống](docs/admin/ADMIN_GUIDE_vi.md) |
+| **English** | [English Administrator & System Configuration Guide](docs/admin/ADMIN_GUIDE_en.md) |
+| **繁體中文 (Traditional Chinese)** | [繁體中文系統管理者完整指南](docs/admin/ADMIN_GUIDE_zh-TW.md) |
+| **简体中文 (Simplified Chinese)** | [简体中文系统管理员完整指南](docs/admin/ADMIN_GUIDE_zh-CN.md) |
+| **日本語 (Japanese)** | [日本語システム管理者総合ガイド](docs/admin/ADMIN_GUIDE_ja.md) |
+| **Deutsch (German)** | [Deutscher Systemadministrator- und Konfigurationsleitfaden](docs/admin/ADMIN_GUIDE_de.md) |
+| **Español (Spanish)** | [Guía del Administrador del Sistema y Configuración en Español](docs/admin/ADMIN_GUIDE_es.md) |
+| **Français (French)** | [Guide d'administration et de configuration du système en français](docs/admin/ADMIN_GUIDE_fr.md) |
+
+---
+
 ## Các Cập Nhật Quan Trọng (Changelog & Major Updates)
 
 ### 1. Dọn dẹp mô-đun: Loại bỏ hoàn toàn Wiki (Removed Wiki Module)

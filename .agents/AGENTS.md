@@ -5,3 +5,12 @@
 - **防呆與錯誤處理 (Error Handling & Guardrails)**：在實作任何核心邏輯或 UI 互動時，必須主動考慮極端情況並加入適當的阻擋機制。
 - **流程圖文件化 (Flowchart Documentation)**：產生的系統架構或邏輯流程圖，必須使用 `mermaid` 語法記錄到 Spec 文件中。
 - **自動同步主文件 (Auto-Sync Master Docs)**：變更歸檔後，必須自動重新生成 `openspec/specs/README.md`。
+- **多語系文件標準 (Multilingual Documentation Standard)**：所有面向使用者的主要說明與技術文件（包括但不限於 README、建置指南 Build Guides、系統管理者指南 Admin Guides），永遠必須完整提供 8 種指定語系之對應翻譯與相互導覽連結：
+  1. 英文 (English - `en`)
+  2. 繁體中文 (Traditional Chinese - `zh-TW`)
+  3. 簡體中文 (Simplified Chinese - `zh-CN`)
+  4. 西班牙文 (Spanish - `es`)
+  5. 德文 (German - `de`)
+  6. 法文 (French - `fr`)
+  7. 日本語 (Japanese - `ja`)
+  8. 越南文 (Vietnamese - `vi`)

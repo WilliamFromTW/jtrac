@@ -18,9 +18,10 @@ package info.jtrac.wicket.yui;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import info.jtrac.wicket.HeaderContributor;
+import info.jtrac.wicket.IHeaderContributor;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -65,7 +66,7 @@ public class YuiDialog extends Panel {
     
     public void show(AjaxRequestTarget target, String h, Component content) {
         this.heading = h;
-        target.addComponent(this); 
+        target.add(this); 
         dialog.setVisible(true);        
         dialog.replace(content);        
         final String markupId = dialog.getMarkupId();
@@ -75,9 +76,9 @@ public class YuiDialog extends Panel {
         // but in the usual Ajax request case, this behaves just like AjaxRequestTarget.appendJavascript()
         add(new HeaderContributor(new IHeaderContributor() {
             public void renderHead(IHeaderResponse response) {
-                response.renderOnDomReadyJavascript("var " + markupId + " = new YAHOO.widget.ResizeDialog('" + markupId + "', " 
+                response.render(OnDomReadyHeaderItem.forScript("var " + markupId + " = new YAHOO.widget.ResizeDialog('" + markupId + "', " 
                 + " { constraintoviewport : true }); " 
-                + markupId + ".render(); " + markupId + ".show();");
+                + markupId + ".render(); " + markupId + ".show();"));
             }
         }));
     }    

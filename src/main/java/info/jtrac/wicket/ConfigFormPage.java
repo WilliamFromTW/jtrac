@@ -18,18 +18,14 @@ package info.jtrac.wicket;
 
 import info.jtrac.domain.Config;
 
-import org.apache.wicket.behavior.HeaderContributor;
-import org.apache.wicket.markup.html.IHeaderContributor;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.ColorField;
 import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.form.NumberField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.BoundCompoundPropertyModel;
 
 /**
  * config value edit form
@@ -90,7 +86,7 @@ public class ConfigFormPage extends BasePage {
 							"	//console.log(selectedSwitch.enhancedSwitch('state'));\n" +
 							"	$('#valueField').val(selectedSwitch.enhancedSwitch('state'));\n" +
 							"});";
-						response.renderOnDomReadyJavascript(js);
+						response.render(OnDomReadyHeaderItem.forScript(js));
 					}
 				}));
 
@@ -102,14 +98,26 @@ public class ConfigFormPage extends BasePage {
 			} else if (isNumber) {
 				// only difference is type="number" instead of type="text"
 				Fragment f = new Fragment("field", "numberField", ConfigFormPage.this);
-				NumberField numberField = new NumberField("value");
+				TextField<String> numberField = new TextField<String>("value") {
+					@Override
+					protected void onComponentTag(org.apache.wicket.markup.ComponentTag tag) {
+						super.onComponentTag(tag);
+						tag.put("type", "number");
+					}
+				};
 				f.add(model.bind(numberField));
 				add(f);
 
 			} else if (isColor) {
 				// only difference is type="color" instead of type="text"
 				Fragment f = new Fragment("field", "colorField", ConfigFormPage.this);
-				ColorField colorField = new ColorField("value");
+				TextField<String> colorField = new TextField<String>("value") {
+					@Override
+					protected void onComponentTag(org.apache.wicket.markup.ComponentTag tag) {
+						super.onComponentTag(tag);
+						tag.put("type", "color");
+					}
+				};
 				f.add(model.bind(colorField));
 				add(f);
 
