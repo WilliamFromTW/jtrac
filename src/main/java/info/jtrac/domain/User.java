@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Standard User entity with attributes such as name, password etc.
@@ -246,8 +246,8 @@ public class User implements UserDetails, Serializable, Comparable<User> {
         return !isLocked();
     }
 
-    public GrantedAuthority[] getAuthorities() {
-        return userSpaceRoles.toArray(new GrantedAuthority[userSpaceRoles.size()]);
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return userSpaceRoles;
     }
 
     public boolean isCredentialsNonExpired() {

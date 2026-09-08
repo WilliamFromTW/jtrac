@@ -25,7 +25,7 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
-import org.acegisecurity.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.markup.ComponentTag;
@@ -139,16 +139,9 @@ public class HeaderPanel extends BasePanel {
                     ((WebResponse) getResponse()).clearCookie(cookie);                    
                     getSession().invalidate();
                     logger.debug("invalidated session and cleared cookie"); 
-                    // is acegi - cas being used ?
-                    String logoutUrl = JtracApplication.get().getCasLogoutUrl();
-                    if(logoutUrl != null) {
-                        logger.debug("cas authentication being used, clearing security context and redirecting to cas logout page");
-                        SecurityContextHolder.clearContext();                        
-                        // have to use stateless page reference because session is killed
-                        setResponsePage(CasLogoutPage.class);
-                    } else {
-                        setResponsePage(LogoutPage.class, new PageParameters("locale=" + user.getLocale()));
-                    }
+                    // clear security context and redirect to logout page
+                    SecurityContextHolder.clearContext();
+                    setResponsePage(LogoutPage.class, new PageParameters("locale=" + user.getLocale()));
                 }            
             });
             add(new WebMarkupContainer("login").setVisible(false));

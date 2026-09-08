@@ -9,7 +9,7 @@
     <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
         <property name="interceptors">
             <list>
-                <bean class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor">
+                <bean class="org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor">
                     <property name="sessionFactory" ref="sessionFactory"/>
                 </bean>
             </list>
@@ -29,15 +29,10 @@
     - are invoked but there is no need for form binding or a FormController
     -->
     <bean id="defaultController" class="info.jtrac.web.DefaultMultiActionController">
-        <property name="methodNameResolver">
-            <bean class="org.springframework.web.servlet.mvc.multiaction.PropertiesMethodNameResolver">
-                <property name="alwaysUseFullPath" value="true"/>
-                <property name="mappings">
-                    <props>
-                        <prop key="/flow/item_view">itemViewHandler</prop>                     
-                    </props>
-                </property>
-            </bean>        
+        <property name="mappings">
+            <props>
+                <prop key="/flow/item_view">itemViewHandler</prop>                     
+            </props>
         </property>
         <property name="jtrac" ref="jtrac"/>
     </bean>    

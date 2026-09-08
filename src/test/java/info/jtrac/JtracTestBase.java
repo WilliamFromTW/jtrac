@@ -1,38 +1,83 @@
 package info.jtrac;
 
-import org.springframework.test.AbstractTransactionalDataSourceSpringContextTests;
+import java.io.File;
+import javax.sql.DataSource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.transaction.TestTransaction;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * base class for tests that can test either the service layer or dao or both
- * using the Spring JUnit helper class with the long name, ensures that
- * the applicationContext is only built once
+ * Base class for tests that can test either the service layer or dao or both.
+ * Configured with SpringExtension and @Transactional for JUnit 5.
  */
-public abstract class JtracTestBase extends AbstractTransactionalDataSourceSpringContextTests {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(locations = {
+    "file:src/main/webapp/WEB-INF/applicationContext.xml",
+    "file:src/main/webapp/WEB-INF/applicationContext-lucene.xml"
+})
+@Transactional
+public abstract class JtracTestBase {
 
-    protected Jtrac jtrac;
-    protected JtracDao dao;
+    protected static class Assert extends org.junit.jupiter.api.Assertions {}
 
-    public JtracTestBase(String name) {
-        super(name);
+    static {
+        File home = new File("target/home");
+        if (!home.exists()) {
+            home.mkdirs();
+        }
+        System.setProperty("jtrac.home", home.getAbsolutePath());
     }
 
-    // magically autowired by Spring JUnit support
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    protected Jtrac jtrac;
+
+    @Autowired
+    protected JtracDao dao;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
+    protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
     public void setDao(JtracDao dao) {
         this.dao = dao;
     }
 
-    //  magically autowired by Spring JUnit support
     public void setJtrac(Jtrac jtrac) {
         this.jtrac = jtrac;
     }
 
-    @Override
-    protected String[] getConfigLocations() {
-        System.setProperty("jtrac.home", "target/home");
-        return new String[] {
-            "file:src/main/webapp/WEB-INF/applicationContext.xml",
-            "file:src/main/webapp/WEB-INF/applicationContext-lucene.xml"
-        };
+    protected void deleteFromTables(String... tableNames) {
+        if (jdbcTemplate != null && tableNames != null) {
+            for (String table : tableNames) {
+                jdbcTemplate.execute("delete from " + table);
+            }
+        }
     }
 
+    protected void setComplete() {
+        TestTransaction.flagForCommit();
+    }
+
+    protected void endTransaction() {
+        TestTransaction.end();
+    }
+
+    protected void startNewTransaction() {
+        TestTransaction.start();
+    }
 }

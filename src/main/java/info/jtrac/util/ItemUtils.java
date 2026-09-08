@@ -191,20 +191,32 @@ public final class ItemUtils {
 
     public static String getAsHtml(Item item, HttpServletRequest request, HttpServletResponse response) {
         Locale locale = RequestContextUtils.getLocale(request);
-        MessageSource messageSource = RequestContextUtils.getWebApplicationContext(request);        
+        MessageSource messageSource = RequestContextUtils.findWebApplicationContext(request);        
         return getAsHtml(item, request, response, messageSource, locale);
     }    
     
     private static String getAsHtml (Item item, HttpServletRequest request, HttpServletResponse response, MessageSource ms, Locale loc) {        
-        boolean isWeb = request != null && response != null;
-		String colorLightBlue = JtracApplication.get().getJtrac().loadConfig("jtrac.color.lightblue", "#E1ECFE");
-		String colorGray = JtracApplication.get().getJtrac().loadConfig("jtrac.color.gray", "#CCCCCC");
+        String colorLightBlue = "#E1ECFE";
+        String colorGray = "#CCCCCC";
+        try {
+            if (org.apache.wicket.Application.exists()) {
+                JtracApplication app = JtracApplication.get();
+                if (app != null && app.getJtrac() != null) {
+                    colorLightBlue = app.getJtrac().loadConfig("jtrac.color.lightblue", "#E1ECFE");
+                    colorGray = app.getJtrac().loadConfig("jtrac.color.gray", "#CCCCCC");
+                }
+            }
+        } catch (Exception e) {
+            // ignore if not running in Wicket context
+        }
 
         String tableStyle = " class='jtrac'";
         String tdStyle = "";
         String thStyle = "";
         String altStyle = " class='alt'";
         String labelStyle = " class='label'";
+
+        boolean isWeb = (request != null);
 
         if (!isWeb) {
             // inline CSS so that HTML mail works across most mail-reader clients
@@ -275,7 +287,7 @@ public final class ItemUtils {
         sb.append("</tr>");
         sb.append("<tr" + altStyle + ">");
         sb.append("  <td" + labelStyle + ">" + fmt("summary", ms, loc) + "</td>");
-        sb.append("  <td colspan='5'" + tdStyle + ">" + HtmlUtils.htmlEscape(item.getSummary()) + "</td>");
+        sb.append("  <td colspan='5'" + tdStyle + ">" + (item.getSummary() == null ? "" : HtmlUtils.htmlEscape(item.getSummary())) + "</td>");
         sb.append("</tr>");
         sb.append("<tr>");
         sb.append("  <td valign='top'" + labelStyle + ">" + fmt("detail", ms, loc) + "</td>");

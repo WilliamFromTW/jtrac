@@ -22,6 +22,7 @@ import info.jtrac.domain.ItemUser;
 import info.jtrac.domain.User;
 import info.jtrac.util.ItemUtils;
 import info.jtrac.wicket.JtracApplication;
+import org.apache.wicket.Application;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -264,7 +265,10 @@ public class MailSender {
 		}
 		MimeMessage message = sender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-		String colorGray = JtracApplication.get().getJtrac().loadConfig("jtrac.color.gray", "#CCCCCC");
+		String colorGray = "#CCCCCC";
+		if (Application.exists()) {
+			colorGray = JtracApplication.get().getJtrac().loadConfig("jtrac.color.gray", "#CCCCCC");
+		}
 		try {
 			helper.setTo(user.getEmail());
 			helper.setSubject(prefix + " " + fmt("loginMailSubject", locale));

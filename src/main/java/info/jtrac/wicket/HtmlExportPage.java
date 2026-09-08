@@ -6,7 +6,7 @@ import info.jtrac.exporter.ZipStreamExporter;
 import info.jtrac.exporter.config.ExportConfig;
 import info.jtrac.exporter.db.DatabaseReader;
 import info.jtrac.exporter.model.SpaceDto;
-import org.acegisecurity.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import org.apache.wicket.IRequestTarget;
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.RestartResponseAtInterceptPageException;

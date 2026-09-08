@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 
-<!-- Acegi security configuration as Spring context -->
+<!-- Spring Security configuration as Spring context -->
 
 <beans>
        
     <!-- Automatically receives AuthenticationEvent messages -->
-    <bean id="loggerListener" class="org.acegisecurity.event.authentication.LoggerListener"/>              
+    <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener"/>              
     
-    <!-- custom factory that switches on ldap / cas authentication if required -->
+    <!-- custom factory that switches on ldap authentication if required -->
     <bean id="authenticationManager" class="info.jtrac.config.ProviderManagerFactoryBean">
         <property name="jtrac" ref="jtrac"/>
         <property name="ldapUrl" value="${ldap.url}"/>
@@ -17,11 +17,9 @@
         <property name="authenticationProvider" ref="authenticationProvider"/>
     </bean>
     
-    <bean id="authenticationProvider" class="org.acegisecurity.providers.dao.DaoAuthenticationProvider">
+    <bean id="authenticationProvider" class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
         <property name="userDetailsService" ref="jtrac"/>
         <property name="passwordEncoder" ref="passwordEncoder"/>
     </bean>        
     
 </beans>
-
-

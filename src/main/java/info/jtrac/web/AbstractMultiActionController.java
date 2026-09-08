@@ -17,19 +17,66 @@
 package info.jtrac.web;
 
 import info.jtrac.Jtrac;
-import org.springframework.web.servlet.mvc.multiaction.MultiActionController;
+import java.lang.reflect.Method;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.Controller;
 
 /**
- * base class for all Spring MVC MultiActionControllers
- * also contains code for getting hold of a Spring WebFlow context
- * from request, response
+ * Base class for MultiActionControllers implementing Spring 5 Controller
  */
-public abstract class AbstractMultiActionController extends MultiActionController {        
-    
-    protected Jtrac jtrac;    
-    
+public abstract class AbstractMultiActionController implements Controller {        
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected Jtrac jtrac;
+
     public void setJtrac(Jtrac jtrac) {
         this.jtrac = jtrac;
-    }    
-    
+    }
+
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return handleRequestInternal(request, response);
+    }
+
+    protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String methodName = getHandlerMethodName(request);
+        if (methodName == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+        try {
+            Method method = getClass().getMethod(methodName, HttpServletRequest.class, HttpServletResponse.class);
+            Object result = method.invoke(this, request, response);
+            if (result instanceof ModelAndView) {
+                return (ModelAndView) result;
+            }
+            return null;
+        } catch (NoSuchMethodException e) {
+            logger.warn("Handler method '{}' not found: {}", methodName, e.getMessage());
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+    }
+
+    protected abstract String getHandlerMethodName(HttpServletRequest request);
+
+    protected void applyCacheSeconds(HttpServletResponse response, int seconds, boolean mustRevalidate) {
+        if (seconds > 0) {
+            response.setDateHeader("Expires", System.currentTimeMillis() + seconds * 1000L);
+            String headerVal = "max-age=" + seconds;
+            if (mustRevalidate) {
+                headerVal += ", must-revalidate";
+            }
+            response.setHeader("Cache-Control", headerVal);
+        } else if (seconds == 0) {
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 1L);
+            response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+        }
+    }
 }

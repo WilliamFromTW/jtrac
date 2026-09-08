@@ -17,22 +17,24 @@ import info.jtrac.util.ItemUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import org.junit.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * JUnit test cases for the business implementation as well as the DAO
  * Tests assume that a database is available, and with HSQLDB around this is not an issue.
  */
 public class JtracTest extends JtracTestBase {
-
-    public JtracTest(String name) {
-        super(name);
-    }
 
     private Space getSpace() {
         Space space = new Space();
@@ -51,15 +53,24 @@ public class JtracTest extends JtracTestBase {
         return metadata;
     }
 
+    @BeforeEach
+    public void setUp() {
+        cleanDatabase();
+    }
+
     private void cleanDatabase() {
         jdbcTemplate.execute("delete from user_space_roles where id > 1");
-        deleteFromTables(new String[] {
+        deleteFromTables(
+            "item_users",
+            "item_items",
+            "item_tags",
+            "attachments",
             "history",
             "items",
             "spaces",
             "metadata",
             "space_sequence"
-        });
+        );
         jdbcTemplate.execute("delete from users where id > 1");
     }
 
@@ -74,7 +85,10 @@ public class JtracTest extends JtracTestBase {
 
 	@Test
     public void testEncodeClearTextPassword() {
-        Assert.assertEquals("21232f297a57a5a743894a0e4a801fc3", jtrac.encodeClearText("admin"));
+        String encoded = jtrac.encodeClearText("admin");
+        Assert.assertTrue(encoded.startsWith("$2a$"));
+        Assert.assertTrue(passwordEncoder.matches("admin", encoded));
+        Assert.assertTrue(passwordEncoder.matches("admin", "21232f297a57a5a743894a0e4a801fc3"));
     }
 
 	@Test
@@ -116,9 +130,9 @@ public class JtracTest extends JtracTestBase {
 
         User u1 = jtrac.loadUser("test");
 
-        GrantedAuthority[] gas = u1.getAuthorities();
-        Assert.assertEquals(1, gas.length);
-        Assert.assertEquals("ROLE_TEST:TEST", gas[0].getAuthority());
+        Collection<? extends GrantedAuthority> gas = u1.getAuthorities();
+        assertEquals(1, gas.size());
+        assertEquals("ROLE_TEST:TEST", gas.iterator().next().getAuthority());
 
         List<UserSpaceRole> userSpaceRoles = jtrac.findUserRolesForSpace(space.getId());
         Assert.assertEquals(1, userSpaceRoles.size());
@@ -206,13 +220,13 @@ public class JtracTest extends JtracTestBase {
         user.setLoginName("test");
         user.addSpaceWithRole(space, "ROLE_ADMIN");
         jtrac.storeUser(user);
-        long id = jdbcTemplate.queryForLong("select id from user_space_roles where space_id = " + spaceId);
+        long id = jdbcTemplate.queryForObject("select id from user_space_roles where space_id = " + spaceId, Long.class);
         UserSpaceRole usr = jtrac.loadUserSpaceRole(id);
         Assert.assertEquals(spaceId, usr.getSpace().getId());
         jtrac.removeUserSpaceRole(usr);
         setComplete();
         endTransaction();
-        Assert.assertEquals(0, jdbcTemplate.queryForInt("select count(0) from user_space_roles where space_id = " + spaceId));
+        Assert.assertEquals(0, jdbcTemplate.queryForObject("select count(0) from user_space_roles where space_id = " + spaceId, Integer.class).intValue());
         cleanDatabase();
     }
 
@@ -232,10 +246,10 @@ public class JtracTest extends JtracTestBase {
         u.setLoginName("test");
         u.addSpaceWithRole(space, "DEFAULT");
         jtrac.storeUser(u);
-        Assert.assertEquals(1, jdbcTemplate.queryForInt("select count(0) from user_space_roles where role_key = 'DEFAULT'"));
+        Assert.assertEquals(1, jdbcTemplate.queryForObject("select count(0) from user_space_roles where role_key = 'DEFAULT'", Integer.class).intValue());
         jtrac.bulkUpdateRenameSpaceRole(space, "DEFAULT", "NEWDEFAULT");
-        Assert.assertEquals(0, jdbcTemplate.queryForInt("select count(0) from user_space_roles where role_key = 'DEFAULT'"));
-        Assert.assertEquals(1, jdbcTemplate.queryForInt("select count(0) from user_space_roles where role_key = 'NEWDEFAULT'"));
+        Assert.assertEquals(0, jdbcTemplate.queryForObject("select count(0) from user_space_roles where role_key = 'DEFAULT'", Integer.class).intValue());
+        Assert.assertEquals(1, jdbcTemplate.queryForObject("select count(0) from user_space_roles where role_key = 'NEWDEFAULT'", Integer.class).intValue());
     }
 
 	@Test
@@ -385,7 +399,7 @@ public class JtracTest extends JtracTestBase {
         jtrac.storeUserSpaceRole(u2, s1, "DEFAULT");
 
         List<User> list4 = jtrac.findUsersNotFullyAllocatedToSpace(s1.getId());
-        logger.info(list4);
+        logger.info("{}", list4);
         Assert.assertEquals(2, list4.size());
 
         jtrac.storeUserSpaceRole(u2, s1, "ROLE_ADMIN");

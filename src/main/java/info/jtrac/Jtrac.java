@@ -34,7 +34,7 @@ import info.jtrac.domain.UserSpaceRole;
 import java.util.List;
 import java.util.Map;
 
-import org.acegisecurity.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 
 /**

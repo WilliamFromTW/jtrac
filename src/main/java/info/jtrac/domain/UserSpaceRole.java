@@ -17,7 +17,7 @@
 package info.jtrac.domain;
 
 import java.io.Serializable;
-import org.acegisecurity.GrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Class that exists purely to hold a "ternary" mapping of 

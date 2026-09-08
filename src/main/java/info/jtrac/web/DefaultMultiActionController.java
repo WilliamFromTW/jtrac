@@ -16,18 +16,37 @@
 
 package info.jtrac.web;
 
+import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * spring multiactioncontroller, for backwards compatibility with old email links
+ * Spring controller, for backwards compatibility with old email links
  */
 public class DefaultMultiActionController extends AbstractMultiActionController {     
-    
+
+    private Properties mappings;
+
+    public void setMappings(Properties mappings) {
+        this.mappings = mappings;
+    }
+
+    @Override
+    protected String getHandlerMethodName(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (mappings != null) {
+            for (String key : mappings.stringPropertyNames()) {
+                if (uri != null && (uri.endsWith(key) || uri.contains(key))) {
+                    return mappings.getProperty(key);
+                }
+            }
+        }
+        return "itemViewHandler";
+    }
+
     public ModelAndView itemViewHandler(HttpServletRequest request, HttpServletResponse response) {
         String itemId = request.getParameter("itemId");
         return new ModelAndView("redirect:/app/item/" + itemId);
     } 
-    
 }

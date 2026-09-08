@@ -42,7 +42,7 @@ public class JtracReloadingWicketFilter extends ReloadingWicketFilter {
         ReloadingClassLoader.excludePattern("info.jtrac.wicket.JtracSession");
         ReloadingClassLoader.excludePattern("info.jtrac.wicket.DashboardPage");
         // ReloadingClassLoader.excludePattern("org.springframework.*");
-        // ReloadingClassLoader.excludePattern("org.acegisecurity.*");
+        // ReloadingClassLoader.excludePattern("org.springframework.security.*");
     }
     
     public JtracReloadingWicketFilter() {

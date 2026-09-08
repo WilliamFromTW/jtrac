@@ -19,6 +19,8 @@ package info.jtrac.util;
 import info.jtrac.domain.User;
 import info.jtrac.wicket.JtracApplication;
 import info.jtrac.wicket.JtracSession;
+import org.apache.wicket.Application;
+import org.apache.wicket.Session;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,21 +41,29 @@ public class DateUtils {
     private static SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private static boolean showPretty() {
-		User user = JtracSession.get().getUser();
-		if (user != null) {
-			return user.isPrettyDates();
-		} else {
-			return true;
+		if (Session.exists()) {
+			User user = JtracSession.get().getUser();
+			if (user != null) {
+				return user.isPrettyDates();
+			}
 		}
+		return true;
 	}
 
 	private static PrettyTime getPrettyTime() {
-        User user = JtracSession.get().getUser();
-		if (user != null) {
-			return new PrettyTime(new Locale(user.getLocale()));
-		} else {
-			return new PrettyTime(new Locale(JtracApplication.get().getJtrac().getDefaultLocale()));
+		if (Session.exists()) {
+			User user = JtracSession.get().getUser();
+			if (user != null && user.getLocale() != null) {
+				return new PrettyTime(new Locale(user.getLocale()));
+			}
 		}
+		if (Application.exists()) {
+			String defaultLocale = JtracApplication.get().getJtrac().getDefaultLocale();
+			if (defaultLocale != null) {
+				return new PrettyTime(new Locale(defaultLocale));
+			}
+		}
+		return new PrettyTime(Locale.ENGLISH);
 	}
 
     public static String format (Date date) {

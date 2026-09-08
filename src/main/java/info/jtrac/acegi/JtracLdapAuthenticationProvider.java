@@ -33,11 +33,11 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.providers.AuthenticationProvider;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.acegisecurity.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -111,11 +111,13 @@ public class JtracLdapAuthenticationProvider implements AuthenticationProvider, 
         this.otherReturningAttributes = otherReturningAttributes;
     }
     
-    public boolean supports(Class clazz) {
+    @Override
+    public boolean supports(Class<?> clazz) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(clazz);
     }    
     
-    public Authentication authenticate(Authentication authentication) {
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (!supports(authentication.getClass())) {
             return null;
         }

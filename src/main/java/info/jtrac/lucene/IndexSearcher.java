@@ -17,42 +17,102 @@
 package info.jtrac.lucene;
 
 import info.jtrac.exception.SearchQueryParseException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
-import org.springmodules.lucene.search.core.HitExtractor;
-import org.springmodules.lucene.search.core.LuceneSearchTemplate;
-import org.springmodules.lucene.search.support.LuceneSearchSupport;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Uses Spring Modules Lucene support, provides Lucene Index Searching support
- * in classic Spring Template style
+ * Lucene Index Searching implementation using native Lucene API
  */
-public class IndexSearcher extends LuceneSearchSupport {
-    
+public class IndexSearcher {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private Directory indexDirectory;
+    private Analyzer analyzer;
+
+    public void setIndexDirectory(Directory indexDirectory) {
+        this.indexDirectory = indexDirectory;
+    }
+
+    public void setAnalyzer(Analyzer analyzer) {
+        this.analyzer = analyzer;
+    }
+
     public boolean validateQuery(String text) {
-        QueryParser parser = new QueryParser("text", getAnalyzer());
+        QueryParser parser = new QueryParser(Version.LUCENE_29, "text", analyzer);
         try {
-            Query query = parser.parse(text);
+            parser.parse(text);
+            return true;
         } catch (ParseException e) {
             return false;
         }
-        return true;
     }
-    
-    public List<Long> findItemIdsContainingText(String text) {       
-        LuceneSearchTemplate template = getLuceneSearcherTemplate();
-        QueryParser parser = new QueryParser("text", getAnalyzer());
+
+    public List<Long> findItemIdsContainingText(String text) {
+        QueryParser parser = new QueryParser(Version.LUCENE_29, "text", analyzer);
         Query query;
         try {
             query = parser.parse(text);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.warn("Query parsing failed for '{}': {}", text, e.getMessage());
             throw new SearchQueryParseException(e.getMessage(), e);
         }
-        HitExtractor hitExtractor = new ItemIdHitExtractor();
-        return template.search(query, hitExtractor);        
-    }
 
+        try {
+            if (!IndexReader.indexExists(indexDirectory)) {
+                return Collections.emptyList();
+            }
+        } catch (Exception e) {
+            logger.error("Error checking index existence", e);
+            return Collections.emptyList();
+        }
+
+        IndexReader reader = null;
+        org.apache.lucene.search.IndexSearcher searcher = null;
+        try {
+            reader = IndexReader.open(indexDirectory, true);
+            searcher = new org.apache.lucene.search.IndexSearcher(reader);
+            TopDocs topDocs = searcher.search(query, 1000);
+            List<Long> hitIds = new ArrayList<Long>(topDocs.scoreDocs.length);
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                Long id = ItemIdHitExtractor.extractItemId(doc);
+                if (id != null) {
+                    hitIds.add(id);
+                }
+            }
+            return hitIds;
+        } catch (Exception e) {
+            logger.error("Error searching index for query: " + text, e);
+            throw new RuntimeException("Error searching index for query: " + text, e);
+        } finally {
+            if (searcher != null) {
+                try {
+                    searcher.close();
+                } catch (Exception e) {
+                    logger.error("Error closing Lucene IndexSearcher", e);
+                }
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (Exception e) {
+                    logger.error("Error closing Lucene IndexReader", e);
+                }
+            }
+        }
+    }
 }

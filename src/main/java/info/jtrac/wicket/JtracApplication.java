@@ -16,9 +16,8 @@
 
 package info.jtrac.wicket;
 
-import info.jtrac.wicket.devmode.DebugHttpSessionStore;
 import info.jtrac.Jtrac;
-import info.jtrac.acegi.JtracCasProxyTicketValidator;
+import info.jtrac.wicket.devmode.DebugHttpSessionStore;
 import info.jtrac.domain.Role;
 import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
@@ -28,11 +27,11 @@ import java.util.List;
 import java.util.Locale;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.AuthenticationManager;
-import org.acegisecurity.context.SecurityContextHolder;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.apache.wicket.Application;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -45,7 +44,6 @@ import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.Session;
 import org.apache.wicket.authorization.Action;
 import org.apache.wicket.authorization.IAuthorizationStrategy;
-import org.apache.wicket.markup.html.pages.RedirectPage;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.request.target.coding.IndexedParamUrlCodingStrategy;
@@ -54,25 +52,15 @@ import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.session.ISessionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
- * <p>
  * Main Wicket application for jtrac.
- * </p>
- * <p>
- * It holds singleton service layer instance pulled from Spring.
- * </p>
  */
 public class JtracApplication extends WebApplication {
-    /**
-     * Logger object
-     */
     private final static Logger logger = LoggerFactory.getLogger(JtracApplication.class);
     
     private Jtrac jtrac;
     private ApplicationContext applicationContext;
-    private JtracCasProxyTicketValidator jtracCasProxyTicketValidator;
     
     public Jtrac getJtrac() {
         return jtrac;
@@ -82,36 +70,13 @@ public class JtracApplication extends WebApplication {
         return applicationContext;
     }
     
-    /**
-     * This method will the login URL and is used only by CasLoginPage.
-     * 
-     * @return Returns login URL.
-     */
     public String getCasLoginUrl() {
-        if (jtracCasProxyTicketValidator == null) {
-            return null;
-        }
-        return jtracCasProxyTicketValidator.getLoginUrl();
+        return null;
     }
     
-    /**
-     * This method will the logout URL and is used only by logout link
-     * in HeaderPanel.
-     * 
-     * @return Returns logout URL.
-     */
     public String getCasLogoutUrl() {
-        if (jtracCasProxyTicketValidator == null) {
-            return null;
-        }
-        return jtracCasProxyTicketValidator.getLogoutUrl();
+        return null;
     }
-    
-    /**
-     * This method will return the main JtracApplication object.
-     * 
-     * @return Returns JtracApplication object. 
-     */
     public static JtracApplication get() {
         return (JtracApplication) Application.get();
     }
@@ -131,22 +96,6 @@ public class JtracApplication extends WebApplication {
         applicationContext = WebApplicationContextUtils
                 .getWebApplicationContext(sc);
         jtrac = (Jtrac) applicationContext.getBean("jtrac");
-        
-        /*
-         * Check if acegi-cas authentication is being used, get reference to
-         * object to be used by Wicket authentication to redirect to right
-         * pages for login/logout.
-         */
-        try {
-            jtracCasProxyTicketValidator = (JtracCasProxyTicketValidator) 
-                    applicationContext.getBean("casProxyTicketValidator");
-            logger.info("casProxyTicketValidator retrieved from application " +
-                    "context: " + jtracCasProxyTicketValidator);
-        } catch (NoSuchBeanDefinitionException nsbde) {
-            logger.debug(nsbde.getMessage());
-            logger.info("casProxyTicketValidator not found in application " +
-                    "context, CAS single-sign-on is not being used");
-        }
         
         /*
          * Delegate Wicket i18n support to spring i18n
@@ -202,21 +151,6 @@ public class JtracApplication extends WebApplication {
                             if (JtracSession.get().isAuthenticated()) {
                                 return true;
                             }
-                            if (jtracCasProxyTicketValidator != null) {
-                                /*
-                                 * ============================================
-                                 * Attempt CAS authentication
-                                 * ============================================
-                                 */
-                                logger.debug("checking if context contains CAS authentication");
-                                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                                if (authentication != null && authentication.isAuthenticated()) {
-                                    logger.debug("security context contains CAS authentication, initializing session");
-                                    JtracSession.get().setUser((User) authentication.getPrincipal());
-                                    return true;
-                                }
-                            }
-                            
                             /*
                              * ================================================
                              * Attempt remember-me auto login
@@ -250,20 +184,8 @@ public class JtracApplication extends WebApplication {
                             /*
                              * Not authenticated, go to login page.
                              */
-                            logger.debug("not authenticated, forcing login, " +
-                                    "page requested was " + clazz.getName());
-                            if (jtracCasProxyTicketValidator != null) {
-                                String serviceUrl = jtracCasProxyTicketValidator.getServiceProperties().getService();
-                                String loginUrl = jtracCasProxyTicketValidator.getLoginUrl();
-                                logger.debug("cas authentication: service URL: " + serviceUrl);
-                                String redirectUrl = loginUrl + "?service=" + serviceUrl;
-                                logger.debug("attempting to redirect to: " + redirectUrl);
-                                throw new RestartResponseAtInterceptPageException(
-                                        new RedirectPage(redirectUrl));
-                            } else {
-                                throw new RestartResponseAtInterceptPageException(
-                                        LoginPage.class);
-                            }
+                            logger.debug("not authenticated, forcing login, page requested was " + clazz.getName());
+                            throw new RestartResponseAtInterceptPageException(LoginPage.class);
                         }
                         return true;
                     }
@@ -272,16 +194,7 @@ public class JtracApplication extends WebApplication {
         /*
          * Friendly URLs for selected pages
          */
-        if (jtracCasProxyTicketValidator != null) {
-            mountBookmarkablePage("/login", CasLoginPage.class);
-            /*
-             * This matches the value set in:
-             * WEB-INF/applicationContext-acegi-cas.xml
-             */
-            mountBookmarkablePage("/cas/error", CasLoginErrorPage.class);
-        } else {
-            mountBookmarkablePage("/login", LoginPage.class);
-        }
+        mountBookmarkablePage("/login", LoginPage.class);
         
         mountBookmarkablePage("/logout", LogoutPage.class);
         mountBookmarkablePage("/svn", SvnStatsPage.class);
@@ -350,9 +263,27 @@ public class JtracApplication extends WebApplication {
         AuthenticationManager am = (AuthenticationManager) applicationContext.getBean("authenticationManager");
         try {
             Authentication authentication = am.authenticate(token);
-            return (User) authentication.getPrincipal();
+            User user = (User) authentication.getPrincipal();
+            
+            // 若為舊版 MD5 雜湊，在成功登入時自動升級為 BCrypt
+            try {
+                org.springframework.security.crypto.password.PasswordEncoder pe = 
+                        (org.springframework.security.crypto.password.PasswordEncoder) applicationContext.getBean("passwordEncoder");
+                if (pe instanceof info.jtrac.util.JtracHybridPasswordEncoder) {
+                    info.jtrac.util.JtracHybridPasswordEncoder hybridEncoder = (info.jtrac.util.JtracHybridPasswordEncoder) pe;
+                    if (hybridEncoder.isUpgradeRequired(user.getPassword())) {
+                        user.setPassword(hybridEncoder.encode(password));
+                        getJtrac().storeUser(user);
+                        logger.info("Successfully upgraded password to BCrypt for user: {}", user.getLoginName());
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Could not auto-upgrade password for user: {}, reason: {}", user.getLoginName(), e.getMessage());
+            }
+            
+            return user;
         } catch (AuthenticationException ae) {
-            logger.debug("acegi authentication failed: " + ae);
+            logger.debug("Spring Security authentication failed: " + ae);
             return null;
         }
     }

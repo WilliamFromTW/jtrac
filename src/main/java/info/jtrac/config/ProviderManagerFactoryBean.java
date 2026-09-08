@@ -20,17 +20,17 @@ import info.jtrac.Jtrac;
 import info.jtrac.acegi.JtracLdapAuthenticationProvider;
 import java.util.ArrayList;
 import java.util.List;
-import org.acegisecurity.providers.AuthenticationProvider;
-import org.acegisecurity.providers.ProviderManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
- * acegi authentication provider manager factory bean
- * conditionally sets up ldap authentication
+ * Spring Security 認證管理器 FactoryBean
+ * 支援有條件動態掛載 LDAP 驗證並回退至資料庫驗證
  */
-public class ProviderManagerFactoryBean implements FactoryBean {
+public class ProviderManagerFactoryBean implements FactoryBean<ProviderManager> {
     
     private final Logger logger = LoggerFactory.getLogger(getClass());
     
@@ -60,37 +60,37 @@ public class ProviderManagerFactoryBean implements FactoryBean {
         this.authenticationProvider = authenticationProvider;
     }    
     
-    public Object getObject() throws Exception {        
-        List providers = new ArrayList();
-        if(ldapUrl.length() > 0) {
+    @Override
+    public ProviderManager getObject() throws Exception {        
+        List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
+        if (ldapUrl != null && ldapUrl.trim().length() > 0) {
             logger.info("switching on ldap authentication provider");
             JtracLdapAuthenticationProvider ldapProvider = new JtracLdapAuthenticationProvider();
             ldapProvider.setLdapUrl(ldapUrl);            
             ldapProvider.setActiveDirectoryDomain(activeDirectoryDomain);        
             ldapProvider.setSearchBase(searchBase);
             ldapProvider.setJtrac(jtrac);
-            // **IMPORTANT!** we have to call this one time init ourselves 
-            // as we are manually doing the factory stuff not Spring
+            // 手動觸發 InitializingBean 生命週期
             ldapProvider.afterPropertiesSet();
-            // this is added at the top of the list or providers, and will fall back to local database
+            // 優先嘗試 LDAP，失敗再回退至資料庫認證
             providers.add(ldapProvider);
         } else {
             logger.info("not using ldap authentication");
         }
-        // add dependency injected local database based authentication
-        providers.add(authenticationProvider);
-        ProviderManager mgr = new ProviderManager();
-        mgr.setProviders(providers);
-        return mgr;
+        // 加入資料庫 DaoAuthenticationProvider
+        if (authenticationProvider != null) {
+            providers.add(authenticationProvider);
+        }
+        return new ProviderManager(providers);
     }
 
-    public Class getObjectType() {
+    @Override
+    public Class<?> getObjectType() {
         return ProviderManager.class;
     }
 
+    @Override
     public boolean isSingleton() {
         return true;
     }
-    
-    
 }

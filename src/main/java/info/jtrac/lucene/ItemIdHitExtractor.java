@@ -17,15 +17,16 @@
 package info.jtrac.lucene;
 
 import org.apache.lucene.document.Document;
-import org.springmodules.lucene.search.core.HitExtractor;
 
 /**
- * Uses Spring Modules Lucene support
- * converts a search "hit" into an Item id, which we can later use to load the actual object
+ * Converts a search hit Document into an Item id, which we can later use to load the actual object
  */
-public class ItemIdHitExtractor implements HitExtractor {
+public class ItemIdHitExtractor {
 
-    public Long mapHit (int i, Document document, float f) {
+    public static Long extractItemId(Document document) {
+        if (document == null) {
+            return null;
+        }
         String type = document.get("type");
         if (type == null) {
             return null;
@@ -39,5 +40,5 @@ public class ItemIdHitExtractor implements HitExtractor {
         } else {
             throw new RuntimeException("Unexpected lucene search result: " + document);
         }
-	}
+    }
 }

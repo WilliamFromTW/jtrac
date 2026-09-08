@@ -55,9 +55,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.acegisecurity.providers.encoding.PasswordEncoder;
-import org.acegisecurity.userdetails.UserDetails;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import org.springframework.context.MessageSource;
 import org.springframework.util.StringUtils;
@@ -149,10 +149,7 @@ public class JtracImpl implements Jtrac {
      * because it depends on the PasswordEncoder configured
      */
     public String generatePassword() {
-        byte[] ab = new byte[1];
-        Random r = new Random();
-        r.nextBytes(ab);
-        return passwordEncoder.encodePassword(new String(ab), null).substring(24);
+        return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 
     /**
@@ -160,7 +157,7 @@ public class JtracImpl implements Jtrac {
      * because it depends on the PasswordEncoder configured
      */
     public String encodeClearText(String clearText) {
-        return passwordEncoder.encodePassword(clearText, null);
+        return passwordEncoder.encode(clearText);
     }
 
     public Map<String, String> getLocales() {
