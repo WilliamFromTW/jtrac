@@ -237,17 +237,14 @@ public class HtmlGenerator {
         sb.append("    </div>\n"); // 結束 issue-main-card
 
         // ===================== 後續留言討論串 (Follow-up History) =====================
-        sb.append("    <div class='discussion-thread-container'>\n");
-        sb.append("      <div class='thread-header'>\n");
-        sb.append("        <span class='thread-title'>💬 ").append(HtmlEscaper.escape(i18n.get("thread.title"))).append("</span>\n");
-        sb.append("        <span class='thread-count-badge'>").append(item.getHistoryList().size())
-                .append(" ").append(HtmlEscaper.escape(i18n.get("thread.updates"))).append("</span>\n");
-        sb.append("      </div>\n");
+        if (item.getHistoryList() != null && !item.getHistoryList().isEmpty()) {
+            sb.append("    <div class='discussion-thread-container'>\n");
+            sb.append("      <div class='thread-header'>\n");
+            sb.append("        <span class='thread-title'>💬 ").append(HtmlEscaper.escape(i18n.get("thread.title"))).append("</span>\n");
+            sb.append("        <span class='thread-count-badge'>").append(item.getHistoryList().size())
+                    .append(" ").append(HtmlEscaper.escape(i18n.get("thread.updates"))).append("</span>\n");
+            sb.append("      </div>\n");
 
-        if (item.getHistoryList().isEmpty()) {
-            sb.append("      <div class='thread-empty text-muted'>")
-                    .append(HtmlEscaper.escape(i18n.get("thread.no_comments"))).append("</div>\n");
-        } else {
             sb.append("      <div class='timeline'>\n");
             int replyIndex = 1;
             for (HistoryDto h : item.getHistoryList()) {
@@ -289,9 +286,8 @@ public class HtmlGenerator {
                 sb.append("        </div>\n"); // 結束 comment-card
             }
             sb.append("      </div>\n"); // 結束 timeline
+            sb.append("    </div>\n"); // 結束 discussion-thread-container
         }
-
-        sb.append("    </div>\n"); // 結束 discussion-thread-container
         sb.append("  </section>\n"); // 結束 issue-thread-section
     }
 

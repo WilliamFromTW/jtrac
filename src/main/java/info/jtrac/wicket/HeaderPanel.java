@@ -119,7 +119,11 @@ public class HeaderPanel extends BasePanel {
             add(new Link("export") {
                 public void onClick() {
                     setResponsePage(HtmlExportPage.class);
-                }            
+                }
+                @Override
+                public boolean isVisible() {
+                    return user.isSuperUser() || spaces.size() > 0;
+                }
             });
             add(new Link("options") {
                 public void onClick() {

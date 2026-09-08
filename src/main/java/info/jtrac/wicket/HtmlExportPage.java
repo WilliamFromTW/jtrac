@@ -6,16 +6,18 @@ import info.jtrac.exporter.ZipStreamExporter;
 import info.jtrac.exporter.config.ExportConfig;
 import info.jtrac.exporter.db.DatabaseReader;
 import info.jtrac.exporter.model.SpaceDto;
+import org.acegisecurity.AccessDeniedException;
 import org.apache.wicket.IRequestTarget;
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.CheckBoxMultipleChoice;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.protocol.http.WebResponse;
 import org.slf4j.Logger;
@@ -37,16 +39,16 @@ public class HtmlExportPage extends BasePage {
     private static final Logger logger = LoggerFactory.getLogger(HtmlExportPage.class);
 
     public static class ExportOptionModel implements Serializable {
-        private String scope = "ALL";
+        private List<String> spaces = new ArrayList<String>();
         private String lang = "zh-TW";
         private boolean includeAttachments = true;
 
-        public String getScope() {
-            return scope;
+        public List<String> getSpaces() {
+            return spaces;
         }
 
-        public void setScope(String scope) {
-            this.scope = scope;
+        public void setSpaces(List<String> spaces) {
+            this.spaces = spaces;
         }
 
         public String getLang() {
@@ -75,6 +77,27 @@ public class HtmlExportPage extends BasePage {
             throw new RestartResponseAtInterceptPageException(LoginPage.class);
         }
 
+        final List<Space> permittedSpaces;
+        if (user.isSuperUser()) {
+            permittedSpaces = getJtrac().findAllSpaces();
+        } else {
+            permittedSpaces = new ArrayList<Space>(user.getSpaces());
+        }
+
+        // 依照名稱排序
+        Collections.sort(permittedSpaces, new Comparator<Space>() {
+            public int compare(Space o1, Space o2) {
+                return o1.getName().compareToIgnoreCase(o2.getName());
+            }
+        });
+
+        // Guardrail: 若使用者沒有任何專案空間權限且非 SuperUser，阻擋並重定向至首頁
+        if (permittedSpaces.isEmpty()) {
+            logger.warn("User {} has no permitted spaces, redirecting to Dashboard", user.getLoginName());
+            setResponsePage(DashboardPage.class);
+            return;
+        }
+
         final Space currentSpace = getCurrentSpace();
         final ExportOptionModel optionModel = new ExportOptionModel();
 
@@ -94,39 +117,42 @@ public class HtmlExportPage extends BasePage {
             }
         }
 
-        if (currentSpace != null) {
-            optionModel.setScope(currentSpace.getPrefixCode());
+        List<String> prefixCodes = new ArrayList<String>();
+        final Map<String, Space> spaceMap = new HashMap<String, Space>();
+        final Set<String> permittedPrefixCodesUpper = new HashSet<String>();
+        for (Space s : permittedSpaces) {
+            prefixCodes.add(s.getPrefixCode());
+            spaceMap.put(s.getPrefixCode(), s);
+            permittedPrefixCodesUpper.add(s.getPrefixCode().toUpperCase());
+        }
+
+        // 預設選取：若當前已位於特定空間且在授權清單內，預設選該空間；否則預設全選
+        if (currentSpace != null && spaceMap.containsKey(currentSpace.getPrefixCode())) {
+            optionModel.getSpaces().add(currentSpace.getPrefixCode());
         } else {
-            optionModel.setScope("ALL");
+            optionModel.getSpaces().addAll(prefixCodes);
         }
 
         Form form = new Form("form", new CompoundPropertyModel(optionModel));
         add(form);
 
-        // 1. 範圍單選 (RadioChoice)
-        List<String> scopeList = new ArrayList<String>();
-        scopeList.add("ALL");
-        if (currentSpace != null) {
-            scopeList.add(currentSpace.getPrefixCode());
-        }
+        form.add(new FeedbackPanel("feedback"));
 
-        RadioChoice scopeChoice = new RadioChoice("scope", scopeList, new IChoiceRenderer() {
+        // 1. 專案空間複選核取方塊 (CheckBoxMultipleChoice)
+        CheckBoxMultipleChoice spacesChoice = new CheckBoxMultipleChoice("spaces", prefixCodes, new IChoiceRenderer() {
             public Object getDisplayValue(Object o) {
-                String key = (String) o;
-                if ("ALL".equals(key)) {
-                    return localize("html_export.scope.all");
-                } else if (currentSpace != null) {
-                    return localize("html_export.scope.current", currentSpace.getName() + " [" + currentSpace.getPrefixCode() + "]");
-                }
-                return key;
+                String code = (String) o;
+                Space s = spaceMap.get(code);
+                return s != null ? s.getName() + " [" + s.getPrefixCode() + "]" : code;
             }
 
             public String getIdValue(Object o, int i) {
-                return o.toString();
+                return (String) o;
             }
         });
-        scopeChoice.setRequired(true);
-        form.add(scopeChoice);
+        spacesChoice.setPrefix("<div style='margin: 3px 0;'>");
+        spacesChoice.setSuffix("</div>");
+        form.add(spacesChoice);
 
         // 2. 語系下拉選單 (DropDownChoice)
         List<String> langList = Arrays.asList("zh-TW", "en", "zh-CN", "ja", "vi");
@@ -155,14 +181,28 @@ public class HtmlExportPage extends BasePage {
         form.add(new Button("download") {
             @Override
             public void onSubmit() {
-                final String selectedLang = optionModel.getLang();
-                final String selectedScope = optionModel.getScope();
-                final boolean includeAtt = optionModel.isIncludeAttachments();
+                final List<String> selectedSpaces = optionModel.getSpaces();
+                if (selectedSpaces == null || selectedSpaces.isEmpty()) {
+                    error(localize("html_export.error.no_space_selected"));
+                    return;
+                }
 
-                final String spaceFilter = "ALL".equals(selectedScope) ? null : selectedScope;
+                // 後端防禦深度安全檢核 (Defense-in-Depth Guardrail)
+                if (!user.isSuperUser()) {
+                    for (String code : selectedSpaces) {
+                        if (!permittedPrefixCodesUpper.contains(code.toUpperCase())) {
+                            logger.error("Security violation: User {} attempted unauthorized export of space {}",
+                                    user.getLoginName(), code);
+                            throw new AccessDeniedException("您未被授權存取專案空間: " + code);
+                        }
+                    }
+                }
+
+                final String selectedLang = optionModel.getLang();
+                final boolean includeAtt = optionModel.isIncludeAttachments();
                 final String dateStr = new SimpleDateFormat("yyyyMMdd").format(new Date());
-                final String zipFileName = spaceFilter != null
-                        ? "jtrac-export-" + spaceFilter + "-" + dateStr + ".zip"
+                final String zipFileName = selectedSpaces.size() == 1
+                        ? "jtrac-export-" + selectedSpaces.get(0) + "-" + dateStr + ".zip"
                         : "jtrac-export-" + dateStr + ".zip";
 
                 getRequestCycle().setRequestTarget(new IRequestTarget() {
@@ -179,7 +219,7 @@ public class HtmlExportPage extends BasePage {
                         try (Connection conn = dataSource.getConnection()) {
                             ExportConfig exportConfig = new ExportConfig();
                             exportConfig.setLang(selectedLang);
-                            exportConfig.setSpaceFilter(spaceFilter);
+                            exportConfig.setTargetSpacePrefixCodes(selectedSpaces);
 
                             File attachmentsDir = new File(getJtrac().getJtracHome(), "attachments");
                             if (includeAtt && attachmentsDir.exists()) {

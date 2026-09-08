@@ -88,10 +88,9 @@ public class DatabaseReader implements AutoCloseable {
         System.out.println("讀取到 " + spaces.size() + " 個專案空間。");
 
         // 篩選 Space (若有指定)
-        if (config.getSpaceFilter() != null && !config.getSpaceFilter().trim().isEmpty()) {
-            String filter = config.getSpaceFilter().trim();
-            spaces.removeIf(s -> !s.getPrefixCode().equalsIgnoreCase(filter));
-            System.out.println("套用空間篩選 [" + filter + "]，符合之空間數: " + spaces.size());
+        if (config.hasSpaceFilter()) {
+            spaces.removeIf(s -> !config.isSpaceAllowed(s.getPrefixCode()));
+            System.out.println("套用空間篩選，符合之空間數: " + spaces.size());
         }
 
         Map<Long, SpaceDto> spaceMap = new HashMap<>();
@@ -294,6 +293,20 @@ public class DatabaseReader implements AutoCloseable {
                 count++;
             }
         }
+
+        // 清理各議題之初始無留言 OPEN 快照 (Eliminate initial empty-comment OPEN snapshot)
+        for (ItemDto item : itemsById.values()) {
+            List<HistoryDto> histories = item.getHistoryList();
+            if (!histories.isEmpty()) {
+                HistoryDto first = histories.get(0);
+                boolean isInitialOpenSnapshot = (first.getStatus() != null && first.getStatus() == 1)
+                        && (first.getComment() == null || first.getComment().trim().isEmpty());
+                if (isInitialOpenSnapshot) {
+                    histories.remove(0);
+                }
+            }
+        }
+
         return count;
     }
 

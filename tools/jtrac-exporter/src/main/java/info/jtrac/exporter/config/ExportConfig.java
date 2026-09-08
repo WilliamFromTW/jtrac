@@ -1,6 +1,9 @@
 package info.jtrac.exporter.config;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ExportConfig {
 
@@ -12,6 +15,7 @@ public class ExportConfig {
     private File outputDir = new File("./jtrac-html-export");
     private String lang = "zh-TW";
     private String spaceFilter;
+    private Set<String> targetSpacePrefixCodes = new HashSet<String>();
     private boolean help = false;
 
     public static ExportConfig parse(String[] args) {
@@ -132,6 +136,42 @@ public class ExportConfig {
 
     public void setSpaceFilter(String spaceFilter) {
         this.spaceFilter = spaceFilter;
+        this.targetSpacePrefixCodes.clear();
+        if (spaceFilter != null && !spaceFilter.trim().isEmpty()) {
+            String[] parts = spaceFilter.split("[,;]");
+            for (String p : parts) {
+                String trimmed = p.trim();
+                if (!trimmed.isEmpty()) {
+                    this.targetSpacePrefixCodes.add(trimmed.toUpperCase());
+                }
+            }
+        }
+    }
+
+    public Set<String> getTargetSpacePrefixCodes() {
+        return targetSpacePrefixCodes;
+    }
+
+    public void setTargetSpacePrefixCodes(Collection<String> codes) {
+        this.targetSpacePrefixCodes.clear();
+        if (codes != null) {
+            for (String c : codes) {
+                if (c != null && !c.trim().isEmpty()) {
+                    this.targetSpacePrefixCodes.add(c.trim().toUpperCase());
+                }
+            }
+        }
+    }
+
+    public boolean hasSpaceFilter() {
+        return !targetSpacePrefixCodes.isEmpty();
+    }
+
+    public boolean isSpaceAllowed(String prefixCode) {
+        if (targetSpacePrefixCodes.isEmpty()) {
+            return true;
+        }
+        return prefixCode != null && targetSpacePrefixCodes.contains(prefixCode.trim().toUpperCase());
     }
 
     public boolean isHelp() {
