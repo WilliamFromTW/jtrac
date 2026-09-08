@@ -8,6 +8,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
+[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
 本專案為 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 的現代化增強 Fork 版本。致力於提供更輕量、高相容性、具備離線靜態歸檔與現代化 UI 體驗的 Issue Tracking 系統。本專案開發過程中使用 OpenSpec v1.12.0 規格驅動流程，並由 Antigravity 1.1.27 輔助開發、架構重構與品質把關。

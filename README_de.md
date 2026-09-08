@@ -8,6 +8,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
+[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
 Dieses Projekt ist ein modernisierter, erweiterter Fork von [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Ziel ist es, ein schlankes, hochkompatibles Issue-Tracking-System bereitzustellen, das über Offline-Archivierungsfunktionen und eine überarbeitete Benutzeroberfläche verfügt. Die Entwicklung wird über OpenSpec v1.12.0 spezifikationsgesteuert geführt und durch Antigravity 1.1.27 bei Architekturrefaktorisierung, Verifikation und Qualitätskontrolle unterstützt.

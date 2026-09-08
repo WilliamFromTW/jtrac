@@ -8,6 +8,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
+[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
 Dự án này là phiên bản fork hiện đại hóa và nâng cấp từ [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Dự án hướng đến việc cung cấp một hệ thống theo dõi vấn đề (Issue Tracking) gọn nhẹ, tương thích cao, hỗ trợ lưu trữ tĩnh ngoại tuyến và giao diện hiện đại. Quá trình phát triển được điều phối theo quy chuẩn OpenSpec v1.12.0 với sự hỗ trợ của Antigravity 1.1.27 trong việc tái cấu trúc, kiểm thử và đảm bảo chất lượng.

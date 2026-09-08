@@ -8,6 +8,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
+[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](pom.xml)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
 本プロジェクトは、[JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) の近代化・機能強化フォーク版です。軽量性、高互換性、オフライン静的アーカイブ機能、そして洗練されたモダン UI を備えた課題管理（Issue Tracking）システムを提供します。本プロジェクトの開発は OpenSpec v1.12.0 仕様駆動プロセスを採用し、Antigravity 1.1.27 の支援のもとでアーキテクチャ刷新・検証・品質管理を行っています。

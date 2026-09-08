@@ -4,7 +4,7 @@
     <groupId>info.jtrac</groupId>
     <artifactId>jtrac</artifactId>
     <packaging>war</packaging>
-    <version>2.3.3</version>
+    <version>2.3.3-1.0.0</version>
     <name>JTrac</name>
     <description>
         JTrac is a generic issue-tracking web-application that can be easily customized by adding custom fields 
