@@ -125,4 +125,5 @@ public interface JtracDao {
     List<info.jtrac.domain.ItemTag> findAllItemTags();
     List<Attachment> findAllAttachments();
     List<History> findAllHistories();
+    void clearSession();
 }

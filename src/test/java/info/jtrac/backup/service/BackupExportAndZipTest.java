@@ -216,5 +216,6 @@ public class BackupExportAndZipTest {
         @Override public void storeStoredSearch(StoredSearch storedSearch) {}
         @Override public StoredSearch loadStoredSearch(Long id) { return null; }
         @Override public void removeStoredSearch(StoredSearch storedSearchToDel) {}
+        @Override public void clearSession() {}
     }
 }

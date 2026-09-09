@@ -755,5 +755,10 @@ public class HibernateJtracDao implements JtracDao {
     public List<History> findAllHistories() {
         return getCurrentSession().createQuery("from History h order by h.id", History.class).getResultList();
     }
+
+    @Override
+    public void clearSession() {
+        getCurrentSession().clear();
+    }
 }
 

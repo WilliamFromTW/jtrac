@@ -42,6 +42,14 @@ import info.jtrac.mail.MailSender;
 import info.jtrac.util.AttachmentUtils;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import javax.sql.DataSource;
+import info.jtrac.backup.model.BackupManifest;
+import info.jtrac.backup.model.SystemBackupData;
+import info.jtrac.backup.service.BackupExportService;
+import info.jtrac.backup.service.BackupRestoreService;
+import info.jtrac.backup.service.ZipBundleService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -72,7 +80,7 @@ import org.slf4j.LoggerFactory;
  * This is where all the business logic is
  * For data persistence this delegates to JtracDao
  */
-public class JtracImpl implements Jtrac {
+public class JtracImpl implements Jtrac, org.springframework.context.ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(JtracImpl.class);
 
@@ -82,6 +90,25 @@ public class JtracImpl implements Jtrac {
     private Indexer indexer;
     private IndexSearcher indexSearcher;
     private MessageSource messageSource;
+    private DataSource dataSource;
+    private BackupExportService backupExportService;
+    private ZipBundleService zipBundleService;
+    private BackupRestoreService backupRestoreService;
+    private org.springframework.context.ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(org.springframework.context.ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    private Jtrac getJtracProxy() {
+        if (applicationContext != null && applicationContext.containsBean("jtrac")) {
+            try {
+                return (Jtrac) applicationContext.getBean("jtrac");
+            } catch (Exception ignored) {}
+        }
+        return this;
+    }
 
     private Map<String, String> locales;
     private String defaultLocale = "en";
@@ -132,6 +159,22 @@ public class JtracImpl implements Jtrac {
         this.jtracHome = jtracHome;
     }
 
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public void setBackupExportService(BackupExportService backupExportService) {
+        this.backupExportService = backupExportService;
+    }
+
+    public void setZipBundleService(ZipBundleService zipBundleService) {
+        this.zipBundleService = zipBundleService;
+    }
+
+    public void setBackupRestoreService(BackupRestoreService backupRestoreService) {
+        this.backupRestoreService = backupRestoreService;
+    }
+
     public String getJtracHome() {
         return jtracHome;
     }
@@ -179,6 +222,19 @@ public class JtracImpl implements Jtrac {
         initMailSender(config);
         initAttachmentMaxSize(config.get("attachment.maxsize"));
         initSessionTimeout(config.get("session.timeout"));
+        initBackupServices();
+    }
+
+    private void initBackupServices() {
+        if (backupExportService == null) {
+            backupExportService = new BackupExportService(dao, releaseVersion, jtracHome);
+        }
+        if (zipBundleService == null) {
+            zipBundleService = new ZipBundleService();
+        }
+        if (backupRestoreService == null && dataSource != null) {
+            backupRestoreService = new BackupRestoreService(dataSource, dao, getJtracProxy(), backupExportService, zipBundleService, jtracHome);
+        }
     }
 
     private void initMailSender(Map<String, String> config) {
@@ -866,5 +922,50 @@ public class JtracImpl implements Jtrac {
     public void removeStoredSearch(Long id) {
         StoredSearch storedSearchToDel = dao.loadStoredSearch(id);
         dao.removeStoredSearch(storedSearchToDel);
+    }
+
+    //==========================================================================
+
+    @Override
+    public BackupExportService getBackupExportService() {
+        if (backupExportService == null) {
+            backupExportService = new BackupExportService(dao, releaseVersion, jtracHome);
+        }
+        return backupExportService;
+    }
+
+    @Override
+    public ZipBundleService getZipBundleService() {
+        if (zipBundleService == null) {
+            zipBundleService = new ZipBundleService();
+        }
+        return zipBundleService;
+    }
+
+    @Override
+    public BackupRestoreService getBackupRestoreService() {
+        if (backupRestoreService == null) {
+            backupRestoreService = new BackupRestoreService(dataSource, dao, getJtracProxy(), getBackupExportService(), getZipBundleService(), jtracHome);
+        } else {
+            backupRestoreService.setJtrac(getJtracProxy());
+        }
+        return backupRestoreService;
+    }
+
+    @Override
+    public SystemBackupData exportSystemData() {
+        return getBackupExportService().exportSystemData();
+    }
+
+    @Override
+    public void exportBackupZip(OutputStream out, String operatorLoginName) throws Exception {
+        SystemBackupData data = exportSystemData();
+        BackupManifest manifest = getBackupExportService().createManifest(data, operatorLoginName);
+        getZipBundleService().createBackupZip(manifest, data, jtracHome, out);
+    }
+
+    @Override
+    public void performFullRestore(InputStream zipIn, User currentOperator) throws Exception {
+        getBackupRestoreService().performFullRestore(zipIn, currentOperator);
     }
 }

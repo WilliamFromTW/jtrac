@@ -36,6 +36,12 @@ import java.util.Map;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import info.jtrac.backup.model.SystemBackupData;
+import info.jtrac.backup.service.BackupExportService;
+import info.jtrac.backup.service.BackupRestoreService;
+import info.jtrac.backup.service.ZipBundleService;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Jtrac main business interface (Service Layer)
@@ -127,4 +133,10 @@ public interface Jtrac extends UserDetailsService {
     void storeStoredSearch(StoredSearch storedSearch);
     void removeStoredSearch(Long id);
     //========================================================
+    BackupExportService getBackupExportService();
+    ZipBundleService getZipBundleService();
+    BackupRestoreService getBackupRestoreService();
+    SystemBackupData exportSystemData();
+    void exportBackupZip(OutputStream out, String operatorLoginName) throws Exception;
+    void performFullRestore(InputStream zipIn, User currentOperator) throws Exception;
 }
