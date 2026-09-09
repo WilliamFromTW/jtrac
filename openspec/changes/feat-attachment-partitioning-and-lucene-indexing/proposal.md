@@ -6,17 +6,18 @@
 
 ## What Changes
 
-- **專案隔離附件目錄結構（選項 C）**：實體附件儲存路徑重構為 `${jtrac.home}/attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}`，依專案空間進行實體目錄隔離。
+- **專案隔離附件目錄結構（純 ID 防改名）**：實體附件儲存路徑重構為 `${jtrac.home}/attachments/{spaceId}/{filePrefix}_{fileName}`，以資料庫主鍵 ID 為唯一專案目錄，徹底免除專案更名引發之檔案目錄不同步風險。
 - **舊版孤兒檔案安全隔離**：遷移過程中若發現資料庫無關聯記錄之舊附件，集中隔離移入 `attachments/0_ORPHAN/`，保持根目錄整潔且零資料遺失。
 - **雙軌讀取防呆安全網（Dual-Read Fallback）**：查檔邏輯優先檢索專案隔離子目錄，相容舊版根目錄平鋪路徑，保證遷移期間 0% 發生 404 破圖或找不到檔案。
 - **JTrac 2.3.3 舊環境四階段自動升級流水線**：
   1. 伺服器啟動自動偵測 HSQLDB 1.8，建立快照備份並轉譯升級為 2.x 現代庫。
   2. 自動補齊缺失之系統參數（`pageSize`、索引防護門檻）並相容舊版 MD5 密碼雜湊。
-  3. 自動執行附件實體結構化遷移（Option C）。
+  3. 自動執行附件實體結構化遷移（純專案 ID 目錄）。
   4. 升級完成後自動於背景非同步觸發全量 Lucene 索引重建。
 - **安全附件全文檢索（Lucene Attachment Indexing）**：
   - **白名單支援**：`.xlsx`、`.docx`、`.pdf`、`.txt`、`.csv`、`.md`、`.log`。
   - **黑名單排除**：明確排除舊版二進位格式（`.doc`、`.xls`、`.ppt`）與非文字二進位檔（`.zip`、`.exe`、圖片等），不抽取內文但保持附件正常下載。
+  - **新上傳非同步佇列處理（Asynchronous Queue）**：日常上傳新附件時，文字抽取與 Lucene 索引排入背景執行緒佇列非同步處理，HTTP 請求極速回應，徹底杜絕大檔上傳卡頓與異常阻斷。
   - **智慧防亂碼轉碼（SmartCharsetDetector）**：針對 CSV / TXT 實施「BOM 識別 -> 嚴格 UTF-8 校驗 -> 系統編碼降級轉換」三道防線。
   - **零依賴 Office 抽取**：使用 JDK 內建串流（`ZipInputStream` + `XMLStreamReader`）抽取 `.xlsx` 與 `.docx`，強制標準 UTF-8，絕無亂碼且零 WAR 體積膨脹。
   - **PDF 抽取支援**：引入成熟純 Java 的 Apache PDFBox（`pdfbox:2.0.31`，約 2.7MB）。
@@ -26,14 +27,14 @@
 ## Capabilities
 
 ### New Capabilities
-- `attachment-partitioning-and-indexing`: 涵蓋附件專案目錄分區儲存（選項 C）、孤兒檔案隔離、雙軌查檔安全網、JTrac 2.3.3 四階段升級流水線、白名單安全抽取與黑名單排除、防亂碼轉碼器、防護網門檻參數化與背景非同步索引重建。
+- `attachment-partitioning-and-indexing`: 涵蓋附件專案目錄純 ID 分區儲存、孤兒檔案隔離、雙軌查檔安全網、JTrac 2.3.3 四階段升級流水線、白名單安全抽取與黑名單排除、新上傳非同步佇列索引、防亂碼轉碼器、防護網門檻參數化與背景非同步索引重建。
 
 ### Modified Capabilities
 <!-- 本變更未修改既有規格之核心需求 -->
 
 ## Impact
 
-- **實體儲存結構**：`${jtrac.home}/attachments/` 目錄將增加 `{spaceId}_{spacePrefix}/` 及 `0_ORPHAN/` 子目錄。
+- **實體儲存結構**：`${jtrac.home}/attachments/` 目錄將增加 `{spaceId}/` 及 `0_ORPHAN/` 子目錄。
 - **後端程式庫依賴**：在 `pom.xml` 引入 `org.apache.pdfbox:pdfbox:2.0.31`。
 - **後端類別異動與新增**：
   - 更新 [`AttachmentUtils`](file:///W:/developer/project/github/jtrac/src/main/java/info/jtrac/util/AttachmentUtils.java) 支援專案子目錄定位與雙軌查檔。

@@ -5,12 +5,13 @@
 ## Goals / Non-Goals
 
 **Goals:**
-- 實作選項 C 專案空間隔離目錄：`attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}`。
+- 實作純專案 ID 空間隔離目錄：`attachments/{spaceId}/{filePrefix}_{fileName}`（徹底防更名風險）。
 - 實作啟動期自動觸發之 JTrac 2.3.3 四階段升級流水線（HSQLDB 1.8 轉譯 -> Schema/Config 補丁 -> 附件目錄遷移 -> 背景索引重建）。
 - 實作孤兒檔案隔離機制（`attachments/0_ORPHAN/`），確保根目錄整潔且無任何資料遺失。
 - 實作雙軌查檔防呆（Dual-Read Fallback），優先檢索專案目錄，相容舊版平鋪目錄，杜絕 404。
 - 實作無侵入式現代 Office（`.xlsx`, `.docx`）零依賴純 JDK 抽取與標準 UTF-8 保證（0% 亂碼）。
 - 引入 Apache PDFBox 2.0.x 實現標準純 Java PDF 內文抽取。
+- 實作日常上傳新附件之非同步工作緒佇列索引（Asynchronous Queue），HTTP 極速回應且異常隔離。
 - 實作 `SmartCharsetDetector` 處理 CSV / TXT 之多層次編碼偵測與防亂碼轉換。
 - 實作副檔名黑名單（明確排除舊版 `.doc`, `.xls` 及二進位檔）與白名單過濾。
 - 實作抽取防護門檻（單檔 10MB / 5 萬字元），並將參數收納入 `config` 表（`attachment.index.maxSizeMb`、`attachment.index.maxChars`）。
@@ -24,12 +25,12 @@
 
 ## Decisions
 
-### 1. 儲存架構：選項 C (`attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}`)
-- **決策**：目錄名稱結合 `spaceId` 與 `spacePrefix`（例如 `attachments/1_DEFAULT/101_guide.pdf`）。
-- **理由**：相較於純 ID（選項 A，人眼難以辨識專案）或純 PrefixCode（選項 B，若使用者更名可能造成重名），選項 C 兼具人機可讀性、唯一性，且利於系統管理者直接在作業系統層級進行各專案之資料封存或備份。
+### 1. 儲存架構：純專案 ID 結構 (`attachments/{spaceId}/{filePrefix}_{fileName}`)
+- **決策**：目錄名稱嚴格採用純 `spaceId` 數字（例如 `attachments/1/101_guide.pdf`）。
+- **理由**：`spaceId` 為資料庫不可變之數值主鍵（Primary Key）。若使用專案名稱或英文代號（PrefixCode），一旦管理員日後在系統介面中修改代碼（如 `DEFAULT` 改為 `MAIN`），將會引發實體目錄不同步、作業系統檔案鎖定、以及外部參照斷裂等複雜問題；採用純專案 ID 作為目錄，徹底免疫所有專案更名風險，路徑恆定可靠。
 
 ### 2. 舊版升級：四階段全自動啟動流水線
-- **決策**：升級順序嚴格定為：(1) 資料庫 1.8 -> 2.x、(2) Schema/Config 補丁、(3) 附件目錄遷移、(4) 背景索引重建。
+- **決策**：升級順序嚴格定為：(1) 資料庫 1.8 -> 2.x、(2) Schema/Config 補丁、(3) 附件目錄純 ID 遷移、(4) 背景索引重建。
 - **理由**：若未先將 HSQLDB 1.8 升級至 2.x，Spring 連線池與 Hibernate 無法初始化；若無資料庫連線，則無法查得舊附件所屬的專案 Space ID。因此嚴格按照依賴順序執行。
 
 ```mermaid
@@ -55,7 +56,7 @@ sequenceDiagram
     Boot->>AttMigrator: 掃描 attachments/ 根目錄
     opt 發現舊版平鋪檔案
         AttMigrator->>Hibernate: 查詢 DB 關聯 (Attachment -> Item -> Space)
-        AttMigrator->>Disk: 移動至 attachments/{spaceId}_{spacePrefix}/ 或 0_ORPHAN/
+        AttMigrator->>Disk: 移動至 attachments/{spaceId}/ 或 0_ORPHAN/
     end
     AttMigrator-->>Boot: 附件目錄遷移完畢
 
@@ -98,6 +99,12 @@ flowchart TD
   - 單檔抽取字數上限預設 50,000 字元（超過則安全截斷）。
   - 參數寫入 `config` 表（`attachment.index.maxSizeMb`, `attachment.index.maxChars`），便於日後微調。
   - Lucene Document 儲存模式：`Store.NO`, `Index.TOKENIZED`，只產生詞元倒排索引，不重複存放原文。
+
+### 7. 新上傳附件非同步佇列索引 (Asynchronous Queue Indexing)
+- **決策**：日常操作上傳新附件時，系統完成檔案實體寫入後立即向客戶端回應 HTTP 200，文字抽取與 Lucene 索引寫入交由背景工作緒（`ExecutorService`）非同步排程處理。
+- **理由**：
+  - **極速流暢**：使用者送出表單毫無延遲，不受 PDF 或 Excel 大檔解析耗時影響。
+  - **異常隔離**：即使背景抽取發生非預期格式剖析異常，亦 100% 絕不阻斷工單或留言儲存事務，保證核心業務高可用性。
 
 ## Risks / Trade-offs
 

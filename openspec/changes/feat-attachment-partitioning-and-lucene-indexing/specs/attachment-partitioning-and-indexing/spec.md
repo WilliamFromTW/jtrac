@@ -1,19 +1,19 @@
 ## Purpose
 
-本規格定義 JTrac 附件實體儲存之專案隔離架構（選項 C）、JTrac 2.3.3 與 HSQLDB 1.8 舊版全自動四階段升級流水線、孤兒檔案隔離處置、雙軌查檔安全網，以及具備副檔名白名單/黑名單排除（明確排除舊版 doc/xls）、智慧編碼轉碼防亂碼與單檔容量/字數門檻防護之 Lucene 全文檢索索引機制。
+本規格定義 JTrac 附件實體儲存之專案隔離架構（純專案 ID 結構，防改名風險）、JTrac 2.3.3 與 HSQLDB 1.8 舊版全自動四階段升級流水線、孤兒檔案隔離處置、雙軌查檔安全網，以及具備副檔名白名單/黑名單排除（明確排除舊版 doc/xls）、新上傳附件非同步佇列索引、智慧編碼轉碼防亂碼與單檔容量/字數門檻防護之 Lucene 全文檢索索引機制。
 
 ## ADDED Requirements
 
 ### Requirement: 專案空間隔離之附件實體目錄結構 (Attachment Storage Partitioning)
-系統 SHALL 將工單上傳之實體附件檔案，依其所屬專案空間（Space）儲存於獨立的子目錄中，路徑格式嚴格遵循 `${jtrac.home}/attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}`。
+系統 SHALL 將工單上傳之實體附件檔案，依其所屬專案空間（Space）儲存於獨立的子目錄中，路徑格式嚴格遵循 `${jtrac.home}/attachments/{spaceId}/{filePrefix}_{fileName}`，以主鍵 ID 作為唯一且恆定的專案目錄名稱，徹底免除專案更名帶來的目錄不同步與連結斷裂問題。
 
 #### Scenario: 上傳新工單或留言附件
-- **WHEN** 使用者在專案 ID 為 `1`、代碼為 `DEFAULT` 的空間中建立工單或新增歷程並上傳名為 `spec.xlsx` 的檔案
-- **THEN** 系統將實體檔案儲存於 `${jtrac.home}/attachments/1_DEFAULT/{filePrefix}_spec.xlsx`
+- **WHEN** 使用者在專案 ID 為 `1` 的空間中建立工單或新增歷程並上傳名為 `spec.xlsx` 的檔案
+- **THEN** 系統將實體檔案儲存於 `${jtrac.home}/attachments/1/{filePrefix}_spec.xlsx`
 
 #### Scenario: 跨專案儲存空間實體隔離
 - **WHEN** 不同專案上傳同名檔案
-- **THEN** 各檔案分別儲存在各自的 `{spaceId}_{spacePrefix}` 子目錄中，互不覆蓋與干擾
+- **THEN** 各檔案分別儲存在各自的 `{spaceId}` 子目錄中，互不覆蓋與干擾
 
 ---
 
@@ -22,7 +22,7 @@
 
 #### Scenario: 優先從專案子目錄讀取已遷移附件
 - **WHEN** 使用者點擊下載已完成遷移之附件
-- **THEN** 系統直接自 `${jtrac.home}/attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}` 提供檔案
+- **THEN** 系統直接自 `${jtrac.home}/attachments/{spaceId}/{filePrefix}_{fileName}` 提供檔案
 
 #### Scenario: 自動降級至根目錄讀取未遷移檔案
 - **WHEN** 附件實體檔案尚未完成目錄遷移，仍在根目錄 `${jtrac.home}/attachments/` 下
@@ -35,7 +35,7 @@
 
 #### Scenario: 正常平鋪舊附件自動分群搬移
 - **WHEN** 伺服器啟動並在 `attachments/` 根目錄偵測到歷史平鋪檔案 `{filePrefix}_{fileName}`
-- **THEN** 系統自動建立目標目錄 `attachments/{spaceId}_{spacePrefix}/` 並將檔案安全搬移，同時記錄遷移日誌
+- **THEN** 系統自動建立目標目錄 `attachments/{spaceId}/` 並將檔案安全搬移，同時記錄遷移日誌
 
 #### Scenario: 孤兒檔案安全隔離
 - **WHEN** 根目錄中之檔案在資料庫中查無任何關聯記錄
@@ -44,7 +44,7 @@
 ---
 
 ### Requirement: JTrac 2.3.3 四階段全自動升級流水線 (End-to-End Upgrade Pipeline)
-系統在啟動時 SHALL 依序執行完整之四階段升級程序：(1) HSQLDB 1.8 資料庫升級與備份、(2) Schema 與設定補丁、(3) 附件目錄 Option C 遷移、(4) 背景非同步 Lucene 全文索引重建。
+系統在啟動時 SHALL 依序執行完整之四階段升級程序：(1) HSQLDB 1.8 資料庫升級與備份、(2) Schema 與設定補丁、(3) 附件目錄純 ID 遷移、(4) 背景非同步 Lucene 全文索引重建。
 
 #### Scenario: HSQLDB 1.8 舊資料庫自動備份與現代化升級
 - **WHEN** 伺服器啟動於 `data/db/` 偵測到 HSQLDB 1.8 格式之資料庫
@@ -96,3 +96,17 @@
 #### Scenario: 管理員在 UI 手動觸發重建索引
 - **WHEN** 管理員至後台「重建索引」頁面點擊「開始」
 - **THEN** 系統在背景重整索引庫，並透過 Ajax 輪詢進度條即時更新百分比與筆數
+
+---
+
+### Requirement: 新增附件非同步佇列索引 (Asynchronous Queue Indexing for New Uploads)
+使用者日常操作上傳新附件時，系統 SHALL 在完成檔案實體寫入後立即回應 HTTP 請求，並將該附件之文字抽取與 Lucene 索引寫入作業排入背景工作緒佇列（ExecutorService）非同步執行，徹底消除上傳大檔時的介面延遲並隔離抽取異常。
+
+#### Scenario: 日常上傳附件極速回應
+- **WHEN** 使用者在工單或留言中上傳符合白名單之附件並點擊送出
+- **THEN** 系統立即完成檔案寫入與資料庫儲存並向使用者回應 HTTP 成功導航，文字抽取與全文索引排入背景非同步執行
+
+#### Scenario: 背景抽取異常隔離保護
+- **WHEN** 附件於背景佇列抽取文字時發生檔案損毀或非預期剖析錯誤
+- **THEN** 系統於日誌記錄警告訊息並安全跳過該附件索引，工單與留言記錄保持完整不受任何影響
+

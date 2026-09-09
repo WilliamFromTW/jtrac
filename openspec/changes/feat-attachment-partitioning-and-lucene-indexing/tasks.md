@@ -9,19 +9,19 @@
 - [ ] 2.2 實作 `AttachmentTextExtractor` 工具類別，包含副檔名黑名單過濾（明確排除 `.doc`, `.xls`, `.ppt`, `.zip`, `.exe` 等）、白名單純文字/Office 串流解析（`.xlsx`, `.docx`, `.txt`, `.csv`, `.md`, `.log`）與 Apache PDFBox 整合（`.pdf`），並實施 10MB 與 50,000 字元截斷防護。
 - [ ] 2.3 撰寫 `AttachmentTextExtractorTest` 單元測試，針對各格式檔案驗證白名單解析正常、黑名單直接排除、超大檔案/字數安全截斷且不拋出例外。
 
-## 3. 選項 C 附件目錄結構與雙軌查檔安全網 (Option C Storage & Dual-Read Fallback)
+## 3. 純專案 ID 附件目錄結構與雙軌查檔安全網 (SpaceId Storage & Dual-Read Fallback)
 
-- [ ] 3.1 修改 `AttachmentUtils.getFile()` 與相關輔助方法，支援專案子目錄路徑 `${jtrac.home}/attachments/{spaceId}_{spacePrefix}/{filePrefix}_{fileName}`，並實作專案子目錄不存在時自動 Fallback 至根目錄之雙軌查檔機制。
-- [ ] 3.2 修改 `JtracImpl.writeToFile()` 與上傳流程，新上傳之附件檔案一律寫入專案子目錄路徑，並以單元測試驗證新檔案位置與下載讀取皆正常。
+- [ ] 3.1 修改 `AttachmentUtils.getFile()` 與相關輔助方法，支援純專案 ID 子目錄路徑 `${jtrac.home}/attachments/{spaceId}/{filePrefix}_{fileName}`，徹底免疫專案更名風險，並實作專案子目錄不存在時自動 Fallback 至根目錄之雙軌查檔機制。
+- [ ] 3.2 修改 `JtracImpl.writeToFile()` 與上傳流程，新上傳之附件檔案一律寫入純專案 ID 子目錄路徑，並以單元測試驗證新檔案位置與下載讀取皆正常。
 
 ## 4. 舊版四階段全自動升級流水線 (Upgrade Pipeline & Migration)
 
-- [ ] 4.1 實作 `AttachmentStorageMigrator` 工具類別，支援啟動時掃描 `attachments/` 根目錄，將歷史平鋪檔案依關聯查詢移動至對應的專案子目錄，若為無關聯之孤兒檔案則隔離至 `attachments/0_ORPHAN/`。
+- [ ] 4.1 實作 `AttachmentStorageMigrator` 工具類別，支援啟動時掃描 `attachments/` 根目錄，將歷史平鋪檔案依關聯查詢移動至對應的純專案 ID 子目錄，若為無關聯之孤兒檔案則隔離至 `attachments/0_ORPHAN/`。
 - [ ] 4.2 串接伺服器啟動生命週期：整合 `HsqldbDatabaseMigrator`（HSQLDB 1.8 備份與升級）、`HibernateJtracDao.createSchema()`、`AttachmentStorageMigrator` 與遷移完成旗標，撰寫遷移流程測試驗證舊版環境無痛升級。
 
-## 5. Lucene 附件全文檢索與背景非同步重建 (Lucene Indexing & Reindex)
+## 5. Lucene 附件全文檢索與非同步佇列處理 (Lucene Indexing & Async Queue)
 
-- [ ] 5.1 修改 `History.createDocument()` 與 `Indexer.java`，於建立倒排索引時調用 `AttachmentTextExtractor` 抽取附件文字並寫入 Lucene `text` 欄位（`Store.NO, Index.TOKENIZED`）。
+- [ ] 5.1 修改 `History.createDocument()`、`Indexer.java` 與 `JtracImpl.java`，實作新上傳附件之背景非同步佇列（`ExecutorService`）文字抽取與 Lucene 索引寫入，保證 HTTP 請求極速回應且異常隔離。
 - [ ] 5.2 修改 `JtracImpl.rebuildIndexes()` 與啟動後處理邏輯：升級完成後自動於背景執行非同步索引重建，且管理員於 UI 點擊「重建索引」時能即時透過進度條顯示進度。
 - [ ] 5.3 撰寫整合測試驗證：上傳包含特定關鍵字之 `.xlsx` / `.pdf` / `.txt` 附件，執行全文檢索時可成功命中對應之工單與留言歷程。
 
