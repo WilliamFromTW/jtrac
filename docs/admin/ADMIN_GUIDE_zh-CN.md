@@ -11,6 +11,7 @@
 4. [常用系统管理功能指引](#四常用系统管理功能指引)
 5. [全系统备份、还原与防锁死机制 (System Backup & Restore)](#五全系统备份还原与防锁死机制-system-backup--restore)
 6. [安全维护、数据库升级与日常运维建议](#六安全维护数据库升级与日常运维建议)
+7. [Docker 容器化运维与数据备份指引 (Docker Operations & Volume Management)](#七docker-容器化运维与数据备份指引-docker-operations--volume-management)
 
 ---
 
@@ -146,4 +147,39 @@ flowchart TD
      - 具备智能前缀备援机制（长度 >= 2 个字符之纯单字在查无精确结果时自动扩展为 `prefix*`，例如输入 `win` 自动比对 `win*`）。中文/CJK 字符维持标准 Unigram 切词，音标与全形字符维持原始精确度。
      - **升级后必要操作**：系统升级后，请管理员前往 **OPTIONS ➜ Rebuild Indexes** 执行一次索引重建，将现存工单与历史附件以新词干规则重新纳入 Lucene 索引库。
 
+---
 
+## 七、Docker 容器化运维与数据备份指引 (Docker Operations & Volume Management)
+
+当 JTrac 运行于 Docker 容器环境时，建议系统管理员遵循以下运维准则：
+
+### 1. 容器数据目录与 Volume 映射
+所有数据库、附件与全局设置均持久化于容器内的 `/jtrac-data`：
+- **命名 Volume 模式 (推荐)**：使用 `-v jtrac_data:/jtrac-data`。
+- **本机目录映射模式**：使用 `-v /opt/jtrac/data:/jtrac-data`。容器 Entrypoint 在开机时会自动以 root 身份将目录所有人修正为 `jetty:jetty` (UID 999)，随后降权运行，无需在宿主机手动 `chown`。
+
+### 2. Volume 定期冷热备份
+管理员可直接对 Docker Volume 进行快速打包备份：
+```bash
+# 将 jtrac_data Volume 备份为 tar.gz 归档
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# 还原 Volume
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 3. 连接外部关系型数据库 (MySQL / PostgreSQL / Oracle)
+若不使用内置 HSQLDB，可在启动容器时注入数据库连接环境变量：
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+容器启动时会自动将连接信息写入 `/jtrac-data/jtrac.properties`。

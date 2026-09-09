@@ -106,3 +106,25 @@ java -jar tools/jtrac-exporter.jar ^
   --out="./export-output" ^
   --lang=fr
 ```
+
+---
+
+## 6. Construction et Déploiement avec Conteneur Docker Natif (Eclipse Temurin 17 + Jetty 12)
+
+Le projet propose un environnement de compilation multi-étapes (multi-stage) Docker ne nécessitant aucune installation préalable de JDK ou Maven en local :
+
+### 6.1 Commandes Docker Natives (Recommandé)
+Accédez au répertoire `docker/` et lancez la construction en utilisant la racine du projet (`..`) comme contexte :
+```bash
+cd docker
+docker build -f Dockerfile -t jtrac:latest ..
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
+```
+
+### 6.2 Scripts Auxiliaires Multiplateformes et Docker Compose
+- **Windows** : Exécutez `build.bat` et `run.bat` dans `docker/`
+- **Linux / macOS** : Exécutez `./build.sh` et `./run.sh` dans `docker/`
+- **Docker Compose** : Exécutez `docker compose up -d` dans `docker/`
+
+Une fois le conteneur démarré, ouvrez votre navigateur à l'adresse : `http://localhost:8888/` (Identifiants par défaut : `admin` / `admin`). Pour la configuration des bases de données externes et des options JVM, consultez [`docker/README.md`](../../docker/README.md).
+

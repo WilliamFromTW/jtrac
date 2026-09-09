@@ -11,6 +11,7 @@
 4. [Funciones Principales de Administración](#4-funciones-principales-de-administración)
 5. [Copia de Seguridad y Restauración Completa del Sistema (Protección Antibloqueo)](#5-copia-de-seguridad-y-restauración-completa-del-sistema-protección-antibloqueo)
 6. [Seguridad, Actualización de Base de Datos y Mantenimiento](#6-seguridad-actualización-de-base-de-datos-y-mantenimiento)
+7. [Operaciones con Docker y Gestión de Volúmenes (Docker Operations & Volume Management)](#7-operaciones-con-docker-y-gestión-de-volúmenes-docker-operations--volume-management)
 
 ---
 
@@ -140,4 +141,39 @@ JTrac proporciona capacidades nativas de recuperación ante desastres y migraci�
      - Incorpora respaldo inteligente de prefijo: palabras simples (longitud >= 2) sin coincidencias exactas se expanden automáticamente a prefijo comodín (`win` a `win*`). Los caracteres CJK conservan su tokenización unigrama exacta, y los caracteres acentuados mantienen su precisión original.
      - **Requisito Tras la Actualización**: Tras actualizar la versión, los administradores deben ir a **OPTIONS ➜ Rebuild Indexes** y ejecutar una reconstrucción completa de índices para reprocesar registros y adjuntos históricos con las nuevas reglas de lematización.
 
+---
 
+## 7. Operaciones con Docker y Gestión de Volúmenes (Docker Operations & Volume Management)
+
+Al operar JTrac en un entorno de contenedores Docker, se recomienda seguir las siguientes pautas:
+
+### 7.1 Directorio de Datos del Contenedor y Mapeo de Volúmenes
+Todos los datos persistentes, archivos de base de datos y adjuntos se conservan en `/jtrac-data`:
+- **Modo Volumen con Nombre (Recomendado)**: Use `-v jtrac_data:/jtrac-data`.
+- **Modo Mapeo de Directorio del Host**: Use `-v /opt/jtrac/data:/jtrac-data`. El Entrypoint del contenedor corrige automáticamente la propiedad del directorio a `jetty:jetty` (UID 999) al iniciar como root antes de cambiar de usuario, evitando `chown` manual en el host.
+
+### 7.2 Copia de Seguridad y Restauración Periódica de Volúmenes
+Los administradores pueden respaldar volúmenes Docker de forma sencilla:
+```bash
+# Respaldar el volumen jtrac_data en un archivo tar.gz
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# Restaurar el volumen
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 7.3 Conexión a Base de Datos Externa (MySQL / PostgreSQL / Oracle)
+Si no se utiliza la base de datos HSQLDB integrada, pase variables de entorno al iniciar el contenedor:
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+El contenedor generará automáticamente la configuración en `/jtrac-data/jtrac.properties`.

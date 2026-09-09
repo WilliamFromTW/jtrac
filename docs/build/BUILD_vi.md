@@ -129,3 +129,25 @@ java -jar tools/jtrac-exporter.jar ^
   --out="./export-output" ^
   --lang=vi
 ```
+
+---
+
+## 7. Đóng gói và Chạy với Docker Gốc (Eclipse Temurin 17 + Jetty 12)
+
+Dự án cung cấp môi trường xây dựng nhiều giai đoạn (multi-stage) bằng Docker mà không cần cài đặt trước JDK hoặc Maven trên máy cục bộ:
+
+### 7.1 Lệnh Docker Gốc (Khuyến nghị)
+Di chuyển vào thư mục `docker/` và thực thi xây dựng với ngữ cảnh là thư mục gốc dự án (`..`):
+```bash
+cd docker
+docker build -f Dockerfile -t jtrac:latest ..
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
+```
+
+### 7.2 Tập lệnh Hỗ trợ Đa nền tảng & Docker Compose
+- **Windows**: Chạy `build.bat` và `run.bat` trong thư mục `docker/`
+- **Linux / macOS**: Chạy `./build.sh` và `./run.sh` trong thư mục `docker/`
+- **Docker Compose**: Chạy `docker compose up -d` trong thư mục `docker/`
+
+Sau khi khởi động, mở trình duyệt truy cập: `http://localhost:8888/` (Tài khoản/Mật khẩu quản trị mặc định: `admin` / `admin`). Xem chi tiết cấu hình biến môi trường và cơ sở dữ liệu tại [`docker/README.md`](../../docker/README.md).
+

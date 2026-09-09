@@ -11,6 +11,7 @@
 4. [Übersicht der Administrationsfunktionen](#4-übersicht-der-administrationsfunktionen)
 5. [Vollständige Systemsicherung & Wiederherstellung (Anti-Aussperrschutz)](#5-vollständige-systemsicherung--wiederherstellung-anti-aussperrschutz)
 6. [Sicherheit, Datenbank-Upgrade & Wartung](#6-sicherheit-datenbank-upgrade--wartung)
+7. [Docker-Container-Betrieb und Volume-Verwaltung (Docker Operations & Volume Management)](#7-docker-container-betrieb-und-volume-verwaltung-docker-operations--volume-management)
 
 ---
 
@@ -140,4 +141,39 @@ JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion,
      - Enthält einen intelligenten Präfix-Fallback: einfache Wörter (Länge >= 2) ohne exakte Treffer werden automatisch zu Wildcard-Präfixabfragen erweitert (`win` zu `win*`). CJK-Zeichen behalten ihre Unigram-Tokenisierung bei, und Umlaute behalten ihre Genauigkeit.
      - **Erforderliche Maßnahme nach dem Upgrade**: Nach einem Upgrade müssen Administratoren unter **OPTIONS ➜ Rebuild Indexes** eine vollständige Indexneuerstellung durchführen, um historische Vorgänge und Anhänge nach den neuen Regeln zu verarbeiten.
 
+---
 
+## 7. Docker-Container-Betrieb und Volume-Verwaltung (Docker Operations & Volume Management)
+
+Beim Betrieb von JTrac in einer Docker-Containerumgebung sollten Administratoren die folgenden Richtlinien beachten:
+
+### 7.1 Container-Datenverzeichnis & Volume-Zuordnung
+Alle persistenten Daten, Datenbankdateien und Anhänge werden unter `/jtrac-data` gespeichert:
+- **Benanntes Volume (Empfohlen)**: `-v jtrac_data:/jtrac-data` verwenden.
+- **Host-Verzeichniszuordnung**: `-v /opt/jtrac/data:/jtrac-data` verwenden. Der Container-Entrypoint passt die Verzeichnisberechtigungen beim Start automatisch als root an `jetty:jetty` (UID 999) an, bevor die Berechtigungen herabgestuft werden. Ein manuelles `chown` auf dem Host ist nicht erforderlich.
+
+### 7.2 Regelmäßige Sicherung und Wiederherstellung von Volumes
+Administratoren können Docker-Volumes mit Standardbefehlen sichern:
+```bash
+# Sichern des Volumes jtrac_data als tar.gz-Archiv
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# Wiederherstellen des Volumes
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 7.3 Externe Datenbankanbindung (MySQL / PostgreSQL / Oracle)
+Wenn nicht die integrierte HSQLDB verwendet wird, können Umgebungsvariablen beim Containerstart übergeben werden:
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+Der Entrypoint schreibt diese Verbindungseinstellungen beim Start automatisch in `/jtrac-data/jtrac.properties`.

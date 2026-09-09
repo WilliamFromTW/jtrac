@@ -11,6 +11,7 @@
 4. [管理者機能一覧](#4-管理者機能一覧)
 5. [完全システムバックアップと復元・ロックアウト防止機構 (System Backup & Restore)](#5-完全システムバックアップと復元ロックアウト防止機構-system-backup--restore)
 6. [セキュリティ、DB移行および日常保守](#6-セキュリティdb移行および日常保守)
+7. [Docker コンテナ運用とデータバックアップ指針 (Docker Operations & Volume Management)](#7-docker-コンテナ運用とデータバックアップ指針-docker-operations--volume-management)
 
 ---
 
@@ -140,4 +141,39 @@ flowchart TD
      - インテリジェント前方一致フォールバックを搭載：完全一致が 0 件の単純な単語（文字数 >= 2）は自動的にワイルドカードクエリ（`win` ➜ `win*`）へフォールバックします。日本語・中国語などの CJK 文字列は標準 Unigram 分詞を維持し、ウムラウト等の特殊記号も高精度に保持されます。
      - **アップグレード後の必須対応**：システムを本バージョンにアップグレードした後、管理者は必ず **OPTIONS ➜ Rebuild Indexes** よりインデックス全量再構築を 1 回実行し、既存データと添付ファイルを新しいステミング規則で再インデックスしてください。
 
+---
 
+## 7. Docker コンテナ運用とデータバックアップ指針 (Docker Operations & Volume Management)
+
+JTrac を Docker コンテナ環境で運用する場合、以下のガイドラインに従うことを推奨します：
+
+### 7.1 コンテナデータディレクトリと Volume マッピング
+すべてのデータベース、添付ファイル、設定はコンテナ内の `/jtrac-data` に保持されます：
+- **名前付き Volume モード (推奨)**：`-v jtrac_data:/jtrac-data` を使用。
+- **ホストディレクトリマウントモード**：`-v /opt/jtrac/data:/jtrac-data` を使用。コンテナ Entrypoint が起動時に root 権限でディレクトリ所有者を `jetty:jetty` (UID 999) に自動修正し、その後に一般ユーザーへ権限降格して起動するため、ホスト上での手動 `chown` は不要です。
+
+### 7.2 Volume の定期バックアップとリストア
+管理者は標準の Docker コマンドで Volume のバックアップを簡単に取得できます：
+```bash
+# jtrac_data Volume を tar.gz 形式でバックアップ
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# Volume の復元
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 7.3 外部リレーショナルデータベース接続 (MySQL / PostgreSQL / Oracle)
+内蔵 HSQLDB ではなく外部データベースを使用する場合、コンテナ起動時に環境変数を渡します：
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+コンテナ起動時に自動的に `/jtrac-data/jtrac.properties` へ接続設定が反映されます。

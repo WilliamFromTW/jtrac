@@ -154,3 +154,25 @@ java -jar tools/jtrac-exporter.jar ^
   --out="./export-output" ^
   --lang=zh-CN
 ```
+
+---
+
+## 8. 原生 Docker 容器化构建与运行 (Eclipse Temurin 17 + Jetty 12)
+
+项目提供基于 Docker 的多阶段自动构建环境，无需在本机安装 JDK 或 Maven：
+
+### 8.1 原生 Docker 指令 (推荐)
+进入 `docker/` 目录，以项目根目录 (`..`) 作为构建上下文进行构建与启动：
+```bash
+cd docker
+docker build -f Dockerfile -t jtrac:latest ..
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
+```
+
+### 8.2 跨平台辅助脚本与 Docker Compose
+- **Windows**：进入 `docker/` 执行 `build.bat` 与 `run.bat`
+- **Linux / macOS**：进入 `docker/` 执行 `./build.sh` 与 `./run.sh`
+- **Docker Compose**：进入 `docker/` 执行 `docker compose up -d`
+
+系统启动后，使用浏览器访问 `http://localhost:8888/`（默认管理员账号密码：`admin` / `admin`）。更多环境变量与数据库配置请参阅 [`docker/README.md`](../../docker/README.md)。
+

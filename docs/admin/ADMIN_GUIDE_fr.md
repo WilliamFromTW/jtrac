@@ -11,6 +11,7 @@
 4. [Fonctions d'Administration Principales](#4-fonctions-dadministration-principales)
 5. [Sauvegarde et Restauration Complète du Système (Bouclier Anti-Verrouillage)](#5-sauvegarde-et-restauration-complète-du-système-bouclier-anti-verrouillage)
 6. [Sécurité, Mise à Niveau de la Base de Données et Maintenance](#6-sécurité-mise-à-niveau-de-la-base-de-données-et-maintenance)
+7. [Exploitation Docker et Gestion des Volumes (Docker Operations & Volume Management)](#7-exploitation-docker-et-gestion-des-volumes-docker-operations--volume-management)
 
 ---
 
@@ -140,4 +141,39 @@ JTrac propose des fonctionnalités natives de reprise après sinistre et de migr
      - Comprend un repli automatique par préfixe intelligent : les mots simples (longueur >= 2) sans correspondance exacte sont automatiquement étendus en requêtes avec astérisque (`win` vers `win*`). Les caractères CJK conservent leur tokenisation unigramme exacte, et les caractères accentués préservent leur précision.
      - **Action Requise Après Mise à Niveau** : Après une mise à niveau, les administrateurs doivent se rendre dans **OPTIONS ➜ Rebuild Indexes** et lancer une reconstruction complète pour réindexer les tickets et pièces jointes historiques selon les nouvelles règles.
 
+---
 
+## 7. Exploitation Docker et Gestion des Volumes (Docker Operations & Volume Management)
+
+Lors de l'exploitation de JTrac dans un environnement conteneurisé Docker, les administrateurs doivent suivre les recommandations suivantes :
+
+### 7.1 Répertoire de Données du Conteneur et Mappage de Volume
+Toutes les données persistantes, bases de données et pièces jointes sont conservées dans `/jtrac-data` :
+- **Mode Volume Nommé (Recommandé)** : Utiliser `-v jtrac_data:/jtrac-data`.
+- **Mode Mappage de Dossier Hôte** : Utiliser `-v /opt/jtrac/data:/jtrac-data`. Le script Entrypoint corrige automatiquement la propriété du dossier vers `jetty:jetty` (UID 999) au démarrage en root avant de basculer vers l'utilisateur non privilégié, sans `chown` manuel sur l'hôte.
+
+### 7.2 Sauvegarde et Restauration Périodique des Volumes
+Les administrateurs peuvent sauvegarder facilement les volumes Docker à l'aide des commandes standard :
+```bash
+# Sauvegarder le volume jtrac_data sous forme d'archive tar.gz
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# Restaurer le volume
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 7.3 Connexion à une Base de Données Externe (MySQL / PostgreSQL / Oracle)
+Si vous n'utilisez pas la base intégrée HSQLDB, transmettez les variables d'environnement au démarrage :
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+Le conteneur écrira automatiquement ces paramètres dans `/jtrac-data/jtrac.properties`.

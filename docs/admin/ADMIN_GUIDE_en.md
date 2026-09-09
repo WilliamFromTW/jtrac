@@ -11,6 +11,7 @@
 4. [Administrative Functions Overview](#4-administrative-functions-overview)
 5. [Full System Backup & Restore (Anti-Lockout Shield)](#5-full-system-backup--restore-anti-lockout-shield)
 6. [Security, Database Upgrade & Maintenance Recommendations](#6-security-database-upgrade--maintenance-recommendations)
+7. [Docker Operations & Volume Management](#7-docker-operations--volume-management)
 
 ---
 
@@ -152,4 +153,39 @@ JTrac provides built-in, native full-system disaster recovery and migration capa
      - Features intelligent prefix fallback: simple words (length >= 2) with zero exact stem matches automatically expand to prefix wildcard queries (`win` falls back to `win*`). Multilingual CJK characters preserve exact unigram tokenization, and European accented characters maintain strict precision.
      - **Post-Upgrade Requirement**: Following an upgrade, administrators must navigate to **OPTIONS ➜ Rebuild Indexes** and run a full index rebuild to re-process historical items and attachments under the new stemming rules.
 
+---
 
+## 7. Docker Operations & Volume Management
+
+When running JTrac in a containerized environment, system administrators should follow these operational best practices:
+
+### 7.1 Container Data Directory & Volume Mapping
+All persistent data, database files, and attachments are located at `/jtrac-data`:
+- **Named Volume (Recommended)**: Use `-v jtrac_data:/jtrac-data`.
+- **Host Directory Mount**: Use `-v /opt/jtrac/data:/jtrac-data`. The container entrypoint automatically adjusts directory ownership to `jetty:jetty` (UID 999) before stepping down from root. Manual host `chown` is not required.
+
+### 7.2 Volume Backup and Restore
+Administrators can back up the named volume using standard Docker operations:
+```bash
+# Backup jtrac_data volume to tar.gz archive
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
+
+# Restore volume
+docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
+```
+
+### 7.3 External Database Connection (MySQL / PostgreSQL / Oracle)
+To connect to an external relational database, supply connection environment variables at container startup:
+```bash
+docker run -d \
+  -p 8888:8080 \
+  -v jtrac_data:/jtrac-data \
+  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
+  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
+  -e DATABASE_USERNAME="jtrac" \
+  -e DATABASE_PASSWORD="your_password" \
+  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
+  --name jtrac \
+  jtrac:latest
+```
+The entrypoint script automatically renders these variables into `/jtrac-data/jtrac.properties`.

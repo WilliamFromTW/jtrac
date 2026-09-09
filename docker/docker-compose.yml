@@ -1,0 +1,33 @@
+services:
+  jtrac:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: jtrac:latest
+    container_name: jtrac
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    volumes:
+      - jtrac_data:/jtrac-data
+    environment:
+      - TZ=Asia/Taipei
+      # ========================================================================
+      # Optional external database configuration
+      # (If omitted, JTrac defaults to embedded HSQLDB 2.x inside /jtrac-data/db)
+      # ========================================================================
+      # - DATABASE_URL=jdbc:mysql://db:3306/jtrac?useUnicode=true&characterEncoding=UTF-8
+      # - DATABASE_DRIVER=com.mysql.cj.jdbc.Driver
+      # - DATABASE_USERNAME=jtrac
+      # - DATABASE_PASSWORD=jtrac_password
+      # - HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/app || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  jtrac_data:
+    name: jtrac_data

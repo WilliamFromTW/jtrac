@@ -16,6 +16,7 @@
 | [`mobile-rwd`](mobile-rwd/spec.md) | 全站行動端 RWD 響應式體驗與深色主題適配 | 為 JTrac 提供全站行動端響應式網頁設計（RWD），透過純 CSS 技術重構導航列、問題清單、詳細頁與儀表板，支援小螢幕卡片化呈現、漢堡折疊選單與系統深色模式自動切換，實現零外部依賴、輕量流暢的行動端 Issue 查閱體驗。 | Active |
 | [`system-backup-restore`](system-backup-restore/spec.md) | 全系統備份、還原與防鎖死機制 | 提供 JTrac 系統最高管理員一鍵匯出包含結構化資料、`jtrac-dump.sql` 整合傾印檔與實體附件之單一 ZIP 壓縮包，並在還原時具備自動建立安全快照、最高管理員憑證防反鎖保護、外鍵拓撲批次注入、以及背景自動重建 Lucene 搜尋索引之高可用防護架構。 | Active |
 | [`attachment-partitioning-and-indexing`](attachment-partitioning-and-indexing/spec.md) | 專案隔離附件目錄結構與 Lucene 全文檢索 | 定義 JTrac 附件實體儲存之專案隔離架構（純專案 ID 結構，防改名風險）、JTrac 2.3.3 與 HSQLDB 1.8 舊版全自動四階段升級流水線、孤兒檔案隔離處置、雙軌查檔安全網，以及具備副檔名白名單/黑名單排除（明確排除舊版 doc/xls）、新上傳附件非同步佇列索引、智慧編碼轉碼防亂碼與單檔容量/字數門檻防護之 Lucene 全文檢索索引機制。 | Active |
+| [`docker-deployment`](docker-deployment/spec.md) | Docker 容器化建置與部署規格 | 本功能提供基於 Eclipse Temurin 17 與官方 Jetty 12 的原生多階段 Docker 建置、開箱即用容器化執行環境、多國語系字型支援與 Volume 資料持久化機制，讓使用者能一鍵完成 JTrac 系統之容器化封裝與部署。 | Active |
 
 
 ---
@@ -299,6 +300,37 @@ flowchart TD
     end
 ```
 
+### 9. `docker-deployment` 容器多階段建置與安全啟動流程
+
+```mermaid
+flowchart TD
+    subgraph BuildStage ["Stage 1: Builder (maven:3.9-eclipse-temurin-17)"]
+        SourceCode["專案原始碼 (pom.xml + src/)"] --> MavenBuild["mvn clean package -DskipTests -B"]
+        MavenBuild --> TargetWar["target/jtrac.war"]
+    end
+
+    subgraph RuntimeStage ["Stage 2: Runtime (jetty:12-jre17-eclipse-temurin)"]
+        InstallFonts["安裝字型: fonts-noto-cjk, noto-core, dejavu-core"] --> EnableEE8["啟用模組: ee8-deploy, ee8-webapp"]
+        TargetWar -->|COPY --from=builder| WebappsDir["/var/lib/jetty/webapps/ROOT.war"]
+        EnableEE8 --> EntrypointScript["/entrypoint.sh"]
+        WebappsDir --> EntrypointScript
+    end
+
+    subgraph StartupFlow ["容器啟動流程 (entrypoint.sh)"]
+        ContainerStart["容器啟動 (root 身分)"] --> CheckVolume["檢查 /jtrac-data 權限"]
+        CheckVolume --> ChownVolume["chown -R jetty:jetty /jtrac-data"]
+        ChownVolume --> CheckEnv["檢查 DATABASE_URL 環境變數"]
+        CheckEnv -->|有設定| RenderConfig["渲染寫入 jtrac.properties"]
+        CheckEnv -->|未設定| UseDefault["保留原有或由 JTrac 建立預設 HSQLDB"]
+        RenderConfig --> DropPrivilege["切換為 jetty 使用者 (UID 999)"]
+        UseDefault --> DropPrivilege
+        DropPrivilege --> ExecJetty["exec java -jar $JETTY_HOME/start.jar"]
+    end
+
+    RuntimeStage -.-> StartupFlow
+```
+
 ---
 
 *最後自動更新時間：2026-09-09*
+

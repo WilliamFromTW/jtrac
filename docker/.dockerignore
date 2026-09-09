@@ -1,0 +1,15 @@
+.git
+.gitignore
+.agents
+.gemini
+openspec
+docs
+target
+tools
+*.log
+*.iml
+.idea
+.vscode
+.settings
+.project
+.classpath

@@ -131,3 +131,25 @@ java -jar tools/jtrac-exporter.jar ^
   --out="./export-output" ^
   --lang=ja
 ```
+
+---
+
+## 7. ネイティブ Docker コンテナ構築と実行 (Eclipse Temurin 17 + Jetty 12)
+
+Docker を利用したマルチステージビルド環境を提供しており、ローカルに JDK や Maven をインストールすることなく実行可能です：
+
+### 7.1 ネイティブ Docker コマンド (推奨)
+`docker/` ディレクトリに移動し、プロジェクトルート (`..`) をビルドコンテキストとして指定して構築・起動します：
+```bash
+cd docker
+docker build -f Dockerfile -t jtrac:latest ..
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
+```
+
+### 7.2 クロスプラットフォーム補助スクリプト & Docker Compose
+- **Windows**：`docker/` で `build.bat` と `run.bat` を実行
+- **Linux / macOS**：`docker/` で `./build.sh` と `./run.sh` を実行
+- **Docker Compose**：`docker/` で `docker compose up -d` を実行
+
+起動完了後、ブラウザで `http://localhost:8888/` にアクセスします（初期管理者アカウント：`admin` / `admin`）。外部 DB 接続および環境変数の詳細は [`docker/README.md`](../../docker/README.md) を参照してください。
+
