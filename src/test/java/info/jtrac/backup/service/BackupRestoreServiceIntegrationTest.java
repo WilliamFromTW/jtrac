@@ -126,4 +126,28 @@ public class BackupRestoreServiceIntegrationTest extends JtracTestBase {
         assertNotNull(snapshots);
         assertTrue(snapshots.length >= 1, "At least one safety snapshot should have been generated");
     }
+
+    @org.junit.jupiter.api.AfterEach
+    public void tearDown() {
+        deleteFromTables(
+                "item_tags", "item_users", "item_items", "history", "attachments",
+                "items", "user_space_roles", "space_sequence", "spaces",
+                "metadata", "storedsearch", "tags", "config"
+        );
+        deleteFromTables("users");
+
+        jdbcTemplate.execute("insert into users (id, login_name, name, email, password, locked, locale) " +
+                "values (1, 'admin', 'Admin', 'admin', '21232f297a57a5a743894a0e4a801fc3', false, 'en')");
+        jdbcTemplate.execute("insert into user_space_roles (id, user_id, space_id, role_key) " +
+                "values (1, 1, null, 'ROLE_ADMIN')");
+        try {
+            jdbcTemplate.execute("ALTER TABLE users ALTER COLUMN id RESTART WITH 2");
+            jdbcTemplate.execute("ALTER TABLE user_space_roles ALTER COLUMN id RESTART WITH 2");
+        } catch (Exception ignored) {}
+        try {
+            if (dao != null) {
+                dao.clearSession();
+            }
+        } catch (Exception ignored) {}
+    }
 }

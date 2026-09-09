@@ -758,7 +758,11 @@ public class HibernateJtracDao implements JtracDao {
 
     @Override
     public void clearSession() {
-        getCurrentSession().clear();
+        try {
+            getCurrentSession().clear();
+        } catch (org.hibernate.HibernateException e) {
+            // No current session bound to thread, safe to ignore
+        }
     }
 }
 

@@ -78,6 +78,12 @@ public class OptionsPage extends BasePage {
             }
         }.setVisible(isSuperUser));
 
+        add(new Link("backupRestore") {
+            public void onClick() {
+                setResponsePage(new BackupRestorePage());
+            }
+        }.setVisible(isSuperUser));
+
     }
 
 }

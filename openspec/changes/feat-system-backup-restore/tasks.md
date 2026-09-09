@@ -13,10 +13,10 @@
 
 ## 3. 管理介面與使用者互動 (Wicket UI & Security)
 
-- [ ] 3.1 於 `OptionsPage.java` 與 `OptionsPage.html` 新增「系統備份與還原」選單項目，驗證僅具備 `isSuperUser()` 權限者可見。
-- [ ] 3.2 建立 `BackupRestorePage.java` 及對應 HTML 頁面，提供「一鍵匯出下載備份包」串流按鈕與「上傳 ZIP 執行還原」表單元件。
-- [ ] 3.3 於還原介面加入安全警告與防鎖死提示對話框，並在還原完成後呈現成功反饋訊息與無中斷 Session 維護。
-- [ ] 3.4 於 `messages*.properties` 等多語系資源檔擴充備份與還原之相關國際化字串。
+- [x] 3.1 於 `OptionsPage.java` 與 `OptionsPage.html` 新增「系統備份與還原」選單項目，驗證僅具備 `isSuperUser()` 權限者可見。
+- [x] 3.2 建立 `BackupRestorePage.java` 及對應 HTML 頁面，提供「一鍵匯出下載備份包」串流按鈕與「上傳 ZIP 執行還原」表單元件。
+- [x] 3.3 於還原介面加入安全警告與防鎖死提示對話框，並在還原完成後呈現成功反饋訊息與無中斷 Session 維護。
+- [x] 3.4 於 `messages*.properties` 等多語系資源檔擴充備份與還原之相關國際化字串。
 
 ## 4. 全系統整合驗證與測試 (Verification & Deployment)
 
