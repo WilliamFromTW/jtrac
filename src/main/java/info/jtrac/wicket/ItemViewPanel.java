@@ -235,11 +235,13 @@ public class ItemViewPanel extends BasePanel {
                  * @see org.apache.wicket.markup.html.list.ListView#populateItem(org.apache.wicket.markup.html.list.ListItem)
                  */
                 protected void populateItem(ListItem listItem) {
-                    if (listItem.getIndex() % 2 != 0) {
-                        listItem.add(sam);
+                    final History h = (History) listItem.getModelObject();
+                    boolean hasComment = (h.getComment() != null && !h.getComment().trim().isEmpty()) || h.getAttachment() != null;
+                    String cssClass = (listItem.getIndex() % 2 != 0 ? "alt " : "") + (!hasComment ? "no-comment" : "");
+                    if (!cssClass.isEmpty()) {
+                        listItem.add(new SimpleAttributeModifier("class", cssClass.trim()));
                     }
                     
-                    final History h = (History) listItem.getModelObject();
                     listItem.add(new Label("loggedBy", new PropertyModel(h, "loggedBy.name")));
                     listItem.add(new Label("status", new PropertyModel(h, "statusValue")));
                     listItem.add(new Label("assignedTo", new PropertyModel(h, "assignedTo.name")));
