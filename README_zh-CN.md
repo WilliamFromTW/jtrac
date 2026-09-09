@@ -70,10 +70,14 @@
 6. **全局静态资源过滤器 (Static Resource Filter)**：
    - 引入 `StaticResourceFilter`，根治多层路径（如 `/app/space/allocate/...`）下 `../resources/*` 破图 404 问题，并补齐缺漏图标。
 7. **表单附件上传模型绑定修复 (FileUpload Model Binding)**：
-   - 为 `ItemFormPage`、`ItemViewFormPanel` 与 `ExcelImportPage` 的 `FileUploadField` 显式绑定独立 Model，消除向实体类反射查找 `file` 属性的运行时异常。
+   - 为 `ItemFormPage` 与 `ItemViewFormPanel` 的 `FileUploadField` 显式绑定独立 Model，消除向实体类反射查找 `file` 属性的运行时异常。
 8. **数据库平滑升级与 SQL 指南**：
    - 提供专用升级脚本 [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql)，支持 MySQL、PostgreSQL、SQL Server、Oracle。
    - 内置 `HsqldbDatabaseMigrator`，启动时自动备份并平滑升级 HSQLDB 1.8 至 2.x。
+9. **Excel 模块清理与 WAR 产物体积瘦身 (Excel Module Removal & POI Deprecation)**：
+   - 彻底移除过时的 Excel 导入与导出模块，并完全删除 Apache POI 相关依赖，使 WAR 打包体积显著缩减超过 3 MB。
+10. **全系统备份包升级 (Integrated SQL Dump in Backup Bundle)**：
+    - 全系统备份 ZIP 压缩包内新增单文件整合 SQL 转储脚本 `jtrac-dump.sql`，包含通用 ANSI DDL、主流数据库方言注释、14 张数据表依外键拓扑排序之 ANSI INSERT 语句与 Sequence 自增重置指令，供 DBA 离线手动灾难恢复与跨库迁移。
 
 ---
 

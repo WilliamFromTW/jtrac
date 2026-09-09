@@ -70,10 +70,14 @@ This project is a modernized, enhanced fork of [JTrac 2.3.3 (https://jtrac.info)
 6. **Global Static Resource Filter (`StaticResourceFilter`)**:
    - Resolved 404 broken image issues for `../resources/*` across nested URL structures, and restored missing icons.
 7. **Form FileUpload Model Binding Fix**:
-   - Explicitly bound `FileUploadField` to a dedicated `ListModel` in `ItemFormPage`, `ItemViewFormPanel`, and `ExcelImportPage`, eliminating runtime property resolution exceptions.
+   - Explicitly bound `FileUploadField` to a dedicated `ListModel` in `ItemFormPage` and `ItemViewFormPanel`, eliminating runtime property resolution exceptions.
 8. **Smooth Database Upgrade & SQL Guide**:
    - Provided [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) for MySQL, PostgreSQL, SQL Server, and Oracle.
    - Integrated `HsqldbDatabaseMigrator` to automatically backup and migrate legacy HSQLDB 1.8 databases to 2.x on startup.
+9. **Excel Module Removal & WAR Footprint Reduction**:
+   - Completely removed legacy Excel import/export functionality and eliminated Apache POI dependencies, reducing the WAR package size by >3 MB.
+10. **Enhanced Full-System Backup Bundle (`jtrac-dump.sql`)**:
+   - Full-system backup ZIP bundle now contains a comprehensive, cross-database ANSI SQL dump file (`jtrac-dump.sql`), complete with ANSI DDL, MySQL/PostgreSQL/HSQLDB dialect notes, foreign-key ordered INSERT statements, and sequence reset hints for DBA disaster recovery and database migration.
 
 ---
 

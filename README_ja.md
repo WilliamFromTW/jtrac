@@ -70,10 +70,14 @@
 6. **グローバル静的リソースフィルター (Static Resource Filter)**：
    - `StaticResourceFilter` を導入し、深層パス（例: `/app/space/allocate/...`）における `../resources/*` の 404 画像リンク切れを根治。
 7. **ファイルアップロードコンポーネントのモデルバインディング修正**：
-   - `ItemFormPage`、`ItemViewFormPanel`、`ExcelImportPage` の `FileUploadField` に独立した Model を割り当て、実行時のプロパティ解決例外を根絶。
+   - `ItemFormPage` および `ItemViewFormPanel` の `FileUploadField` に独立した Model を割り当て、実行時のプロパティ解決例外を根絶。
 8. **データベースの移行と SQL ガイド**：
    - 専用アップグレードスクリプト [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) を提供（MySQL、PostgreSQL、SQL Server、Oracle 対応）。
    - 内蔵 `HsqldbDatabaseMigrator` により、起動時に HSQLDB 1.8 を自動バックアップおよび 2.x へ無停止移行。
+9. **Excel モジュールの完全削除と WAR 軽量化 (Excel Module Removal & POI Deprecation)**：
+   - レガシーな Excel インポート・エクスポート機能および Apache POI 依存関係を完全に削除し、WAR パッケージサイズを 3 MB 以上軽量化。
+10. **全システムバックアップ ZIP への SQL ダンプ追加 (Integrated SQL Dump in Backup Bundle)**：
+    - 全システムバックアップ ZIP に、ANSI DDL、MySQL/PostgreSQL/HSQLDB 方言注釈、外部キー依存順 ANSI INSERT 文、シーケンス再設定文を含む統合 SQL ダンプファイル `jtrac-dump.sql` を追加。DBA による手動復旧やDB移行に対応。
 
 ---
 

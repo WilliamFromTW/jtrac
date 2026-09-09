@@ -94,9 +94,8 @@ flowchart TD
 | **Configure Links** | Configure navigation bar external links. |
 | **Manage Settings** | Configure global system parameters (base URL, SMTP, pagination). |
 | **Rebuild Indexes** | Rebuild Lucene full-text search indexes. |
-| **Import From Excel** | Batch import issues via Excel spreadsheet templates. |
 | **Export HTML** | Web-based batch HTML export and ZIP download. |
-| **Backup & Restore** | Full system backup and restore: SuperUser exclusive feature supporting one-click ZIP bundle download of database and attachments, with safe restore, automatic safety snapshot, and anti-lockout credential protection. |
+| **Backup & Restore** | Full system backup and restore: SuperUser exclusive feature supporting one-click ZIP bundle download of database, comprehensive SQL dump (`jtrac-dump.sql`), and attachments, with safe restore, automatic safety snapshot, and anti-lockout credential protection. |
 
 ---
 
@@ -106,7 +105,7 @@ JTrac provides built-in, native full-system disaster recovery and migration capa
 
 1. **One-Click Full System Backup Bundle Export**:
    - Navigate to **OPTIONS** ➜ **Backup & Restore**.
-   - Click **Download Backup (.zip)**. The system serializes all database entities (Configs, Users, Spaces, Items, Histories, Attachments, etc.) into cross-database standard JSON format, and compresses them along with the physical `${jtrac.home}/attachments/` directory into a single timestamped `.zip` bundle for instant browser download.
+   - Click **Download Backup (.zip)**. The system serializes all database entities into cross-database standard JSON format (`manifest.json` and `data/system_data.json`), generates a comprehensive standalone SQL dump (`jtrac-dump.sql` with ANSI DDL, MySQL/PostgreSQL/HSQLDB dialect notes, foreign-key ordered INSERT statements, and sequence reset hints), and compresses them along with the physical `${jtrac.home}/attachments/` directory into a single timestamped `.zip` bundle for instant browser download.
 2. **Safe System Restore Engine**:
    - Choose a valid JTrac backup `.zip` file, check the confirmation checkbox, and click **Execute Restore**.
    - **Automatic Server-Side Safety Snapshot**: Prior to wiping any existing data, the system automatically creates an emergency snapshot backup in `${jtrac.home}/backups/` on the server, guaranteeing that current data can be recovered in case of an unexpected anomaly.

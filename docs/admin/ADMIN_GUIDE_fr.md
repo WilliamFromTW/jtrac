@@ -85,9 +85,8 @@ flowchart TD
 | **Configure Links** | Configurer des liens externes dans la barre de navigation. |
 | **Manage Settings** | Paramètres globaux (URL de base, SMTP, pagination). |
 | **Rebuild Indexes** | Reconstruire l'index de recherche plein texte Lucene. |
-| **Import From Excel** | Importation en masse de tickets via Excel. |
 | **Export HTML** | Exportation HTML et téléchargement ZIP directement depuis le Web. |
-| **Backup & Restore** | Sauvegarde et restauration complète du système : Réservé aux SuperUsers. Permet le téléchargement en 1 clic d'une archive ZIP regroupant la base de données et les pièces jointes, ainsi qu'une restauration sécurisée avec instantané automatique et bouclier anti-verrouillage. |
+| **Backup & Restore** | Sauvegarde et restauration complète du système : Réservé aux SuperUsers. Permet le téléchargement en 1 clic d'une archive ZIP regroupant la base de données JSON, le script SQL de vidage complet (`jtrac-dump.sql`) et les pièces jointes, ainsi qu'une restauration sécurisée avec instantané automatique et bouclier anti-verrouillage. |
 
 ---
 
@@ -97,7 +96,7 @@ JTrac propose des fonctionnalités natives de reprise après sinistre et de migr
 
 1. **Exportation Complète de la Sauvegarde en Un Clic** :
    - Accédez à **OPTIONS** ➜ **Backup & Restore**.
-   - Cliquez sur **Télécharger la sauvegarde (.zip)**. L'ensemble des entités de la base de données (configurations, utilisateurs, espaces, tickets, historique, pièces jointes, etc.) est sérialisé dans un format JSON standard multiplateforme et compressé avec le répertoire physique `${jtrac.home}/attachments/` dans une unique archive `.zip` horodatée prête au téléchargement.
+   - Cliquez sur **Télécharger la sauvegarde (.zip)**. L'ensemble des entités de la base de données est sérialisé au format JSON standard (`manifest.json` et `data/system_data.json`), un fichier de vidage SQL complet et autonome `jtrac-dump.sql` (contenant le DDL ANSI, les annotations de dialectes MySQL/PostgreSQL/HSQLDB, les ordres ANSI INSERT ordonnés par dépendances de clés étrangères et les instructions de réinitialisation de séquences) est généré, puis compressé avec le répertoire physique `${jtrac.home}/attachments/` dans une unique archive `.zip` horodatée prête au téléchargement.
 2. **Moteur de Restauration Sécurisée (Safe Restore Engine)** :
    - Sélectionnez un fichier ZIP de sauvegarde JTrac valide, cochez la case de confirmation d'écrasement et cliquez sur **Exécuter la restauration**.
    - **Instantané d'Urgence Automatique sur le Serveur (Safety Snapshot)** : Avant d'écraser les données existantes, le système crée automatiquement une sauvegarde instantanée dans `${jtrac.home}/backups/` sur le serveur, garantissant un retour en arrière immédiat en cas d'imprévu.

@@ -85,9 +85,8 @@ flowchart TD
 | **Configure Links** | Configurar enlaces externos en la barra de navegación. |
 | **Manage Settings** | Parámetros globales (URL base, SMTP, paginación). |
 | **Rebuild Indexes** | Reconstruir el índice de búsqueda Lucene. |
-| **Import From Excel** | Importar incidencias mediante plantillas de Excel. |
 | **Export HTML** | Exportación de incidencias a HTML y ZIP desde la web. |
-| **Backup & Restore** | Copia de seguridad y restauración completa del sistema: Exclusivo para SuperUsers. Permite la descarga en 1 clic de un archivo ZIP con base de datos y adjuntos, y restauración segura con instantánea de emergencia y protección antibloqueo de credenciales. |
+| **Backup & Restore** | Copia de seguridad y restauración completa del sistema: Exclusivo para SuperUsers. Permite la descarga en 1 clic de un archivo ZIP con base de datos JSON, volcado SQL completo (`jtrac-dump.sql`) y adjuntos, y restauración segura con instantánea de emergencia y protección antibloqueo de credenciales. |
 
 ---
 
@@ -97,7 +96,7 @@ JTrac proporciona capacidades nativas de recuperación ante desastres y migraci�
 
 1. **Exportación de Paquete de Respaldo Completo en un Clic**:
    - Navegue a **OPTIONS** ➜ **Backup & Restore**.
-   - Haga clic en **Descargar respaldo (.zip)**. Todas las entidades de la base de datos (configuraciones, usuarios, espacios, incidencias, historial, adjuntos, etc.) se serializan en un formato JSON estándar multiplataforma y se comprimen junto con el directorio físico `${jtrac.home}/attachments/` en un único archivo `.zip` con marca de tiempo listo para su descarga inmediata.
+   - Haga clic en **Descargar respaldo (.zip)**. Todas las entidades de la base de datos se serializan en formato JSON estándar (`manifest.json` y `data/system_data.json`), se genera un volcado SQL independiente y completo `jtrac-dump.sql` (que incluye DDL ANSI, notas de dialectos MySQL/PostgreSQL/HSQLDB, sentencias INSERT ANSI ordenadas por clave externa y sugerencias para reiniciar secuencias), y se comprimen junto con el directorio físico `${jtrac.home}/attachments/` en un único archivo `.zip` con marca de tiempo listo para su descarga inmediata.
 2. **Motor de Restauración Segura (Safe Restore Engine)**:
    - Seleccione un archivo `.zip` de respaldo válido de JTrac, marque la casilla de verificación de confirmación de sobrescritura y haga clic en **Ejecutar restauración**.
    - **Instantánea de Emergencia Automática en el Servidor (Safety Snapshot)**: Antes de sobrescribir cualquier dato existente, el sistema crea automáticamente una instantánea completa en `${jtrac.home}/backups/` en el servidor, garantizando que el estado actual siempre se pueda revertir ante imprevistos.

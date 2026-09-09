@@ -70,10 +70,14 @@ Ce projet est un fork modernisé et amélioré de [JTrac 2.3.3 (https://jtrac.in
 6. **Filtre Global des Ressources Statiques (StaticResourceFilter)** :
    - Résolution définitive des erreurs 404 sur les images `../resources/*` dans les URL imbriquées et restauration des icônes manquantes.
 7. **Correction de la Liaison de Modèle pour les Téléversements** :
-   - Attribution explicite d'un `ListModel` dédié pour `FileUploadField` dans `ItemFormPage`, `ItemViewFormPanel` et `ExcelImportPage`.
+   - Attribution explicite d'un `ListModel` dédié pour `FileUploadField` dans `ItemFormPage` et `ItemViewFormPanel`.
 8. **Mise à Niveau de la Base de Données et Script SQL** :
    - Script SQL dédié [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) pour MySQL, PostgreSQL, SQL Server et Oracle.
    - Outil intégré `HsqldbDatabaseMigrator` pour la migration automatique de HSQLDB 1.8 vers 2.x au démarrage.
+9. **Suppression du Module Excel et Allègement de l'Archive WAR (Excel Module Removal & POI Deprecation)** :
+   - Suppression complète des fonctionnalités d'import/export Excel et de la bibliothèque Apache POI, réduisant la taille du fichier WAR de plus de 3 Mo.
+10. **Amélioration du Paquet de Sauvegarde Complète (`jtrac-dump.sql`)** :
+    - L'archive ZIP de sauvegarde complète inclut désormais un script SQL ANSI autonome complet (`jtrac-dump.sql`), avec DDL ANSI, annotations pour dialectes MySQL/PostgreSQL/HSQLDB, instructions INSERT ordonnées selon les clés étrangères et commandes de réinitialisation des séquences pour la migration ou la reprise après sinistre.
 
 ---
 

@@ -85,9 +85,8 @@ flowchart TD
 | **Configure Links** | Externe Links in der Navigationsleiste verwalten. |
 | **Manage Settings** | Globale Parameter konfigurieren (Basis-URL, SMTP, Paginierung). |
 | **Rebuild Indexes** | Lucene-Volltextsuchindex neu erstellen. |
-| **Import From Excel** | Vorgänge per Excel importieren. |
 | **Export HTML** | Web-basierter HTML-Export und ZIP-Download. |
-| **Backup & Restore** | Vollständige Systemsicherung & Wiederherstellung: Exklusiv für SuperUser. Ermöglicht den 1-Klick-ZIP-Download von Datenbank und Dateianhängen sowie eine sichere Wiederherstellung mit automatischem Sicherheits-Snapshot und Anti-Aussperrschutz. |
+| **Backup & Restore** | Vollständige Systemsicherung & Wiederherstellung: Exklusiv für SuperUser. Ermöglicht den 1-Klick-ZIP-Download von Datenbank-JSON, umfassendem SQL-Dump (`jtrac-dump.sql`) und Dateianhängen sowie eine sichere Wiederherstellung mit automatischem Sicherheits-Snapshot und Anti-Aussperrschutz. |
 
 ---
 
@@ -97,7 +96,7 @@ JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion,
 
 1. **Vollständiges Backup-Paket mit einem Klick exportieren**:
    - Gehen Sie zu **OPTIONS** ➜ **Backup & Restore**.
-   - Klicken Sie auf **Sicherung herunterladen (.zip)**. Alle Datenbankentitäten (Konfigurationen, Benutzer, Spaces, Vorgänge, Historie, Anhänge usw.) werden in ein plattformunabhängiges Standard-JSON-Format serialisiert und zusammen mit dem physischen Anhangsverzeichnis (`${jtrac.home}/attachments/`) in ein einzelnes ZIP-Archiv gepackt und zum Download bereitgestellt.
+   - Klicken Sie auf **Sicherung herunterladen (.zip)**. Alle Datenbankentitäten werden in das Standard-JSON-Format (`manifest.json` und `data/system_data.json`) serialisiert, ein vollständiger SQL-Dump `jtrac-dump.sql` (inklusive ANSI DDL, Dialektanmerkungen für MySQL/PostgreSQL/HSQLDB, fremdschlüsselgeordneten ANSI-INSERT-Befehlen und Hinweisen zum Zurücksetzen von Sequenzen) wird erzeugt und zusammen mit dem physischen Anhangsverzeichnis (`${jtrac.home}/attachments/`) in ein einzelnes ZIP-Archiv gepackt und zum Download bereitgestellt.
 2. **Sichere Wiederherstellungs-Engine (Safe Restore Engine)**:
    - Wählen Sie eine gültige JTrac-Backup-ZIP-Datei aus, aktivieren Sie das Bestätigungskontrollkästchen und klicken Sie auf **Wiederherstellung ausführen**.
    - **Automatischer serverseitiger Notfall-Snapshot (Safety Snapshot)**: Vor dem Löschen oder Überschreiben bestehender Daten wird automatisch unter `${jtrac.home}/backups/` eine vollständige Momentaufnahme des aktuellen Systems erstellt, um bei unvorhergesehenen Fehlern eine vollständige Rückkehr zu gewährleisten.

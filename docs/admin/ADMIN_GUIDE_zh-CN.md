@@ -91,9 +91,8 @@ flowchart TD
 | **Configure Links** | 配置导航栏外部链接。 |
 | **Manage Settings** | 配置核心参数（基础网址、SMTP、分页参数等）。 |
 | **Rebuild Indexes** | 重建全文检索索引。 |
-| **Import From Excel** | Excel 批量导入工单数据。 |
 | **Export HTML** | 批量离线 HTML 导出与 ZIP 下载。 |
-| **Backup & Restore** | 全系统备份与还原：超级管理员专属功能，支持一键下载数据库与附件之单文件 ZIP 备份包，并提供安全还原（具备自动安全快照与防锁死保护）。 |
+| **Backup & Restore** | 全系统备份与还原：超级管理员专属功能，支持一键下载数据库 JSON、整合 SQL 转储文件 (`jtrac-dump.sql`) 与附件之单文件 ZIP 备份包，并提供安全还原（具备自动安全快照与防锁死保护）。 |
 
 ---
 
@@ -103,7 +102,7 @@ flowchart TD
 
 1. **一键导出全系统备份包**：
    - 前往 **OPTIONS** ➜ **Backup & Restore (系统备份与还原)**。
-   - 点击「**下载备份 (.zip)**」，系统将所有数据库实体序列化为跨数据库标准 JSON，并与物理附件目录（`${jtrac.home}/attachments/`）打包压缩为单个 `.zip` 文件供浏览器下载。
+   - 点击「**下载备份 (.zip)**」，系统将所有数据库实体序列化为跨数据库标准 JSON (`manifest.json` 与 `data/system_data.json`)，并同步生成包含通用 ANSI DDL、MySQL/PostgreSQL/HSQLDB 方言建表注释、14 张表外键拓扑排序 INSERT 语句与 Sequence 重置校准提示的独立 SQL 转储文件 `jtrac-dump.sql`，与物理附件目录（`${jtrac.home}/attachments/`）打包压缩为单个 `.zip` 文件供浏览器下载。
 2. **安全还原引擎**：
    - 上传合法的 JTrac 备份 `.zip` 文件，勾选确认覆盖复选框，点击「**执行还原**」。
    - **自动创建服务端紧急快照 (Safety Snapshot)**：在清空任何现有数据前，系统自动在服务端 `${jtrac.home}/backups/` 目录创建当前系统完整快照，确保任何异常均可回退。

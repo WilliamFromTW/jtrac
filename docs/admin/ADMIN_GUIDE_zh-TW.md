@@ -137,9 +137,8 @@ sequenceDiagram
 | **Configure Links** | 配置全域導航列超連結：可在頂部導航列新增企業內部系統連結（如 CI/CD 平台、文件庫等）。 |
 | **Manage Settings** | 系統全域核心參數配置（包含 `jtrac.url.base`、`locale.default`、SMTP 設定與分頁大小）。 |
 | **Rebuild Indexes** | Lucene 全文檢索索引重建：手動操作資料庫或檢索結果異常時，一鍵重新建立全文檢索索引庫。 |
-| **Import From Excel** | Excel 批次匯入：支援透過制式 Excel 試算表批次匯入專案歷程與 Issue 清單。 |
 | **Export HTML (導航列)** | 離線 HTML 匯出與 ZIP 下載：可於網頁直接勾選複數空間打包下載完整靜態討論串與附件。 |
-| **Backup & Restore** | 全系統備份與還原：最高管理員專屬功能，支援一鍵下載跨資料庫與附件之單一備份 ZIP，並提供安全還原（具備自動快照與防鎖死保護）。 |
+| **Backup & Restore** | 全系統備份與還原：最高管理員專屬功能，支援一鍵下載資料庫 JSON、整合 SQL 傾印檔 (`jtrac-dump.sql`) 與實體附件之單一備份 ZIP，並提供安全還原（具備自動快照與防鎖死保護）。 |
 
 ---
 
@@ -149,7 +148,7 @@ sequenceDiagram
 
 1. **一鍵匯出全系統備份包 (Full Backup Bundle)**：
    - 前往 **OPTIONS** ➜ **Backup & Restore (系統備份與還原)**。
-   - 點擊「**下載備份 (.zip)**」按鈕，系統會將 Config、Users、Spaces、Items、History、Attachments 等所有資料庫實體序列化為跨資料庫通用標準 JSON，並與實體附件目錄（`${jtrac.home}/attachments/`）合併壓縮為單一 `.zip` 檔案供即時下載。
+   - 點擊「**下載備份 (.zip)**」按鈕，系統會將 Config、Users、Spaces、Items、History、Attachments 等所有資料庫實體序列化為跨資料庫通用標準 JSON (`manifest.json` 與 `data/system_data.json`)，並同步產生單一整合 SQL 傾印檔 `jtrac-dump.sql`（包含通用 ANSI DDL、MySQL/PostgreSQL/HSQLDB 方言註解、14 張資料表依外鍵相依拓撲排序產出之 ANSI INSERT 敘述與 Sequence 自增重置指令），連同實體附件目錄（`${jtrac.home}/attachments/`）合併壓縮為單一 `.zip` 檔案供即時下載。
 2. **安全系統還原 (Safe Restore Engine)**：
    - 選擇合法的 JTrac 備份 `.zip` 檔案並勾選確認覆蓋方塊，點擊「**執行還原**」。
    - **自動建立伺服器端緊急快照 (Safety Snapshot)**：在執行任何覆寫前，系統會自動在伺服器端 `${jtrac.home}/backups/` 產生一份當前系統的完整快照，確保任何意外皆可回復。

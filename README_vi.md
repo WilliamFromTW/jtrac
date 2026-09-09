@@ -70,10 +70,14 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp toàn di�
 6. **Bộ lọc Tài nguyên Tĩnh Toàn cục (StaticResourceFilter)**:
    - Giải quyết triệt để lỗi 404 hình ảnh `../resources/*` ở các đường dẫn URL lồng nhau và bổ sung các biểu tượng còn thiếu.
 7. **Sửa lỗi Gắn kết Model cho Upload Tệp (FileUpload Model Binding)**:
-   - Gắn kết `ListModel` độc lập cho `FileUploadField` trong `ItemFormPage`, `ItemViewFormPanel`, và `ExcelImportPage`, loại bỏ lỗi ngoại lệ thuộc tính `file`.
+   - Gắn kết `ListModel` độc lập cho `FileUploadField` trong `ItemFormPage` và `ItemViewFormPanel`, loại bỏ lỗi ngoại lệ thuộc tính `file`.
 8. **Nâng cấp Cơ sở dữ liệu và Kịch bản SQL**:
    - Cung cấp kịch bản nâng cấp [`etc/sql/upgrade-to-2.0.0.sql`](etc/sql/upgrade-to-2.0.0.sql) cho MySQL, PostgreSQL, SQL Server, Oracle.
    - Tích hợp `HsqldbDatabaseMigrator` tự động sao lưu và nâng cấp HSQLDB 1.8 lên 2.x khi khởi động.
+9. **Xóa Bỏ Mô-đun Excel & Thu Nhỏ Kích Thước Gói WAR (Excel Module Removal & POI Deprecation)**:
+   - Loại bỏ hoàn toàn tính năng nhập/xuất Excel và thư viện Apache POI, giảm kích thước gói WAR hơn 3 MB.
+10. **Nâng Cấp Gói Sao Lưu Toàn Bộ Hệ Thống (`jtrac-dump.sql`)**:
+    - Gói ZIP sao lưu toàn bộ hệ thống hiện bao gồm tệp kết xuất SQL độc lập `jtrac-dump.sql` (chứa ANSI DDL, chú thích phương ngữ cho MySQL/PostgreSQL/HSQLDB, các câu lệnh INSERT sắp xếp theo khóa ngoại và lệnh đặt lại sequence) phục vụ di chuyển dữ liệu và khôi phục sự cố.
 
 ---
 

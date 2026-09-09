@@ -14,7 +14,7 @@
 | [`backend-security`](backend-security/spec.md) | Spring Security 5.8 現代化安全認證與授權規範 | 規範 JTrac 系統以 Spring Security 5.8 替代過時 Acegi 1.0.7 之現代化安全認證與授權機制，包含雙模無痛密碼雜湊升級、LDAP/AD 整合與權限上下文管理。 | Active |
 | [`backend-persistence`](backend-persistence/spec.md) | Hibernate 5.6 持久層 DAO 與原生 Lucene 全文檢索規範 | 規範 JTrac 資料持久層現代化架構，以原生 Hibernate 5.6 `SessionFactory` 重構 `HibernateJtracDao`，徹底解耦過時之 `HibernateDaoSupport` 與 `HibernateTemplate`，並整合資料表結構自動同步與原生輕量 Lucene 全文檢索。 | Active |
 | [`mobile-rwd`](mobile-rwd/spec.md) | 全站行動端 RWD 響應式體驗與深色主題適配 | 為 JTrac 提供全站行動端響應式網頁設計（RWD），透過純 CSS 技術重構導航列、問題清單、詳細頁與儀表板，支援小螢幕卡片化呈現、漢堡折疊選單與系統深色模式自動切換，實現零外部依賴、輕量流暢的行動端 Issue 查閱體驗。 | Active |
-| [`system-backup-restore`](system-backup-restore/spec.md) | 全系統備份、還原與防鎖死機制 | 提供 JTrac 系統最高管理員一鍵匯出包含結構化資料與實體附件之單一 ZIP 壓縮包，並在還原時具備自動建立安全快照、最高管理員憑證防反鎖保護、外鍵拓撲批次注入、以及背景自動重建 Lucene 搜尋索引之高可用防護架構。 | Active |
+| [`system-backup-restore`](system-backup-restore/spec.md) | 全系統備份、還原與防鎖死機制 | 提供 JTrac 系統最高管理員一鍵匯出包含結構化資料、`jtrac-dump.sql` 整合傾印檔與實體附件之單一 ZIP 壓縮包，並在還原時具備自動建立安全快照、最高管理員憑證防反鎖保護、外鍵拓撲批次注入、以及背景自動重建 Lucene 搜尋索引之高可用防護架構。 | Active |
 
 
 ---
@@ -172,7 +172,7 @@ flowchart TD
     CheckWidth -->|> 768px 桌機 / 寬平板| DesktopLayout[桌機標準佈局]
     DesktopLayout --> D1[頂部雙向水平導航列]
     DesktopLayout --> D2[完整欄位多欄資料表格]
-    DesktopLayout --> D3[顯示 Excel / XML 匯出按鈕]
+    DesktopLayout --> D3[顯示 XML 匯出按鈕]
     
     CheckWidth -->|<= 768px 手機 / 直向平板| MobileLayout[行動端 RWD 佈局]
     MobileLayout --> M1[頂部純 CSS 漢堡折疊選單]
@@ -209,15 +209,22 @@ stateDiagram-v2
 
 ### 7. `system-backup-restore` 全系統備份與還原防鎖死架構
 
-#### 7.1 備份打包流程 (Backup Export Flow)
+#### 7.1 升級備份打包與 SQL Dump 產出流程 (Backup Export Flow with SQL Dump)
 ```mermaid
 flowchart TD
     Start([管理員點擊「立即匯出全系統備份包」]) --> CheckAuth{檢查是否為 SuperUser?}
     CheckAuth -- 否 --> Deny[拒絕存取並顯示 403 錯誤]
     CheckAuth -- 是 --> QueryDB[從資料庫讀取系統所有實體資料]
-    QueryDB --> GenJSON[序列化為跨資料庫標準結構化 JSON 資料]
+    QueryDB --> GenJSON[序列化為跨資料庫標準結構化 JSON 資料: manifest.json + data.json]
+    QueryDB --> GenSQL[產生單一整合 SQL 傾印檔: jtrac-dump.sql]
+    subgraph "jtrac-dump.sql 產出細節"
+        GenSQL --> DDLPart[生成通用 ANSI DDL 建表語法與 MySQL/PostgreSQL/HSQLDB 方言註解]
+        DDLPart --> DMLPart[依 14 張表拓撲外鍵相依順序生成 ANSI INSERT INTO 語法]
+        DMLPart --> SeqPart[生成 Sequence / Auto-Increment 校準重置提示註解]
+    end
     GenJSON --> ScanAttach[掃描 attachments/ 實體附件目錄]
-    ScanAttach --> ZipBundle[將結構化資料與實體附件壓縮為單一 ZIP]
+    SeqPart --> ZipBundle[將 JSON、jtrac-dump.sql 與實體附件壓縮為單一 ZIP]
+    ScanAttach --> ZipBundle
     ZipBundle --> StreamDownload[輸出串流供瀏覽器下載備份包]
     StreamDownload --> End([完成備份匯出])
 ```

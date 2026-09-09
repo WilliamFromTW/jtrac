@@ -85,9 +85,8 @@ flowchart TD
 | **Configure Links** | Thêm liên kết ngoài trên thanh điều hướng. |
 | **Manage Settings** | Thiết lập URL gốc, SMTP, phân trang toàn cục. |
 | **Rebuild Indexes** | Tạo lại chỉ mục tìm kiếm toàn văn Lucene. |
-| **Import From Excel** | Nhập danh sách công việc hàng loạt từ Excel. |
 | **Export HTML** | Xuất dữ liệu HTML và tệp đính kèm ZIP trực tiếp từ Web. |
-| **Backup & Restore** | Sao lưu & Phục hồi toàn bộ hệ thống: Tính năng dành riêng cho SuperUser, hỗ trợ tải gói ZIP sao lưu cơ sở dữ liệu và tệp đính kèm, cùng cơ chế phục hồi an toàn (tự động tạo ảnh chụp khẩn cấp và bảo vệ chống khóa tài khoản). |
+| **Backup & Restore** | Sao lưu & Phục hồi toàn bộ hệ thống: Tính năng dành riêng cho SuperUser, hỗ trợ tải gói ZIP sao lưu cơ sở dữ liệu JSON, tệp kết xuất SQL toàn diện (`jtrac-dump.sql`) và tệp đính kèm, cùng cơ chế phục hồi an toàn (tự động tạo ảnh chụp khẩn cấp và bảo vệ chống khóa tài khoản). |
 
 ---
 
@@ -97,7 +96,7 @@ JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ li
 
 1. **Xuất gói sao lưu toàn bộ hệ thống bằng một cú nhấp**:
    - Truy cập **OPTIONS** ➜ **Backup & Restore**.
-   - Nhấp vào **Tải xuống bản sao lưu (.zip)**. Hệ thống sẽ tuần tự hóa toàn bộ thực thể cơ sở dữ liệu sang định dạng JSON chuẩn tương thích đa nền tảng, đồng thời nén cùng thư mục tệp đính kèm vật lý (`${jtrac.home}/attachments/`) thành một tệp `.zip` duy nhất để tải xuống ngay qua trình duyệt.
+   - Nhấp vào **Tải xuống bản sao lưu (.zip)**. Hệ thống tuần tự hóa toàn bộ thực thể cơ sở dữ liệu sang định dạng JSON chuẩn (`manifest.json` và `data/system_data.json`), tạo tệp kết xuất SQL hoàn chỉnh `jtrac-dump.sql` (bao gồm ANSI DDL, ghi chú cú pháp MySQL/PostgreSQL/HSQLDB, các câu lệnh ANSI INSERT theo thứ tự khóa ngoại và gợi ý đặt lại sequence), đồng thời nén cùng thư mục tệp đính kèm vật lý (`${jtrac.home}/attachments/`) thành một tệp `.zip` duy nhất để tải xuống ngay qua trình duyệt.
 2. **Động cơ phục hồi an toàn**:
    - Chọn tệp `.zip` sao lưu JTrac hợp lệ, đánh dấu vào ô xác nhận ghi đè và nhấn **Thực hiện phục hồi**.
    - **Tự động chụp ảnh an toàn khẩn cấp trên máy chủ (Safety Snapshot)**: Trước khi xóa dữ liệu cũ, hệ thống tự động lưu bản sao lưu khẩn cấp vào `${jtrac.home}/backups/` trên máy chủ, đảm bảo có thể khôi phục nếu xảy ra sự cố.
