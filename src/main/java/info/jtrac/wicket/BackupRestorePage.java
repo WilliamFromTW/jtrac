@@ -106,7 +106,7 @@ public class BackupRestorePage extends BasePage {
         restoreForm.add(new Button("restoreButton"));
 
         // 3. Cancel link back to OptionsPage
-        add(new Link<Void>("cancel") {
+        restoreForm.add(new Link<Void>("cancel") {
             @Override
             public void onClick() {
                 setResponsePage(OptionsPage.class);
