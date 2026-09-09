@@ -240,10 +240,11 @@ public class ItemListPanel extends BasePanel {
                 listItem.add(headingLink); 
                 String label = ch.isField() ? ch.getLabel() : localize("item_list." + ch.getName());
                 headingLink.add(new Label("heading", label));
+                String headingClass = "col-" + ch.getNameText();
                 if (ch.getNameText().equals(itemSearch.getSortFieldName())) {
-                    String order = itemSearch.isSortDescending() ? "order-down" : "order-up";
-                    listItem.add(new SimpleAttributeModifier("class", order));
+                    headingClass += (itemSearch.isSortDescending() ? " order-down" : " order-up");
                 }
+                listItem.add(new SimpleAttributeModifier("class", headingClass));
             }
         };
 
@@ -271,6 +272,7 @@ public class ItemListPanel extends BasePanel {
                 ListView fieldValues = new ListView("columns", columnHeadings) {
                     protected void populateItem(ListItem listItem) {
                         ColumnHeading ch = (ColumnHeading) listItem.getModelObject();
+                        listItem.add(new SimpleAttributeModifier("class", "col-" + ch.getNameText()));
                         IModel value = null;
 						boolean dontEscape = false;
                         if(ch.isField()) {

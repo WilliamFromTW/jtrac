@@ -279,6 +279,14 @@ code {
 		font-size: 1.05em;
 	}
 
+	/* --- Mobile Hidden Elements (New, Export, Options) --- */
+	.nav-tab-new,
+	.nav-tab-export,
+	.nav-tab-options,
+	.col-action-new {
+		display: none !important;
+	}
+
 	/* --- Issue List Toolbar Mobile Focus --- */
 	.item-list-toolbar {
 		display: block !important;
@@ -323,11 +331,19 @@ code {
 	table.jtrac-list tbody {
 		display: flex !important;
 		flex-direction: column !important;
-		gap: 10px;
+		gap: 8px;
 		width: 100% !important;
 	}
 
 	table.jtrac-list tr.sortable {
+		display: none !important;
+	}
+
+	/* Hide assigned to, status, logged by, and detail on mobile cards */
+	table.jtrac-list .col-assignedTo,
+	table.jtrac-list .col-status,
+	table.jtrac-list .col-loggedBy,
+	table.jtrac-list .col-detail {
 		display: none !important;
 	}
 
@@ -339,8 +355,8 @@ code {
 		border: 1px solid var(--card-border) !important;
 		border-radius: 8px !important;
 		box-shadow: var(--card-shadow) !important;
-		padding: 12px 14px !important;
-		margin-bottom: 8px !important;
+		padding: 10px 14px !important;
+		margin-bottom: 6px !important;
 		box-sizing: border-box !important;
 	}
 
@@ -348,16 +364,38 @@ code {
 		display: block !important;
 		width: 100% !important;
 		border: none !important;
-		padding: 4px 0 !important;
+		padding: 2px 0 !important;
 		box-sizing: border-box !important;
 	}
 
-	table.jtrac-list td:first-child {
-		font-size: 1.1em;
-		font-weight: bold;
-		border-bottom: 1px dashed var(--gray) !important;
-		padding-bottom: 6px !important;
-		margin-bottom: 4px !important;
+	table.jtrac-list .col-id {
+		display: inline-block !important;
+		font-size: 1.1em !important;
+		font-weight: bold !important;
+		border-bottom: none !important;
+		padding: 0 !important;
+		margin-bottom: 2px !important;
+	}
+
+	table.jtrac-list .col-id a {
+		color: var(--darkblue);
+		text-decoration: none;
+	}
+
+	table.jtrac-list .col-summary {
+		display: block !important;
+		font-size: 1.05em !important;
+		color: var(--text-color) !important;
+		line-height: 1.4 !important;
+		font-weight: 500 !important;
+	}
+
+	table.jtrac-list .col-timeStamp,
+	table.jtrac-list .col-lastChanged {
+		display: block !important;
+		font-size: 0.85em !important;
+		color: #64748B !important;
+		margin-top: 3px !important;
 	}
 
 	/* --- Dashboard Mobile Cards --- */
