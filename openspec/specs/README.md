@@ -15,6 +15,7 @@
 | [`backend-persistence`](backend-persistence/spec.md) | Hibernate 5.6 持久層 DAO 與原生 Lucene 全文檢索規範 | 規範 JTrac 資料持久層現代化架構，以原生 Hibernate 5.6 `SessionFactory` 重構 `HibernateJtracDao`，徹底解耦過時之 `HibernateDaoSupport` 與 `HibernateTemplate`，並整合資料表結構自動同步與原生輕量 Lucene 全文檢索。 | Active |
 | [`mobile-rwd`](mobile-rwd/spec.md) | 全站行動端 RWD 響應式體驗與深色主題適配 | 為 JTrac 提供全站行動端響應式網頁設計（RWD），透過純 CSS 技術重構導航列、問題清單、詳細頁與儀表板，支援小螢幕卡片化呈現、漢堡折疊選單與系統深色模式自動切換，實現零外部依賴、輕量流暢的行動端 Issue 查閱體驗。 | Active |
 | [`system-backup-restore`](system-backup-restore/spec.md) | 全系統備份、還原與防鎖死機制 | 提供 JTrac 系統最高管理員一鍵匯出包含結構化資料、`jtrac-dump.sql` 整合傾印檔與實體附件之單一 ZIP 壓縮包，並在還原時具備自動建立安全快照、最高管理員憑證防反鎖保護、外鍵拓撲批次注入、以及背景自動重建 Lucene 搜尋索引之高可用防護架構。 | Active |
+| [`attachment-partitioning-and-indexing`](attachment-partitioning-and-indexing/spec.md) | 專案隔離附件目錄結構與 Lucene 全文檢索 | 定義 JTrac 附件實體儲存之專案隔離架構（純專案 ID 結構，防改名風險）、JTrac 2.3.3 與 HSQLDB 1.8 舊版全自動四階段升級流水線、孤兒檔案隔離處置、雙軌查檔安全網，以及具備副檔名白名單/黑名單排除（明確排除舊版 doc/xls）、新上傳附件非同步佇列索引、智慧編碼轉碼防亂碼與單檔容量/字數門檻防護之 Lucene 全文檢索索引機制。 | Active |
 
 
 ---
@@ -245,6 +246,57 @@ flowchart TD
     InjectUser --> Reindex
     Reindex --> SuccessNotice[提示還原成功，管理員 Session 保持有效無中斷]
     SuccessNotice --> EndRestore([還原完成])
+```
+
+### 8. `attachment-partitioning-and-indexing` 附件專案隔離儲存與全文檢索架構
+
+#### 8.1 四階段全自動升級流水線
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Boot as JTrac 啟動器
+    participant DBMigrator as HsqldbDatabaseMigrator
+    participant Hibernate as Hibernate LocalSessionFactory
+    participant AttMigrator as AttachmentStorageMigrator
+    participant Reindexer as Async Lucene Reindexer
+
+    Boot->>DBMigrator: 檢查 data/db 檔案
+    opt 偵測到 HSQLDB 1.8
+        DBMigrator->>DBMigrator: 建立 backup-hsqldb-1.8-<timestamp>/ 備份
+        DBMigrator->>DBMigrator: 轉譯腳本並無痛升級至 2.x
+    end
+    Boot->>Hibernate: createSchema() 檢查並補入缺少之 config 參數
+    Boot->>AttMigrator: migrate(jtracHome, dao)
+    opt 未遷移過平鋪附件
+        AttMigrator->>AttMigrator: 查詢附件 filePrefix -> spaceId 關聯表
+        AttMigrator->>AttMigrator: 搬移平鋪檔案至 attachments/{spaceId}/
+        AttMigrator->>AttMigrator: 將無關聯孤兒檔案隔離至 attachments/0_ORPHAN/
+        AttMigrator->>AttMigrator: 建立 .attachment_migrated 標記檔
+    end
+    Boot->>Reindexer: 啟動背景非同步執行緒重建 Lucene 全量索引
+```
+
+#### 8.2 新增附件非同步佇列抽取與雙軌查檔安全網
+```mermaid
+flowchart TD
+    subgraph UploadFlow [新附件上傳流程]
+        UploadReq([使用者上傳附件]) --> SaveDB[儲存 Attachment & History 資料庫記錄]
+        SaveDB --> WriteDisk[寫入磁碟: attachments/{spaceId}/{prefix}_{filename}]
+        WriteDisk --> Resp[極速回應 HTTP 成功]
+        WriteDisk --> Enqueue[派送任務至 ExecutorService 背景佇列]
+        Enqueue --> Extract[文字抽取器: SmartCharsetDetector + PDFBox/OpenXML]
+        Extract --> Index[寫入或更新 Lucene 索引庫]
+    end
+
+    subgraph DownloadFlow [雙軌查檔安全網 Dual-Read Fallback]
+        Req([使用者請求下載附件]) --> CheckSub{專案目錄是否存在?}
+        CheckSub -- 是 --> ServeSub[讀取 attachments/{spaceId}/... 提供下載]
+        CheckSub -- 否 --> CheckRoot{根目錄是否存在?}
+        CheckRoot -- 是 --> ServeRoot[降級讀取 attachments/... 提供下載]
+        CheckRoot -- 否 --> CheckOrphan{0_ORPHAN 目錄是否存在?}
+        CheckOrphan -- 是 --> ServeOrphan[讀取 attachments/0_ORPHAN/... 提供下載]
+        CheckOrphan -- 否 --> Err404[拋出 FileNotFoundException]
+    end
 ```
 
 ---
