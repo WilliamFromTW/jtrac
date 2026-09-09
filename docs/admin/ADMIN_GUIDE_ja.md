@@ -112,9 +112,25 @@ flowchart TD
 2. **データベースのアップグレード (2.3.3-1.0.0 からの移行)**：
    - 外部 DB：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) を実行。
    - 内蔵 HSQLDB：起動時に自動バックアップおよび 2.x へ無停止移行。
-3. **バックアップ**：
-   - 定期的に **OPTIONS** ➜ **Backup & Restore** より完全バックアップ（DBと添付ファイルを含む）をダウンロードすることをお勧めします。
-   - `data/db/` および `data/attachments/` の定期バックアップを実施してください。
+3. **データディレクトリ (`jtrac.home`) の判定優先順位と定期バックアップ**：
+   - **`jtrac.home` の判定優先順位 (4 段階)**：
+     1. `WEB-INF/classes/jtrac-init.properties` 内の `jtrac.home`
+     2. JVM システムプロパティ `-Djtrac.home=...`（**本番環境・推奨**）
+     3. Servlet Context 初期化パラメータ（`web.xml` または Tomcat Context XML 内の `jtrac.home`）
+     4. **デフォルト・フォールバック (Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`
+   - **よくある質問：Linux 上の Tomcat でなぜ `/root/.jtrac` に保存されていたのか？**
+     Linux 環境で Tomcat を `root` ユーザー権限で起動し、かつ優先度 1〜3 の指定を行っていない場合、Java の `user.home` は `/root` と判定されるため、システムは自動的に `/root/.jtrac` 隠しディレクトリを作成してデータを保存します。一般ユーザー `jtrac` で起動した場合は `/home/jtrac/.jtrac` になります。
+   - **コンテナ別パス指定例**：
+     - Linux Tomcat (`bin/setenv.sh`)：`export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"` を追加
+     - Windows Tomcat (`bin/setenv.bat`)：`set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"` を追加
+     - Jetty：起動コマンドに `-Djtrac.home=data` を指定（ローカルの `start-jtrac.bat` など）
+   - **ディレクトリ構成とバックアップ方針**：
+     - `jtrac.properties`：データベース接続設定、URL、資格情報および Hibernate 方言。
+     - `db/`：内蔵 HSQLDB ファイル（外部 DB 使用時は DBA スケジュールでバックアップ）。
+     - `attachments/`：実体添付ファイル（`${jtrac.home}/attachments/`）、定期バックアップ必須。
+     - `indexes/`：Lucene 全文検索インデックス（管理画面からいつでも再構築可能）。
+     - `backups/`：リストア実行前に自動生成される安全スナップショット（Safety Snapshot）。
+     - 定期的に **OPTIONS** ➜ **Backup & Restore** より完全バックアップ ZIP をダウンロードすることを推奨します。
 4. **プロジェクト ID 別添付ファイル分割保存と全文検索**：
    - **数値プロジェクト ID ディレクトリ構造 (オプション C)**：添付ファイルは `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}` 配下に保存され、プロジェクト名変更の影響を完全に排除。
    - **二重読み取りフォールバック (Dual-Read Fallback)**：ルートおよび孤児隔離ディレクトリ（`attachments/0_ORPHAN/`）への自動フォールバックにより、ダウンロード 404 リンク切れを 0% 保証。

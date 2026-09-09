@@ -74,6 +74,39 @@ JTrac 2.3.3-2.0.0 hỗ trợ chuẩn Servlet 4.0 (`javax.servlet`):
 | **Tomcat 9.x** | 9.0.x (Khuyến nghị) | **Trực tiếp**: Sao chép `target/jtrac.war` thành `webapps/ROOT.war`. |
 | **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Chuyển đổi tự động**: Đặt vào thư mục `webapps-javaee/` hoặc dùng công cụ `jakartaee-migration`. |
 
+### 4.1 Thứ tự Ưu tiên Phân giải Thư mục Dữ liệu (`jtrac.home`) và Cấu hình Máy chủ
+
+Thư mục gốc lưu trữ dữ liệu và tệp đính kèm được điều khiển bởi biến `jtrac.home` ([`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java)), tuân theo thứ tự ưu tiên 4 cấp nghiêm ngặt:
+
+1. **Ưu tiên 1**: Thuộc tính `jtrac.home` trong tệp `WEB-INF/classes/jtrac-init.properties`.
+2. **Ưu tiên 2 (Khuyến nghị cho môi trường thực tế)**: Thuộc tính hệ thống JVM `-Djtrac.home=...`.
+3. **Ưu tiên 3**: Tham số khởi tạo Servlet Context `jtrac.home` (trong `web.xml` hoặc cấu hình Context của Tomcat).
+4. **Ưu tiên 4 (Dự phòng mặc định Default Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Lưu ý với Tomcat**: Khi chạy Tomcat trên Linux bằng người dùng `root` mà không chỉ định ưu tiên 1–3, JTrac sẽ tự động lưu dữ liệu tại `/root/.jtrac`.
+   - **Môi trường Jetty cục bộ**: `start-jtrac.bat` cấu hình `-Djtrac.home=data`, lưu tại `W:\developer\jetty-10.0.26\data\`.
+
+#### Cấu trúc Thư mục Chuẩn của `jtrac.home`:
+- `jtrac.properties`: Cấu hình kết nối cơ sở dữ liệu, URL, tài khoản và phương ngữ Hibernate.
+- `db/`: Tệp cơ sở dữ liệu HSQLDB nhúng (`jtrac.script`, `jtrac.data`, v.v.).
+- `attachments/`: Tệp đính kèm phân vùng theo ID dự án (`attachments/{spaceId}/`).
+- `indexes/`: Chỉ mục tìm kiếm toàn văn Lucene.
+- `backups/`: Ảnh chụp an toàn khẩn cấp tự động tạo trước mỗi lần khôi phục.
+- `logs/`: Nhật ký thực thi ứng dụng (`jtrac.log`).
+
+#### Cách Chỉ định `jtrac.home` trên Máy chủ:
+- **Linux Tomcat (`bin/setenv.sh`)**:
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**:
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / Dòng lệnh**:
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 5. Nâng cấp Cơ sở Dữ liệu & Lưu trữ

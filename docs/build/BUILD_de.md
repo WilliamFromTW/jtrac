@@ -62,6 +62,39 @@ JTrac 2.3.3-2.0.0 basiert auf der Servlet 4.0-Spezifikation (`javax.servlet`):
 | **Tomcat 9.x** | 9.0.x (Empfohlen) | **Direkt**: Kopieren Sie `target/jtrac.war` nach `webapps/ROOT.war`. |
 | **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Automatische Migration**: Platzieren Sie die WAR in `webapps-javaee/` oder konvertieren Sie via `jakartaee-migration`. |
 
+### 4.1 Datenverzeichnis (`jtrac.home`) Auflösungspriorität und Container-Konfiguration
+
+Das primäre Datenverzeichnis wird durch die Variable `jtrac.home` gesteuert ([`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java)) und folgt einer 4-stufigen Prioritätenreihenfolge:
+
+1. **Priorität 1**: `jtrac.home` in `WEB-INF/classes/jtrac-init.properties`.
+2. **Priorität 2 (Produktionsempfehlung)**: JVM-Systemeigenschaft `-Djtrac.home=...`.
+3. **Priorität 3**: Servlet-Context-Parameter `jtrac.home` (in `web.xml` oder Tomcat-Context-XML).
+4. **Priorität 4 (Standard-Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Tomcat-Hinweis**: Wenn Tomcat unter Linux als Benutzer `root` ohne gesetzte Prioritäten 1–3 ausgeführt wird, speichert JTrac Daten automatisch unter `/root/.jtrac`.
+   - **Lokales Jetty**: `start-jtrac.bat` setzt `-Djtrac.home=data` (`W:\developer\jetty-10.0.26\data\`).
+
+#### Struktur des Datenverzeichnisses (`jtrac.home`):
+- `jtrac.properties`: Datenbankverbindung, URL, Anmeldedaten und Hibernate-Dialekt.
+- `db/`: HSQLDB-Datenbankdateien (`jtrac.script`, `jtrac.data` usw.).
+- `attachments/` : Anhänge partitioniert nach Projekt-ID (`attachments/{spaceId}/`).
+- `indexes/`: Lucene-Volltextindizes.
+- `backups/`: Automatische Sicherheits-Snapshots vor Wiederherstellungen.
+- `logs/`: Anwendungsprotokolle (`jtrac.log`).
+
+#### Konfiguration in Containern:
+- **Linux Tomcat (`bin/setenv.sh`)**:
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**:
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / CLI**:
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 5. Datenbank- & Speicher-Upgrade

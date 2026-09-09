@@ -165,10 +165,25 @@ sequenceDiagram
 2. **資料庫版本升級 (從 2.3.3-1.0.0 升級)**：
    - 若使用外部關聯式資料庫（MySQL、PostgreSQL、SQL Server、Oracle），請執行腳本：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)。
    - 若使用內建 HSQLDB，系統啟動時由 `HsqldbDatabaseMigrator` 自動建立備份並無縫遷移至 HSQLDB 2.x，無需手動執行 SQL。
-3. **定期資料備份**：
-   - 推薦定期使用 **OPTIONS** ➜ **Backup & Restore** 下載完整備份包，包含資料庫紀錄與實體附件。
-   - 資料庫檔案：預設位於 `data/db/`（HSQLDB），若使用外部關聯式資料庫請依照常規排程進行備份。
-   - 附件目錄：預設位於 `data/attachments/`，請定期納入備份排程。
+3. **資料目錄 (`jtrac.home`) 判定機制與定期備份**：
+   - **`jtrac.home` 判定優先順序 (4-Tier Priority)**：
+     1. `WEB-INF/classes/jtrac-init.properties` 內之 `jtrac.home` 設定
+     2. JVM 啟動參數 `-Djtrac.home=...`（**生產環境推薦首選**）
+     3. Servlet Context Init 參數（`web.xml` 或 Tomcat Context XML 中的 `jtrac.home`）
+     4. **預設保底 (Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`
+   - **常見疑難解答：為什麼以前 Tomcat 運行於 Linux 會預設在 `/root/.jtrac`？**
+     當在 Linux 下以 `root` 帳號執行 Tomcat 且未顯式配置前 1~3 項參數時，Java 取得的 `user.home` 即為 `/root`，因此系統自動降級建立隱藏目錄 `/root/.jtrac`。若以專用服務帳號 `jtrac` 啟動，則自動對應為 `/home/jtrac/.jtrac`。
+   - **容器自訂資料路徑範例**：
+     - Linux Tomcat (`bin/setenv.sh`)：加入 `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`)：加入 `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty：啟動指令加上 `-Djtrac.home=data`（如本地 `start-jtrac.bat`）
+   - **目錄結構與備份策略**：
+     - `jtrac.properties`：資料庫連線驅動、帳密與 Hibernate 方言設定檔。
+     - `db/`：內建 HSQLDB 資料庫檔案（若使用外部關聯資料庫請依常規排程備份）。
+     - `attachments/`：實體附件目錄（`${jtrac.home}/attachments/`），請務必定期備份。
+     - `indexes/`：Lucene 全文檢索索引（若損毀可隨時由管理介面重建）。
+     - `backups/`：全系統還原前自動建立之緊急安全快照（Safety Snapshot）。
+     - 推薦定期前往 **OPTIONS** ➜ **Backup & Restore** 下載包含完整資料庫與附件的備份 ZIP 包。
 4. **反向代理與 HTTPS 配置**：
    - 若生產環境透過 Nginx、Apache 或 Caddy 進行反向代理並啟用 HTTPS，請將 `jtrac.url.base` 設定為對應的 `https://...` 網址，並確認反向代理設定中保留 `Host` 與 `X-Forwarded-Proto` 標頭。
 5. **附件純專案 ID 分區儲存與全文檢索運維**：

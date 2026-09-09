@@ -102,6 +102,39 @@ JTrac 2.3.3-2.0.0 uses Servlet 4.0 specifications (`javax.servlet`) and is compa
    ```
 3. Open browser: `http://localhost:8888` (default: `admin` / `admin`).
 
+### 5.1 Data Directory (`jtrac.home`) Resolution Priority & Container Configuration
+
+JTrac's primary data storage directory is governed by the `jtrac.home` system variable. In [`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java), JTrac checks the following 4-tier resolution sequence:
+
+1. **Priority 1**: `jtrac.home` configured in `WEB-INF/classes/jtrac-init.properties`.
+2. **Priority 2 (Recommended for Production & Containers)**: JVM system property `-Djtrac.home=...`.
+3. **Priority 3**: Servlet Context init-parameter `jtrac.home` (in `web.xml` or Tomcat context XML).
+4. **Priority 4 (Default Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Why Tomcat Defaults to `/root/.jtrac`**: When Tomcat runs under Linux as the `root` user and Priorities 1–3 are not defined, JTrac automatically defaults to `/root/.jtrac`. If run under standard user `jtrac`, it defaults to `/home/jtrac/.jtrac`.
+   - **Local Jetty Development**: `start-jtrac.bat` specifies `-Djtrac.home=data`, binding storage to `W:\developer\jetty-10.0.26\data\`.
+
+#### Standard Structure of `jtrac.home`:
+- `jtrac.properties`: Database connection URL, credentials, and Hibernate dialect.
+- `db/`: Embedded HSQLDB files (`jtrac.script`, `jtrac.data`, etc.).
+- `attachments/`: Physical attachments partitioned by Space ID (`attachments/{spaceId}/`).
+- `indexes/`: Lucene full-text search indexes.
+- `backups/`: Emergency safety snapshots created before system restores.
+- `logs/`: Application runtime logs (`jtrac.log`).
+
+#### Customizing `jtrac.home` in Containers:
+- **Linux Tomcat (`bin/setenv.sh`)**:
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**:
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / Standalone JVM**:
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 6. Database & Storage Migration (Upgrading from 2.3.3-1.0.0)

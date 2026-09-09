@@ -76,6 +76,39 @@ JTrac 2.3.3-2.0.0 は Servlet 4.0 仕様（`javax.servlet`）に準拠してい�
 | **Tomcat 9.x** | 9.0.x（推奨） | **即時動作**：`target/jtrac.war` を `webapps/ROOT.war` に配置。 |
 | **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自動変換**：`webapps-javaee/` ディレクトリに配置、または `jakartaee-migration` で変換後配置。 |
 
+### 4.1 データディレクトリ (`jtrac.home`) の判定優先順位とコンテナ設定
+
+JTrac のデータおよび添付ファイル保存ディレクトリは、システム変数 `jtrac.home` によって制御されます。[`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java) により以下の厳格な 4 段階の優先順位で決定されます：
+
+1. **第 1 優先**：`WEB-INF/classes/jtrac-init.properties` 内の `jtrac.home`。
+2. **第 2 優先 (本番環境推奨)**：JVM システムプロパティ `-Djtrac.home=...`。
+3. **第 3 優先**：Servlet Context 初期化パラメータ（`web.xml` または Tomcat Context XML 内の `jtrac.home`）。
+4. **第 4 優先 (デフォルト・フォールバック)**：`System.getProperty("user.home") + "/.jtrac"`。
+   - **Tomcat での注意点**：Linux 環境で `root` ユーザーとして Tomcat を起動し、第 1〜3 優先の設定を行っていない場合、JTrac は自動的に `/root/.jtrac` をデータディレクトリとして使用します。
+   - **ローカル Jetty 開発環境**：`start-jtrac.bat` で `-Djtrac.home=data` が指定されているため、`W:\developer\jetty-10.0.26\data\` にデータが保存されます。
+
+#### データディレクトリの標準構造 (`jtrac.home`)：
+- `jtrac.properties`：データベース接続設定、URL、アカウントおよび Hibernate 方言。
+- `db/`：内蔵 HSQLDB データベースファイル（`jtrac.script`、`jtrac.data` 等）。
+- `attachments/`：添付ファイル格納場所（プロジェクト ID ごとに `attachments/{spaceId}/` で分割）。
+- `indexes/`：Lucene 全文検索インデックス。
+- `backups/`：リストア実行前に自動生成される安全スナップショット（Safety Snapshot）。
+- `logs/`：アプリケーション実行ログ（`jtrac.log`）。
+
+#### コンテナ別 `jtrac.home` 設定方法：
+- **Linux Tomcat (`bin/setenv.sh`)**：
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**：
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / コマンドライン起動**：
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 5. データベースおよびストレージのアップグレード

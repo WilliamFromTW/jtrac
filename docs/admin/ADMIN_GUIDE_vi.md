@@ -112,9 +112,25 @@ JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ li
 2. **Nâng cấp Cơ sở Dữ liệu (Từ 2.3.3-1.0.0)**:
    - Cơ sở dữ liệu bên ngoài: Thực thi [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB nhúng: Tự động sao lưu và nâng cấp lên 2.x khi khởi động máy chủ.
-3. **Sao lưu**:
-   - Khuyến nghị định kỳ sử dụng **OPTIONS** ➜ **Backup & Restore** để tải bản sao lưu hoàn chỉnh (bao gồm DB và tệp đính kèm).
-   - Định kỳ sao lưu thư mục `data/db/` và `data/attachments/`.
+3. **Thư mục Dữ liệu (`jtrac.home`): Thứ tự Ưu tiên & Chiến lược Sao lưu**:
+   - **Thứ tự Phân giải 4 Cấp của `jtrac.home`**:
+     1. Thuộc tính `jtrac.home` trong `WEB-INF/classes/jtrac-init.properties`.
+     2. Thuộc tính hệ thống JVM `-Djtrac.home=...` (**Khuyến nghị cho Môi trường Thực tế & Máy chủ**).
+     3. Tham số khởi tạo Servlet Context `jtrac.home` (trong `web.xml` hoặc cấu hình Context của Tomcat).
+     4. **Dự phòng Mặc định (Default Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Câu hỏi Thường gặp: Tại sao trước đây trên Linux chạy Tomcat lại mặc định vào `/root/.jtrac`?**
+     Khi chạy Tomcat dưới quyền người dùng `root` trên Linux mà không định cấu hình các mức ưu tiên 1–3, Java sẽ trả về `user.home` là `/root`. Do đó, JTrac tự động tạo thư mục ẩn `/root/.jtrac` để lưu trữ dữ liệu. Nếu chạy bằng tài khoản dịch vụ riêng `jtrac`, đường dẫn sẽ là `/home/jtrac/.jtrac`.
+   - **Ví dụ Định cấu hình trong Máy chủ**:
+     - Linux Tomcat (`bin/setenv.sh`): Thêm `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`): Thêm `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty: Truyền `-Djtrac.home=data` trong lệnh khởi động (như trong `start-jtrac.bat`).
+   - **Cấu trúc Thư mục & Khuyến nghị Sao lưu**:
+     - `jtrac.properties`: Cấu hình kết nối cơ sở dữ liệu, tài khoản và phương ngữ.
+     - `db/`: Tệp cơ sở dữ liệu HSQLDB nhúng (sao lưu định kỳ nếu dùng DB nhúng).
+     - `attachments/`: Thư mục tệp đính kèm vật lý (`${jtrac.home}/attachments/`), bắt buộc phải đưa vào lịch sao lưu.
+     - `indexes/`: Chỉ mục tìm kiếm toàn văn Lucene (có thể tái tạo bất kỳ lúc nào từ giao diện quản trị).
+     - `backups/`: Ảnh chụp an toàn khẩn cấp tự động tạo trước khi khôi phục.
+     - Khuyến nghị định kỳ sử dụng **OPTIONS** ➜ **Backup & Restore** để tải bản sao lưu hoàn chỉnh (bao gồm DB và tệp đính kèm).
 4. **Phân Vùng Tệp Đính Kèm & Tìm Kiếm Toàn Văn**:
    - **Cấu Trúc Thư Mục Phân Vùng Theo ID Số (Tùy Chọn C)**: Tệp đính kèm lưu tại `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, an toàn tuyệt đối khi đổi tên dự án.
    - **Cơ Chế Đọc Dự Phòng Kép (Dual-Read Fallback)**: Tự động chuyển hướng về thư mục gốc và thư mục cách ly (`attachments/0_ORPHAN/`), bảo đảm 0% lỗi liên kết tải xuống 404.

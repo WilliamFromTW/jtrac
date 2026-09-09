@@ -91,6 +91,39 @@ JTrac 2.3.3-2.0.0 采用 Servlet 4.0 规范（`javax.servlet`），兼容主流�
 | **Tomcat 9.x** | 9.0.x（推荐首选） | **开箱即用**：直接将 `target/jtrac.war` 复制至 `webapps/ROOT.war` 即可启动。 |
 | **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自动转换支持**：<br/>1. **方式 A**：将 `jtrac.war` 放入 Tomcat 的 `webapps-javaee/` 目录，容器启动时自动转换运行。<br/>2. **方式 B**：使用官方 `jakartaee-migration` 工具转换为 `jtrac-jakarta.war` 后部署至 `webapps/`。 |
 
+### 5.1 核心数据目录 (`jtrac.home`) 判定机制与容器配置指南
+
+JTrac 的核心数据与附件存储根目录由系统变量 `jtrac.home` 控制，在 [`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java) 中严格遵循 4 级判定顺序：
+
+1. **第一优先级**：`WEB-INF/classes/jtrac-init.properties` 配置文件中设置的 `jtrac.home`。
+2. **第二优先级 (生产环境推荐首选)**：JVM 系统参数 `-Djtrac.home=...`。
+3. **第三优先级**：Servlet Context Init 参数（`web.xml` 或 Tomcat Context XML 中的 `jtrac.home`）。
+4. **第四优先级 (默认兜底 Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`。
+   - **Tomcat 常见疑问解答**：在 Linux 环境下若以 `root` 账户启动 Tomcat 且未指定前 1~3 级参数，JTrac 将自动兜底使用 `/root/.jtrac` 隐藏目录；若以普通用户 `jtrac` 启动则为 `/home/jtrac/.jtrac`。
+   - **本地 Jetty 开发环境**：`start-jtrac.bat` 中配置了 `-Djtrac.home=data`，数据存放于本地 `W:\developer\jetty-10.0.26\data\`。
+
+#### 数据目录标准内部结构 (`jtrac.home`)：
+- `jtrac.properties`：数据库连接配置、URL、账号密码与 Hibernate 方言。
+- `db/`：内置 HSQLDB 数据库文件（`jtrac.script`、`jtrac.data` 等）。
+- `attachments/`：上传附件物理存储，依项目 ID 分区存储（`attachments/{spaceId}/`）。
+- `indexes/`：Lucene 全文检索索引库。
+- `backups/`：全系统还原前自动生成的紧急安全快照（Safety Snapshot）。
+- `logs/`：系统运行日志（`jtrac.log`）。
+
+#### 容器自定义指定 `jtrac.home` 方法：
+- **Linux Tomcat (`bin/setenv.sh`)**：
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**：
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / 命令行启动**：
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 6. 数据库升级与迁移指引

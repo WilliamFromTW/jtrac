@@ -51,6 +51,39 @@ JTrac 2.3.3-2.0.0 respecte la spécification Servlet 4.0 (`javax.servlet`) :
 | **Tomcat 9.x** | 9.0.x (Recommandé) | **Direct** : Copiez `target/jtrac.war` vers `webapps/ROOT.war`. |
 | **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Migration Automatique** : Placez le WAR dans `webapps-javaee/` ou convertissez avec `jakartaee-migration`. |
 
+### 3.1 Répertoire de Données (`jtrac.home`) : Priorité de Résolution et Configuration
+
+Le répertoire racine de stockage des données et pièces jointes est régi par la variable `jtrac.home` ([`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java)), selon un ordre strict de 4 niveaux de priorité :
+
+1. **Priorité 1** : `jtrac.home` défini dans `WEB-INF/classes/jtrac-init.properties`.
+2. **Priorité 2 (Recommandé en production)** : Propriété système JVM `-Djtrac.home=...`.
+3. **Priorité 3** : Paramètre d'initialisation de Servlet Context (`web.xml` ou contexte Tomcat).
+4. **Priorité 4 (Repli par Défaut Default Fallback)** : `System.getProperty("user.home") + "/.jtrac"`.
+   - **Remarque Tomcat** : Si Tomcat s'exécute sous Linux en tant qu'utilisateur `root` sans définir les priorités 1 à 3, JTrac enregistrera automatiquement ses données dans `/root/.jtrac`.
+   - **Jetty Local** : `start-jtrac.bat` configure `-Djtrac.home=data`, stockant les données dans `W:\developer\jetty-10.0.26\data\`.
+
+#### Structure Standard de `jtrac.home` :
+- `jtrac.properties` : Configuration de connexion à la base, URL, identifiants et dialecte Hibernate.
+- `db/` : Fichiers de la base HSQLDB intégrée (`jtrac.script`, `jtrac.data`, etc.).
+- `attachments/` : Pièces jointes partitionnées par ID de projet (`attachments/{spaceId}/`).
+- `indexes/` : Index de recherche plein texte Lucene.
+- `backups/` : Instantanés de sécurité d'urgence créés avant chaque restauration.
+- `logs/` : Journaux d'exécution de l'application (`jtrac.log`).
+
+#### Configuration dans les Conteneurs :
+- **Linux Tomcat (`bin/setenv.sh`)** :
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)** :
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / Ligne de Commande** :
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 4. Mise à Niveau de la Base de Données et du Stockage

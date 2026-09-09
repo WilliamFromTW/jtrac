@@ -112,9 +112,25 @@ JTrac proporciona capacidades nativas de recuperación ante desastres y migraci�
 2. **Actualización de Base de Datos (Desde 2.3.3-1.0.0)**:
    - Bases externas: Ejecute [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB embebida: Se actualiza automáticamente a 2.x con respaldo al iniciar.
-3. **Copias de Seguridad**:
-   - Se recomienda descargar periódicamente una copia de seguridad completa (base de datos y adjuntos) desde **OPTIONS** ➜ **Backup & Restore**.
-   - Respalde periódicamente las carpetas `data/db/` y `data/attachments/`.
+3. **Directorio de Datos (`jtrac.home`): Prioridad de Resolución y Copias de Seguridad**:
+   - **Prioridad de Resolución de 4 Niveles de `jtrac.home`**:
+     1. Parámetro `jtrac.home` en `WEB-INF/classes/jtrac-init.properties`.
+     2. Propiedad del sistema JVM `-Djtrac.home=...` (**Recomendado en Producción y Contenedores**).
+     3. Parámetro de inicialización del Servlet Context (`web.xml` o XML de contexto de Tomcat).
+     4. **Respaldo por Defecto (Default Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Pregunta Frecuente: ¿Por qué en Linux con Tomcat se guardaba por defecto en `/root/.jtrac`?**
+     Si Tomcat se ejecuta bajo Linux con el usuario `root` sin definir las prioridades 1–3, Java evalúa `user.home` como `/root`. Por lo tanto, JTrac crea automáticamente el directorio oculto `/root/.jtrac` para almacenar todos sus datos. Si se ejecuta con un usuario de servicio estándar `jtrac`, se ubicará en `/home/jtrac/.jtrac`.
+   - **Ejemplos de Configuración en Contenedores**:
+     - Linux Tomcat (`bin/setenv.sh`): Agregar `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`): Agregar `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty: Pasar `-Djtrac.home=data` en el comando de arranque (como en `start-jtrac.bat`).
+   - **Estructura y Estrategia de Copias de Seguridad**:
+     - `jtrac.properties`: Conexión de base de datos, credenciales y dialecto.
+     - `db/`: Archivos de base de datos HSQLDB integrada (respaldar según programación habitual si usa DB externa).
+     - `attachments/`: Directorio físico de archivos adjuntos (`${jtrac.home}/attachments/`), incluir siempre en copias periódicas.
+     - `indexes/`: Índices Lucene (pueden reconstruirse desde el panel de administración).
+     - `backups/`: Copias instantáneas de seguridad creadas antes de cada restauración.
+     - Se recomienda descargar periódicamente una copia de seguridad completa (base de datos y adjuntos) desde **OPTIONS** ➜ **Backup & Restore**.
 4. **Partición de Archivos Adjuntos y Búsqueda de Texto Completo**:
    - **Estructura Particionada por ID de Proyecto (Opción C)**: Los adjuntos se almacenan en `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, inmunes a cambios de nombre del proyecto.
    - **Mecanismo de Doble Lectura de Respaldo (Dual-Read Fallback)**: Fallback automático al directorio raíz y a la carpeta de huérfanos (`attachments/0_ORPHAN/`), asegurando 0% de enlaces 404 rotos.

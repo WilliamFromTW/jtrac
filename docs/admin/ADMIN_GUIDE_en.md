@@ -122,10 +122,25 @@ JTrac provides built-in, native full-system disaster recovery and migration capa
 2. **Database Upgrade (Upgrading from 2.3.3-1.0.0)**:
    - External DBs (MySQL, PostgreSQL, SQL Server, Oracle): Execute [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - Embedded HSQLDB: Automatic backup and migration to HSQLDB 2.x is handled on server startup.
-3. **Backup Schedule**:
-   - Regularly use **OPTIONS** ➜ **Backup & Restore** to download complete backup bundles containing both structured database records and physical attachment files.
-   - Database files: Backup `data/db/` or external database on a regular schedule.
-   - Attachments: Regularly backup `data/attachments/`.
+3. **Data Directory (`jtrac.home`) Resolution & Backup Strategy**:
+   - **`jtrac.home` 4-Tier Resolution Priority**:
+     1. `jtrac.home` setting in `WEB-INF/classes/jtrac-init.properties`.
+     2. JVM system property `-Djtrac.home=...` (**Recommended for Production & Containers**).
+     3. Servlet Context init-parameter `jtrac.home` (in `web.xml` or Tomcat context XML).
+     4. **Default Fallback**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Why Did Tomcat on Linux Default to `/root/.jtrac`?**
+     When running Tomcat as the `root` user on Linux without defining Priorities 1–3, Java's `user.home` resolves to `/root`. JTrac automatically creates the hidden directory `/root/.jtrac` as its fallback storage. If executed under a dedicated service account `jtrac`, it resolves to `/home/jtrac/.jtrac`.
+   - **Container Customization Examples**:
+     - Linux Tomcat (`bin/setenv.sh`): Add `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`): Add `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty: Pass `-Djtrac.home=data` in startup command (as seen in `start-jtrac.bat`).
+   - **Directory Structure & Backup Schedule**:
+     - `jtrac.properties`: Database connection URL, credentials, and Hibernate dialect.
+     - `db/`: Embedded HSQLDB files (regularly backup if using embedded DB).
+     - `attachments/`: Physical attachment files (`${jtrac.home}/attachments/`), must be included in regular backup schedules.
+     - `indexes/`: Lucene full-text indexes (can be rebuilt anytime via the admin UI).
+     - `backups/`: Emergency safety snapshots automatically created before system restores.
+     - Regularly navigate to **OPTIONS** ➜ **Backup & Restore** to download complete `.zip` backup bundles.
 4. **Reverse Proxy & HTTPS**:
    - When placing behind Nginx/Apache with HTTPS, set `jtrac.url.base` to `https://...` and preserve `Host` and `X-Forwarded-Proto` headers.
 5. **Attachment Storage Partitioning & Full-Text Search**:

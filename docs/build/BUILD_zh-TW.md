@@ -109,6 +109,39 @@ JTrac 2.3.3-2.0.0 核心採用 Servlet 4.0 規範（`javax.servlet`），能完�
    ```
 3. 開啟瀏覽器訪問：`http://localhost:8888`（預設管理員帳號：`admin` / 密碼：`admin`）。
 
+### 5.1 核心資料目錄 (`jtrac.home`) 判定機制與容器自訂配置
+
+JTrac 的資料與附件儲存根目錄由系統變數 `jtrac.home` 控制，其路徑依據 [`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java) 遵循嚴格的 4 階層判定順序：
+
+1. **第一優先**：`WEB-INF/classes/jtrac-init.properties` 檔案中設定之 `jtrac.home`。
+2. **第二優先 (生產環境推薦首選)**：JVM 系統參數 `-Djtrac.home=...`。
+3. **第三優先**：Servlet Context Init 參數（`web.xml` 或 Tomcat Context XML 中的 `jtrac.home`）。
+4. **第四優先 (預設保底 Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`。
+   - **Tomcat 常見疑問解惑**：若在 Linux 環境下以 `root` 身分執行 Tomcat 且未指定前 1~3 項參數，JTrac 將自動保底使用 `/root/.jtrac` 作為資料儲存目錄；若以非 root 使用者執行則為 `/home/<username>/.jtrac`。
+   - **本機開發環境 Jetty**：在 `start-jtrac.bat` 中配置 `-Djtrac.home=data`，即會將資料固定存放於 `W:\developer\jetty-10.0.26\data\`。
+
+#### 資料目錄內部結構 (`jtrac.home`)：
+- `jtrac.properties`：資料庫連線驅動、URL、帳密與 Hibernate 方言設定檔。
+- `db/`：內建 HSQLDB 資料庫檔案（包含 `jtrac.script`、`jtrac.data`、`jtrac.properties`）。
+- `attachments/`：上傳附件儲存庫，依專案 ID 分區儲存（`attachments/{spaceId}/`）。
+- `indexes/`：Lucene 全文檢索索引檔案。
+- `backups/`：全系統還原前自動產生的緊急安全快照（Safety Snapshot）。
+- `logs/`：系統運行日誌（`jtrac.log`）。
+
+#### 容器自訂指定 `jtrac.home` 方式：
+- **Linux Tomcat (`bin/setenv.sh`)**：
+  ```bash
+  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
+  ```
+- **Windows Tomcat (`bin/setenv.bat`)**：
+  ```cmd
+  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
+  ```
+- **Jetty / 命令列啟動**：
+  ```bash
+  java -Djtrac.home=/var/jtrac-data -jar start.jar
+  ```
+
 ---
 
 ## 6. 資料庫升級與遷移指引

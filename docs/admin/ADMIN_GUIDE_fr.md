@@ -112,9 +112,25 @@ JTrac propose des fonctionnalités natives de reprise après sinistre et de migr
 2. **Mise à Niveau de la Base de Données (Depuis 2.3.3-1.0.0)** :
    - Bases externes : Exécutez [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB intégrée : Sauvegarde et mise à niveau automatiques vers 2.x au démarrage du serveur.
-3. **Sauvegardes Régulières** :
-   - Il est fortement recommandé d'utiliser régulièrement **OPTIONS** ➜ **Backup & Restore** pour télécharger une archive de sauvegarde complète (base de données et pièces jointes).
-   - Sauvegardez régulièrement les dossiers `data/db/` et `data/attachments/`.
+3. **Répertoire de Données (`jtrac.home`) : Priorité de Résolution et Stratégie de Sauvegarde** :
+   - **Priorité de Résolution à 4 Niveaux de `jtrac.home`** :
+     1. Propriété `jtrac.home` dans `WEB-INF/classes/jtrac-init.properties`.
+     2. Propriété système JVM `-Djtrac.home=...` (**Recommandé pour la Production & Conteneurs**).
+     3. Paramètre d'initialisation de Servlet Context `jtrac.home` (dans `web.xml` ou contexte Tomcat).
+     4. **Repli par Défaut (Default Fallback)** : `System.getProperty("user.home") + "/.jtrac"`.
+   - **Question Fréquente : Pourquoi Tomcat sous Linux enregistrait-il par défaut dans `/root/.jtrac` ?**
+     Lorsque Tomcat s'exécute sous Linux avec l'utilisateur `root` sans spécifier les priorités 1 à 3, Java renvoie `/root` pour `user.home`. JTrac crée alors automatiquement le dossier masqué `/root/.jtrac` pour stocker toutes ses données. S'il est exécuté sous un compte de service dédié `jtrac`, le chemin sera `/home/jtrac/.jtrac`.
+   - **Exemples de Configuration dans les Conteneurs** :
+     - Linux Tomcat (`bin/setenv.sh`) : Ajouter `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`) : Ajouter `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty : Passer `-Djtrac.home=data` dans la commande de lancement (ex. `start-jtrac.bat`).
+   - **Structure et Plan de Sauvegarde** :
+     - `jtrac.properties` : Paramètres de connexion base de données, identifiants et dialecte.
+     - `db/` : Fichiers de base HSQLDB intégrée (sauvegarder selon les plannings réguliers si base externe).
+     - `attachments/` : Répertoire physique des pièces jointes (`${jtrac.home}/attachments/`), à inclure impérativement dans les sauvegardes.
+     - `indexes/` : Index de recherche plein texte Lucene (reconstructibles à tout moment depuis l'interface d'administration).
+     - `backups/` : Instantanés d'urgence de sécurité créés automatiquement avant toute restauration.
+     - Il est fortement recommandé d'utiliser régulièrement **OPTIONS** ➜ **Backup & Restore** pour télécharger une archive de sauvegarde complète (base de données et pièces jointes).
 4. **Partitionnement des Pièces Jointes et Recherche Plein Texte** :
    - **Structure Partitionnée par ID de Projet (Option C)** : Fichiers organisés sous `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, insensibles aux renommages.
    - **Filet de Sécurité à Double Lecture (Dual-Read Fallback)** : Repli automatique vers le dossier racine et la zone orpheline (`attachments/0_ORPHAN/`), assurant 0% d'erreurs 404.

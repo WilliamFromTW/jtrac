@@ -118,9 +118,25 @@ flowchart TD
 2. **数据库升级 (从 2.3.3-1.0.0 升级)**：
    - 外部数据库（MySQL、PostgreSQL 等）：执行脚本 [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)。
    - 内置 HSQLDB：启动时自动备份并迁移至 HSQLDB 2.x。
-3. **备份机制**：
-   - 推荐定期通过 **OPTIONS** ➜ **Backup & Restore** 下载完整备份包（涵盖数据库与附件）。
-   - 定期备份 `data/db/`（或外部数据库）与 `data/attachments/` 附件目录。
+3. **数据目录 (`jtrac.home`) 判定机制与定期备份**：
+   - **`jtrac.home` 判定优先级 (4 级 Fallback)**：
+     1. `WEB-INF/classes/jtrac-init.properties` 内部配置之 `jtrac.home`
+     2. JVM 系统启动参数 `-Djtrac.home=...`（**生产环境推荐首选**）
+     3. Servlet Context Init 参数（`web.xml` 或 Tomcat Context XML 中的 `jtrac.home`）
+     4. **默认兜底 (Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`
+   - **常见疑问解惑：为什么以前 Tomcat 在 Linux 下会默认存放在 `/root/.jtrac`？**
+     当在 Linux 下以 `root` 账户启动 Tomcat 且未设置前 1~3 级参数时，Java 的 `user.home` 即为 `/root`，系统自动创建隐藏目录 `/root/.jtrac` 作为数据存储目录。若以普通服务用户 `jtrac` 启动则为 `/home/jtrac/.jtrac`。
+   - **容器自定义指定路径示例**：
+     - Linux Tomcat (`bin/setenv.sh`)：添加 `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"`
+     - Windows Tomcat (`bin/setenv.bat`)：添加 `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"`
+     - Jetty：启动命令带上 `-Djtrac.home=data`（如本地 `start-jtrac.bat`）
+   - **目录结构与备份建议**：
+     - `jtrac.properties`：数据库连接、URL、账号密码与 Hibernate 方言。
+     - `db/`：内置 HSQLDB 数据库文件（若使用外部数据库请按常规备份）。
+     - `attachments/`：物理附件目录（`${jtrac.home}/attachments/`），必须定期纳入备份排程。
+     - `indexes/`：Lucene 全文索引目录（损毁时可随时由管理员在后台重建）。
+     - `backups/`：全系统还原前自动生成的紧急安全快照（Safety Snapshot）。
+     - 推荐定期通过 **OPTIONS** ➜ **Backup & Restore** 下载涵盖完整数据库与附件的备份包。
 4. **附件纯项目 ID 分区存储与全文检索运维**：
    - **纯项目 ID 目录结构 (选项 C)**：附件全面存放于 `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`，项目更名或变更代码完全不受影响。
    - **双轨查档安全网 (Dual-Read Fallback)**：读取文件时自动 Fallback 至根目录与孤儿隔离目录（`attachments/0_ORPHAN/`），确保升级过渡期 0% 下载断链 404。

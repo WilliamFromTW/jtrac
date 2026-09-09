@@ -112,9 +112,25 @@ JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion,
 2. **Datenbank-Upgrade (von 2.3.3-1.0.0)**:
    - Externe Datenbanken: Führen Sie [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) aus.
    - Eingebettete HSQLDB: Die Migration auf Version 2.x erfolgt automatisch beim Serverstart.
-3. **Datensicherung**:
-   - Es wird empfohlen, regelmäßig unter **OPTIONS** ➜ **Backup & Restore** ein vollständiges Backup (DB und Anhänge) herunterzuladen.
-   - Sichern Sie regelmäßig die Verzeichnisse `data/db/` und `data/attachments/`.
+3. **Datenverzeichnis (`jtrac.home`) Auflösungspriorität & Sicherung**:
+   - **4-stufige Auflösungspriorität von `jtrac.home`**:
+     1. `jtrac.home`-Eintrag in `WEB-INF/classes/jtrac-init.properties`.
+     2. JVM-Systemeigenschaft `-Djtrac.home=...` (**Empfohlen für Produktion & Container**).
+     3. Servlet-Context-Parameter `jtrac.home` (in `web.xml` oder Tomcat-Context-XML).
+     4. **Standard-Fallback (Default Fallback)**: `System.getProperty("user.home") + "/.jtrac"`.
+   - **Häufige Frage: Warum lag das Verzeichnis bei Tomcat unter Linux standardmäßig in `/root/.jtrac`?**
+     Wenn Tomcat unter Linux als Benutzer `root` ohne definierte Prioritäten 1–3 ausgeführt wird, liefert Java `user.home` als `/root`. JTrac erstellt daraufhin automatisch das versteckte Verzeichnis `/root/.jtrac`. Wird ein dedizierter Dienstbenutzer `jtrac` verwendet, lautet der Pfad `/home/jtrac/.jtrac`.
+   - **Container-Konfigurationsbeispiele**:
+     - Linux Tomcat (`bin/setenv.sh`): `export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"` hinzufügen.
+     - Windows Tomcat (`bin/setenv.bat`): `set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"` hinzufügen.
+     - Jetty: `-Djtrac.home=data` beim Start übergeben (wie in `start-jtrac.bat`).
+   - **Verzeichnisstruktur & Backup-Empfehlung**:
+     - `jtrac.properties`: Datenbankverbindung, URL, Anmeldedaten und Dialekt.
+     - `db/`: HSQLDB-Datenbankdateien (bei externer Datenbank regulär sichern).
+     - `attachments/`: Physische Anhänge (`${jtrac.home}/attachments/`), müssen regelmäßig gesichert werden.
+     - `indexes/`: Lucene-Volltextindizes (kann jederzeit im Backend neu aufgebaut werden).
+     - `backups/`: Automatische Sicherheits-Snapshots vor Wiederherstellungen.
+     - Es wird empfohlen, regelmäßig unter **OPTIONS** ➜ **Backup & Restore** ein vollständiges Backup-ZIP (DB und Anhänge) herunterzuladen.
 4. **Anhangpartitionierung & Volltextsuche**:
    - **Partitionsstruktur nach Projekt-ID (Option C)**: Speicherung unter `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, unempfindlich gegenüber Projektumbenennungen.
    - **Dual-Read-Fallback-Sicherheitsnetz**: Automatischer Rückfall auf Stammverzeichnis und Quarantäne-Ordner (`attachments/0_ORPHAN/`), garantiert 0% 404-Fehler.
