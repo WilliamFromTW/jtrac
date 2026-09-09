@@ -141,6 +141,9 @@ public class User implements UserDetails, Serializable, Comparable<User> {
     }
 
     public boolean isAllocatedToSpace(long spaceId) {
+        if (isSuperUser()) {
+            return true;
+        }
         for (UserSpaceRole usr : userSpaceRoles) {
             if (usr.getSpace() != null && usr.getSpace().getId() == spaceId) {
                 return true;
@@ -150,6 +153,9 @@ public class User implements UserDetails, Serializable, Comparable<User> {
     }
 
     public boolean isAdminForSpace(long spaceId) {
+        if (isSuperUser()) {
+            return true;
+        }
         for (UserSpaceRole usr : userSpaceRoles) {
             if (usr.isSpaceAdmin() && usr.getSpace().getId() == spaceId) {
                 return true;

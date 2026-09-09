@@ -17,8 +17,10 @@
 package info.jtrac.wicket;
 
 import info.jtrac.domain.ItemSearch;
+import info.jtrac.domain.User;
 import info.jtrac.exception.JtracSecurityException;
 import info.jtrac.util.ItemUtils;
+import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -26,10 +28,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class ItemListPage extends BasePage {               
         
-    public ItemListPage(PageParameters params) throws JtracSecurityException {
-        ItemSearch itemSearch = ItemUtils.getItemSearch(getPrincipal(), params, getJtrac());
-        JtracSession.get().setItemSearch(itemSearch);
-        addComponents(itemSearch);
+    public ItemListPage(PageParameters params) {
+        User user = getPrincipal();
+        try {
+            ItemSearch itemSearch = ItemUtils.getItemSearch(user, params, getJtrac());
+            JtracSession.get().setItemSearch(itemSearch);
+            addComponents(itemSearch);
+        } catch (JtracSecurityException e) {
+            logger.warn("Security exception accessing ItemListPage: " + e.getMessage());
+            if (user == null || user.getId() == 0) {
+                throw new RestartResponseAtInterceptPageException(LoginPage.class);
+            } else {
+                throw new RestartResponseAtInterceptPageException(new ErrorPage(e.getMessage()));
+            }
+        }
     }  
     
     public ItemListPage(ItemSearch itemSearch) {

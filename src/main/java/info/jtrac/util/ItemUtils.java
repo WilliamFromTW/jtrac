@@ -542,7 +542,10 @@ public final class ItemUtils {
         ItemSearch itemSearch = null;
         if(spaceId > 0) {            
             Space space = jtrac.loadSpace(spaceId);
-            if(!user.isAllocatedToSpace(space.getId())) {
+            if(space == null) {
+                throw new JtracSecurityException("Space not found: " + spaceId + " in URL: " + params);
+            }
+            if(user == null || !user.isAllocatedToSpace(space.getId())) {
                 throw new JtracSecurityException("User not allocated to space: " + spaceId + " in URL: " + params);
             }
             itemSearch = new ItemSearch(space);            

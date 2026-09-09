@@ -23,6 +23,10 @@ import org.apache.wicket.markup.html.basic.Label;
  */
 public class ErrorPage extends BasePage {        
         
+    public ErrorPage() {
+        this("Access Denied / Permission Required");
+    }
+
     public ErrorPage(String message) {
         add(new Label("heading", message));        
     }

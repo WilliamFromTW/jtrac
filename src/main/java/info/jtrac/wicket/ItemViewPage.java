@@ -86,9 +86,13 @@ public class ItemViewPage extends BasePage {
         
         User user = getPrincipal();
         
-        if(!user.isAllocatedToSpace(item.getSpace().getId())) {
-            logger.debug("user is not allocated to space");
-            throw new RestartResponseAtInterceptPageException(ErrorPage.class);
+        if(user == null || !user.isAllocatedToSpace(item.getSpace().getId())) {
+            logger.debug("user is not allocated to space: {}", item.getSpace().getName());
+            if (user == null || user.getId() == 0) {
+                throw new RestartResponseAtInterceptPageException(LoginPage.class);
+            } else {
+                throw new RestartResponseAtInterceptPageException(new ErrorPage("User not allocated to space: " + item.getSpace().getName()));
+            }
         }                
 
         // Edit: The owner of the item can change it, if that is allowed in general
