@@ -1,6 +1,6 @@
 # JTrac (增強版 Fork)
 
-[English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
+[English](release_en.md) | [繁體中文](release_zh-TW.md) | [简体中文](release_zh-CN.md) | [日本語](release_ja.md) | [Tiếng Việt](release_vi.md) | [Deutsch](release_de.md) | [Español](release_es.md) | [Français](release_fr.md)
 
 ---
 
