@@ -236,10 +236,8 @@ public class ItemViewPanel extends BasePanel {
                 protected void populateItem(ListItem listItem) {
                     final History h = (History) listItem.getModelObject();
                     boolean hasComment = (h.getComment() != null && !h.getComment().trim().isEmpty()) || h.getAttachment() != null;
-                    String cssClass = (listItem.getIndex() % 2 != 0 ? "alt " : "") + (!hasComment ? "no-comment" : "");
-                    if (!cssClass.isEmpty()) {
-                        listItem.add(new SimpleAttributeModifier("class", cssClass.trim()));
-                    }
+                    String cssClass = "history-row " + (listItem.getIndex() % 2 != 0 ? "alt " : "") + (!hasComment ? "no-comment" : "");
+                    listItem.add(new SimpleAttributeModifier("class", cssClass.trim()));
                     
                     listItem.add(new Label("loggedBy", new PropertyModel(h, "loggedBy.name")));
                     listItem.add(new Label("status", new PropertyModel(h, "statusValue")));

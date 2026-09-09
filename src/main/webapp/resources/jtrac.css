@@ -534,17 +534,25 @@ code {
 		display: none !important;
 	}
 
-	.item-history-table tr[wicket\:id="history"] {
+	.item-history-table tr.history-row,
+	.item-history-table tbody tr:not(.history-header) {
 		display: flex !important;
-		flex-direction: column !important;
-		background: var(--card-bg) !important;
-		border: 1px solid var(--card-border) !important;
+		flex-direction: row !important;
+		justify-content: space-between !important;
+		align-items: flex-start !important;
+		background: #FFFFFF !important;
+		border: 1px solid #CBD5E1 !important;
 		border-left: 4px solid var(--darkblue) !important;
 		border-radius: 6px !important;
-		box-shadow: var(--card-shadow) !important;
-		padding: 10px 14px !important;
-		margin-bottom: 10px !important;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+		padding: 10px 12px !important;
+		margin-bottom: 8px !important;
 		box-sizing: border-box !important;
+	}
+
+	.item-history-table tr.history-row.alt,
+	.item-history-table tbody tr.alt {
+		background: #F1F5F9 !important;
 	}
 
 	.item-history-table td.col-hist-loggedBy,
@@ -556,13 +564,14 @@ code {
 
 	.item-history-table td.col-hist-comment {
 		display: block !important;
-		width: 100% !important;
-		padding: 0 0 6px 0 !important;
+		flex: 1 1 auto !important;
+		padding: 0 !important;
+		padding-right: 12px !important;
 		border: none !important;
-		font-size: 1.0em !important;
+		font-size: 0.95em !important;
 		line-height: 1.5 !important;
 		color: var(--text-color) !important;
-		word-break: break-word;
+		word-break: break-word !important;
 	}
 
 	.item-history-table td.col-hist-comment a {
@@ -577,11 +586,13 @@ code {
 
 	.item-history-table td.col-hist-timeStamp {
 		display: block !important;
-		width: 100% !important;
-		padding: 0 !important;
+		flex: 0 0 auto !important;
+		padding: 2px 0 0 0 !important;
 		border: none !important;
-		font-size: 0.85em !important;
+		font-size: 0.8em !important;
 		color: #64748B !important;
+		white-space: nowrap !important;
+		text-align: right !important;
 	}
 }
 
@@ -656,6 +667,17 @@ code {
 		background: #1E293B;
 		color: #E2E8F0;
 		border-color: #475569;
+	}
+
+	.item-history-table tr.history-row,
+	.item-history-table tbody tr:not(.history-header) {
+		background: #1E293B !important;
+		border-color: #334155 !important;
+	}
+
+	.item-history-table tr.history-row.alt,
+	.item-history-table tbody tr.alt {
+		background: #0F172A !important;
 	}
 }
 
