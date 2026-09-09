@@ -205,9 +205,8 @@ public class ItemViewPanel extends BasePanel {
              * @see org.apache.wicket.markup.html.list.ListView#populateItem(org.apache.wicket.markup.html.list.ListItem)
              */
             protected void populateItem(ListItem listItem) {
-                if (listItem.getIndex() % 2 == 0) {
-                    listItem.add(sam);
-                }
+                String customFieldClass = (listItem.getIndex() % 2 == 0 ? "alt " : "") + "row-field-custom";
+                listItem.add(new SimpleAttributeModifier("class", customFieldClass.trim()));
                 
                 Field.Name fieldName = (Field.Name) listItem.getModelObject();
                 Field field = fields.get(fieldName);

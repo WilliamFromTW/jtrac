@@ -168,7 +168,7 @@ code {
    Responsive Web Design (RWD) & Mobile Layout (max-width: 768px)
    ========================================================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 768px), ((pointer: coarse) and (max-width: 1024px)) {
 	body {
 		padding: 6px;
 		font-size: 90%;
@@ -388,7 +388,6 @@ code {
 		box-sizing: border-box !important;
 	}
 
-	table.jtrac-list td.col-timeStamp,
 	table.jtrac-list td.col-lastChanged {
 		display: block !important;
 		width: 100% !important;
@@ -450,25 +449,23 @@ code {
 	}
 
 	/* --- Item View Table 1: Show Only Summary & Detail --- */
-	table.jtrac-view tr.row-field-id,
-	table.jtrac-view tr.row-field-status,
-	table.jtrac-view tr.row-field-custom {
+	table.item-view-table tr {
 		display: none !important;
 	}
 
-	table.jtrac-view {
+	table.item-view-table {
 		display: block !important;
 		width: 100% !important;
 		border: none !important;
 	}
 
-	table.jtrac-view tbody {
+	table.item-view-table tbody {
 		display: block !important;
 		width: 100% !important;
 	}
 
-	table.jtrac-view tr.row-field-summary,
-	table.jtrac-view tr.row-field-detail {
+	table.item-view-table tr.row-field-summary,
+	table.item-view-table tr.row-field-detail {
 		display: block !important;
 		width: 100% !important;
 		background: var(--card-bg) !important;
@@ -480,8 +477,8 @@ code {
 		box-sizing: border-box !important;
 	}
 
-	table.jtrac-view tr.row-field-summary td.label,
-	table.jtrac-view tr.row-field-detail td.label {
+	table.item-view-table tr.row-field-summary td.label,
+	table.item-view-table tr.row-field-detail td.label {
 		display: block !important;
 		width: 100% !important;
 		font-weight: bold !important;
@@ -496,8 +493,8 @@ code {
 		letter-spacing: 0.5px;
 	}
 
-	table.jtrac-view tr.row-field-summary td[wicket\:id="summary"],
-	table.jtrac-view tr.row-field-detail td[wicket\:id="detail"] {
+	table.item-view-table tr.row-field-summary td[wicket\:id="summary"],
+	table.item-view-table tr.row-field-detail td[wicket\:id="detail"] {
 		display: block !important;
 		width: 100% !important;
 		font-size: 1.05em !important;
@@ -508,7 +505,7 @@ code {
 		word-break: break-word;
 	}
 
-	/* --- Item View Table 2: History Discussion Thread (Only Comments & Time) --- */
+	/* --- Item View Table 2: History Discussion Thread (Only Comments, Attachments & Time) --- */
 	.item-history-title {
 		display: block !important;
 		font-size: 1.05em !important;
@@ -566,6 +563,16 @@ code {
 		line-height: 1.5 !important;
 		color: var(--text-color) !important;
 		word-break: break-word;
+	}
+
+	.item-history-table td.col-hist-comment a {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		color: var(--darkblue);
+		font-weight: 500;
+		margin-bottom: 4px;
+		text-decoration: underline;
 	}
 
 	.item-history-table td.col-hist-timeStamp {
