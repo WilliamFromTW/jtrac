@@ -44,9 +44,9 @@ Access the application at `http://localhost:8888/`.
 
 ## Documentation
 
-All detailed project specifications, technical guides, and release notes are organized in the [`docs/`](docs/) directory:
+All detailed project specifications, technical guides, and multilingual documentation are organized in the [`docs/`](docs/) directory:
 
-- **Release Notes & Features (8 Languages)**: [`docs/release_en.md`](docs/release_en.md)
 - **Build & Compilation Guides (8 Languages)**: [`docs/build/BUILD_en.md`](docs/build/BUILD_en.md)
 - **System Administrator Guides (8 Languages)**: [`docs/admin/ADMIN_GUIDE_en.md`](docs/admin/ADMIN_GUIDE_en.md)
 - **Docker Deployment & Volume Guide**: [`docker/README.md`](docker/README.md)
+- **Multilingual Detailed Documentation**: [`docs/`](docs/)
