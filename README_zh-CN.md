@@ -78,6 +78,12 @@
    - 彻底移除过时的 Excel 导入与导出模块，并完全删除 Apache POI 相关依赖，使 WAR 打包体积显著缩减超过 3 MB。
 10. **全系统备份包升级 (Integrated SQL Dump in Backup Bundle)**：
     - 全系统备份 ZIP 压缩包内新增单文件整合 SQL 转储脚本 `jtrac-dump.sql`，包含通用 ANSI DDL、主流数据库方言注释、14 张数据表依外键拓扑排序之 ANSI INSERT 语句与 Sequence 自增重置指令，供 DBA 离线手动灾难恢复与跨库迁移。
+11. **纯项目 ID 附件目录分区存储与 Lucene 全文检索 (Attachment Partitioning & Lucene Indexing)**：
+    - **纯项目 ID 目录结构 (选项 C)**：附件全面依纯数字项目 ID 分区存储（`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`），彻底规避项目更名风险。
+    - **双轨查档安全网 (Dual-Read Fallback)**：读取时自动 Fallback 至根目录与孤儿隔离目录（`attachments/0_ORPHAN/`），确保升级过渡期 0% 下载 404 断链。
+    - **启动全自动迁移升级**：服务器启动时自动扫描平铺附件并归类至项目子目录，完成后建立标记文件（`.attachment_migrated`）避免重复扫描。
+    - **多格式文本抽取与全文检索**：支持 `.xlsx`、`.docx`（纯 JDK 流式 OpenXML 解析）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log`，整合 `SmartCharsetDetector` 智能探测编码防止中文乱码。
+    - **防护网与后台异步队列**：内置单文件 10MB 与 50,000 字符截断防护，新文件上传采用后台线程池（`ExecutorService`）异步索引，并支持“重建索引”全量抽取。
 
 ---
 

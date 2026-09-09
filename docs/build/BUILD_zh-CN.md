@@ -100,6 +100,10 @@ JTrac 2.3.3-2.0.0 采用 Servlet 4.0 规范（`javax.servlet`），兼容主流�
    - 执行升级脚本：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)，注入默认分页大小参数。
 2. **内置 HSQLDB**：
    - 系统启动时由 `HsqldbDatabaseMigrator` 自动备份并无缝迁移至 HSQLDB 2.x，无需手动干预。
+3. **附件存储目录自动迁移**：
+   - 服务器启动时由 `AttachmentStorageMigrator` 自动将平铺历史附件迁移至纯项目 ID 目录（`${jtrac.home}/attachments/{spaceId}/`），无关联孤儿文件隔离至 `attachments/0_ORPHAN/`。
+4. **Lucene 附件全文检索**：
+   - 支持 `.xlsx`、`.docx`（纯 JDK 流式 OpenXML 解析器）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log`，整合 `SmartCharsetDetector` 防止中文乱码，并内置 10MB 与 50,000 字符防护限制。
 
 ---
 

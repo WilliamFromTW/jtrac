@@ -84,6 +84,7 @@ public class Item extends AbstractItem {
      */
     public Document createDocument() {
         Document d = new Document();        
+        d.add(new org.apache.lucene.document.Field("docId", "item:" + getId(), Store.YES, Index.NOT_ANALYZED));
         d.add(new org.apache.lucene.document.Field("id", getId() + "", Store.YES, Index.NO));            
         d.add(new org.apache.lucene.document.Field("type", "item", Store.YES, Index.NO));        
         StringBuffer sb = new StringBuffer();

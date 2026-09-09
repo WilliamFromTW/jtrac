@@ -78,6 +78,12 @@
    - レガシーな Excel インポート・エクスポート機能および Apache POI 依存関係を完全に削除し、WAR パッケージサイズを 3 MB 以上軽量化。
 10. **全システムバックアップ ZIP への SQL ダンプ追加 (Integrated SQL Dump in Backup Bundle)**：
     - 全システムバックアップ ZIP に、ANSI DDL、MySQL/PostgreSQL/HSQLDB 方言注釈、外部キー依存順 ANSI INSERT 文、シーケンス再設定文を含む統合 SQL ダンプファイル `jtrac-dump.sql` を追加。DBA による手動復旧やDB移行に対応。
+11. **プロジェクト ID 別添付ファイル分割保存と Lucene 全文検索 (Attachment Partitioning & Lucene Indexing)**：
+    - **数値プロジェクト ID ディレクトリ構造 (オプション C)**：添付ファイルを純粋な数値プロジェクト ID（`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`）配下に格納し、プロジェクト名変更の影響を完全排除。
+    - **二重読み取りフォールバック (Dual-Read Fallback)**：平坦ルートおよび孤児隔離ディレクトリ（`attachments/0_ORPHAN/`）への自動フォールバックにより、移行期のダウンロード 404 リンク切れを 0% 保証。
+    - **起動時全自動移行**：サーバー起動時に既存添付ファイルを自動検出しプロジェクト別フォルダへ再配置、完了マーカー（`.attachment_migrated`）を生成。
+    - **複数形式テキスト抽出**：`.xlsx`、`.docx`（純 JDK ストリーミング OpenXML パーサー）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log` に対応。`SmartCharsetDetector` で文字化けを防止。
+    - **安全制限と非同期キュー**：1ファイル最大 10MB・50,000 文字制限、バックグラウンドスレッドプール（`ExecutorService`）による非同期インデックス処理により高速なアップロード応答を実現。
 
 ---
 

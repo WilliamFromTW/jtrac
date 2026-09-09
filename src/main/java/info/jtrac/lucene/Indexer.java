@@ -51,7 +51,8 @@ public class Indexer {
             }
             boolean create = !IndexReader.indexExists(indexDirectory);
             writer = new IndexWriter(indexDirectory, analyzer, create, IndexWriter.MaxFieldLength.UNLIMITED);
-            writer.addDocument(item.createDocument());
+            String docIdPrefix = (item instanceof info.jtrac.domain.History) ? "history:" : "item:";
+            writer.updateDocument(new org.apache.lucene.index.Term("docId", docIdPrefix + item.getId()), item.createDocument());
         } catch (Exception e) {
             logger.error("Error indexing item: " + item, e);
             throw new RuntimeException("Error indexing item: " + item, e);

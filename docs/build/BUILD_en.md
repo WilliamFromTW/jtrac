@@ -104,10 +104,12 @@ JTrac 2.3.3-2.0.0 uses Servlet 4.0 specifications (`javax.servlet`) and is compa
 
 ---
 
-## 6. Database Migration (Upgrading from 2.3.3-1.0.0)
+## 6. Database & Storage Migration (Upgrading from 2.3.3-1.0.0)
 
-- **External Databases (MySQL, PostgreSQL, SQL Server, Oracle)**: Run [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) to add pagination parameters.
+- **External Databases (MySQL, PostgreSQL, SQL Server, Oracle)**: Run [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) to add pagination and index parameters.
 - **Embedded HSQLDB**: `HsqldbDatabaseMigrator` automatically backs up and upgrades HSQLDB 1.8 to 2.x on server startup with zero manual configuration.
+- **Attachment Storage Migration**: `AttachmentStorageMigrator` automatically partitions legacy flat attachments into pure numeric space directories (`attachments/{spaceId}/`), isolates unmapped files into `attachments/0_ORPHAN/`, and writes a `.attachment_migrated` marker.
+- **Lucene Full-Text Search**: Built-in text extraction for `.xlsx`, `.docx` (pure JDK streaming OpenXML parser), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` with `SmartCharsetDetector`.
 
 ---
 

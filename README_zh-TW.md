@@ -78,6 +78,12 @@
    - 徹底移除過時的 Excel 匯入與匯出模組，並完全刪除 Apache POI 相關依賴，使 WAR 封裝檔大小大幅縮減超過 3 MB。
 10. **全系統備份包升級 (Integrated SQL Dump in Backup Bundle)**：
     - 全系統備份 ZIP 壓縮檔內新增單一整合 SQL 傾印檔 `jtrac-dump.sql`，包含通用 ANSI DDL、主流資料庫方言註解、14 張資料表依外鍵拓撲排序之 ANSI INSERT 敘述與 Sequence 自增重置指令，提供 DBA 離線手動災難復原與跨庫資料遷移。
+11. **純專案 ID 附件目錄分區儲存與 Lucene 全文檢索 (Attachment Partitioning & Lucene Indexing)**：
+    - **純專案 ID 目錄結構 (選項 C)**：附件全面依純數字專案 ID 分區儲存（`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`），徹底免疫專案更名風險。
+    - **雙軌查檔安全網 (Dual-Read Fallback)**：讀取時自動 Fallback 至根目錄與孤兒隔離目錄（`attachments/0_ORPHAN/`），確保升級過渡期 0% 下載 404 斷鏈。
+    - **啟動全自動搬移升級**：伺服器啟動時自動掃描平鋪附件並歸類至專案子目錄，完成後建立標記檔（`.attachment_migrated`）避免重複掃描。
+    - **多格式文字抽取與全文檢索**：支援 `.xlsx`、`.docx`（純 JDK 串流 OpenXML 解析）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log`，整合 `SmartCharsetDetector` 智慧偵測編碼防止中文亂碼。
+    - **防護網與背景非同步佇列**：內建單檔 10MB 與 50,000 字元截斷防護，新檔上傳採背景執行緒池（`ExecutorService`）非同步索引，並支援「重建索引」全量抽取。
 
 ---
 

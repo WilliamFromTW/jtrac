@@ -78,6 +78,12 @@ Ce projet est dérivé de la version [JTrac 2.3.3 (https://jtrac.info)](https://
    - Suppression complète des fonctionnalités d'import/export Excel et de la bibliothèque Apache POI, réduisant la taille du fichier WAR de plus de 3 Mo.
 10. **Amélioration du Paquet de Sauvegarde Complète (`jtrac-dump.sql`)** :
     - L'archive ZIP de sauvegarde complète inclut désormais un script SQL ANSI autonome complet (`jtrac-dump.sql`), avec DDL ANSI, annotations pour dialectes MySQL/PostgreSQL/HSQLDB, instructions INSERT ordonnées selon les clés étrangères et commandes de réinitialisation des séquences pour la migration ou la reprise après sinistre.
+11. **Partitionnement des Pièces Jointes par Projet & Indexation Plein Texte Lucene** :
+    - **Structure Partitionnée par ID Numérique de Projet (Option C)** : Stockage dans `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, insensible aux renommages de projet.
+    - **Mécanisme de Secours à Double Lecture (Dual-Read Fallback)** : Repli automatique sur le répertoire racine et le dossier d'isolement (`attachments/0_ORPHAN/`), garantissant 0% d'erreurs 404.
+    - **Migration Automatique au Démarrage** : Détection et déplacement automatique des anciennes pièces jointes vers les sous-dossiers projets, avec indicateur de complétion (`.attachment_migrated`).
+    - **Extraction Multi-format** : Prise en charge de `.xlsx`, `.docx` (parseur streaming OpenXML JDK natif), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log`, avec `SmartCharsetDetector` pour éliminer le mojibake.
+    - **Gardes-fous et File d'Attente Asynchrone** : Limites configurables de 10 Mo par fichier et 50 000 caractères ; indexation en tâche de fond (`ExecutorService`) pour des temps de réponse d'upload instantanés.
 
 ---
 

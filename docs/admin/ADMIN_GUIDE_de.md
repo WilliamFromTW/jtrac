@@ -115,4 +115,10 @@ JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion,
 3. **Datensicherung**:
    - Es wird empfohlen, regelmäßig unter **OPTIONS** ➜ **Backup & Restore** ein vollständiges Backup (DB und Anhänge) herunterzuladen.
    - Sichern Sie regelmäßig die Verzeichnisse `data/db/` und `data/attachments/`.
+4. **Anhangpartitionierung & Volltextsuche**:
+   - **Partitionsstruktur nach Projekt-ID (Option C)**: Speicherung unter `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, unempfindlich gegenüber Projektumbenennungen.
+   - **Dual-Read-Fallback-Sicherheitsnetz**: Automatischer Rückfall auf Stammverzeichnis und Quarantäne-Ordner (`attachments/0_ORPHAN/`), garantiert 0% 404-Fehler.
+   - **Volltextsuche & Schutzgrenzen**: Volltextindizierung für `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` mit Schutzgrenzen von 10 MB pro Datei und 50.000 Zeichen (konfigurierbar in `config`).
+   - **Indexneuerstellung**: Jederzeit über **OPTIONS ➜ Rebuild Indexes** ausführbar, um den gesamten Anhangsbestand neu zu indizieren.
+
 

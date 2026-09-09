@@ -78,6 +78,12 @@ Dự án này bắt nguồn từ phiên bản [JTrac 2.3.3 (https://jtrac.info)]
    - Loại bỏ hoàn toàn tính năng nhập/xuất Excel và thư viện Apache POI, giảm kích thước gói WAR hơn 3 MB.
 10. **Nâng Cấp Gói Sao Lưu Toàn Bộ Hệ Thống (`jtrac-dump.sql`)**:
     - Gói ZIP sao lưu toàn bộ hệ thống hiện bao gồm tệp kết xuất SQL độc lập `jtrac-dump.sql` (chứa ANSI DDL, chú thích phương ngữ cho MySQL/PostgreSQL/HSQLDB, các câu lệnh INSERT sắp xếp theo khóa ngoại và lệnh đặt lại sequence) phục vụ di chuyển dữ liệu và khôi phục sự cố.
+11. **Phân Vùng Tệp Đính Kèm Theo ID Dự Án & Lập Chỉ Mục Toàn Văn Lucene**:
+    - **Cấu Trúc Thư Mục Phân Vùng Theo ID Số (Tùy Chọn C)**: Tệp đính kèm được lưu theo ID dự án dạng số thuần túy (`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`), loại bỏ hoàn toàn rủi ro khi đổi tên dự án.
+    - **Cơ Chế Đọc Dự Phòng Kép (Dual-Read Fallback)**: Tự động chuyển hướng về thư mục gốc và thư mục cách ly (`attachments/0_ORPHAN/`), bảo đảm 0% lỗi liên kết tải xuống 404.
+    - **Tự Động Di Chuyển Khi Khởi Động**: Quét và tự động di chuyển tệp đính kèm cũ vào các thư mục dự án khi máy chủ khởi động, kèm tệp đánh dấu hoàn tất (`.attachment_migrated`).
+    - **Trích Xuất Văn Bản Đa Định Dạng**: Hỗ trợ `.xlsx`, `.docx` (bộ phân tích OpenXML thuần JDK), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` cùng công cụ nhận diện bảng mã `SmartCharsetDetector`.
+    - **Giới Hạn Bảo Vệ & Hàng Đợi Bất Đồng Bộ**: Giới hạn 10MB mỗi tệp và 50.000 ký tự; luồng xử lý nền (`ExecutorService`) giúp phản hồi tải lên tức thì.
 
 ---
 

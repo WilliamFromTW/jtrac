@@ -20,7 +20,7 @@
     <bean id="jtrac" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager" ref="transactionManager"/>
         <property name="target">
-            <bean class="info.jtrac.JtracImpl" init-method="init">
+            <bean class="info.jtrac.JtracImpl" init-method="init" destroy-method="destroy">
                 <property name="dao" ref="dao"/>
                 <property name="dataSource" ref="dataSource"/>
                 <property name="passwordEncoder" ref="passwordEncoder"/>

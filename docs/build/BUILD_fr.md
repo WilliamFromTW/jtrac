@@ -53,11 +53,13 @@ JTrac 2.3.3-2.0.0 respecte la spécification Servlet 4.0 (`javax.servlet`) :
 
 ---
 
-## 4. Mise à Niveau de la Base de Données
-
+## 4. Mise à Niveau de la Base de Données et du Stockage
+ 
 Lors de la mise à niveau depuis 2.3.3-1.0.0 :
 - Bases externes (MySQL, PostgreSQL, etc.) : Exécutez [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
 - HSQLDB intégrée : La sauvegarde et la migration s'exécutent automatiquement au démarrage du serveur.
+- Migration des pièces jointes : `AttachmentStorageMigrator` organise automatiquement les anciens fichiers dans des dossiers par ID de projet (`attachments/{spaceId}/`), isolant les orphelins dans `attachments/0_ORPHAN/`.
+- Recherche plein texte : Extraction intégrée pour `.xlsx`, `.docx` (parseur streaming OpenXML JDK natif), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` avec `SmartCharsetDetector`.
 
 ---
 

@@ -115,4 +115,10 @@ JTrac proporciona capacidades nativas de recuperación ante desastres y migraci�
 3. **Copias de Seguridad**:
    - Se recomienda descargar periódicamente una copia de seguridad completa (base de datos y adjuntos) desde **OPTIONS** ➜ **Backup & Restore**.
    - Respalde periódicamente las carpetas `data/db/` y `data/attachments/`.
+4. **Partición de Archivos Adjuntos y Búsqueda de Texto Completo**:
+   - **Estructura Particionada por ID de Proyecto (Opción C)**: Los adjuntos se almacenan en `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, inmunes a cambios de nombre del proyecto.
+   - **Mecanismo de Doble Lectura de Respaldo (Dual-Read Fallback)**: Fallback automático al directorio raíz y a la carpeta de huérfanos (`attachments/0_ORPHAN/`), asegurando 0% de enlaces 404 rotos.
+   - **Búsqueda de Texto Completo y Parámetros de Seguridad**: Indexación de texto para `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` con límite de 10MB por archivo y 50,000 caracteres configurables en `config`.
+   - **Reconstrucción de Índices**: Accesible desde **OPTIONS ➜ Rebuild Indexes** para regenerar todos los índices de adjuntos.
+
 

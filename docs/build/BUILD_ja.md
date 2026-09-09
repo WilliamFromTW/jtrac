@@ -78,11 +78,13 @@ JTrac 2.3.3-2.0.0 は Servlet 4.0 仕様（`javax.servlet`）に準拠してい�
 
 ---
 
-## 5. データベースのアップグレード
-
+## 5. データベースおよびストレージのアップグレード
+ 
 2.3.3-1.0.0 からアップグレードする場合：
 - **外部 DB（MySQL、PostgreSQL など）**：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) を実行。
 - **内蔵 HSQLDB**：サーバー起動時に自動バックアップおよび 2.x への移行が自動実行されます。
+- **添付ファイル保存移行**：`AttachmentStorageMigrator` により起動時に旧添付ファイルをプロジェクト ID 別フォルダ（`${jtrac.home}/attachments/{spaceId}/`）へ自動再配置、孤児ファイルは `attachments/0_ORPHAN/` に隔離。
+- **Lucene 全文検索**：`.xlsx`、`.docx`（純 JDK ストリーミング OpenXML）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log` のテキスト抽出と `SmartCharsetDetector` による文字化け防止を標準搭載。
 
 ---
 

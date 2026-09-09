@@ -121,4 +121,10 @@ flowchart TD
 3. **备份机制**：
    - 推荐定期通过 **OPTIONS** ➜ **Backup & Restore** 下载完整备份包（涵盖数据库与附件）。
    - 定期备份 `data/db/`（或外部数据库）与 `data/attachments/` 附件目录。
+4. **附件纯项目 ID 分区存储与全文检索运维**：
+   - **纯项目 ID 目录结构 (选项 C)**：附件全面存放于 `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`，项目更名或变更代码完全不受影响。
+   - **双轨查档安全网 (Dual-Read Fallback)**：读取文件时自动 Fallback 至根目录与孤儿隔离目录（`attachments/0_ORPHAN/`），确保升级过渡期 0% 下载断链 404。
+   - **全文检索与安全防护参数**：系统支持 `.xlsx`、`.docx`、`.pdf`、`.txt`、`.csv`、`.md`、`.log` 全文索引，默认单文件上限 10MB、抽取上限 50,000 字符（可在 `config` 表调节）。
+   - **重建索引功能**：可随时通过 **OPTIONS ➜ Rebuild Indexes** 重建全文索引，系统将重新抽取所有附件文本纳入 Lucene 索引库。
+
 

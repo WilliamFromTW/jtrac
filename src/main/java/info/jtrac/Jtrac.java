@@ -113,6 +113,8 @@ public interface Jtrac extends UserDetailsService {
     String getDefaultLocale();
     String getJtracHome();
     int getAttachmentMaxSizeInMb();
+    int getAttachmentIndexMaxSizeInMb();
+    int getAttachmentIndexMaxChars();
     int getSessionTimeoutInMinutes();
     //========================================================
     Map<String, String> loadAllConfig();

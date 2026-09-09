@@ -115,4 +115,10 @@ JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ li
 3. **Sao lưu**:
    - Khuyến nghị định kỳ sử dụng **OPTIONS** ➜ **Backup & Restore** để tải bản sao lưu hoàn chỉnh (bao gồm DB và tệp đính kèm).
    - Định kỳ sao lưu thư mục `data/db/` và `data/attachments/`.
+4. **Phân Vùng Tệp Đính Kèm & Tìm Kiếm Toàn Văn**:
+   - **Cấu Trúc Thư Mục Phân Vùng Theo ID Số (Tùy Chọn C)**: Tệp đính kèm lưu tại `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, an toàn tuyệt đối khi đổi tên dự án.
+   - **Cơ Chế Đọc Dự Phòng Kép (Dual-Read Fallback)**: Tự động chuyển hướng về thư mục gốc và thư mục cách ly (`attachments/0_ORPHAN/`), bảo đảm 0% lỗi liên kết tải xuống 404.
+   - **Tìm Kiếm Toàn Văn & Thông Số An Toàn**: Lập chỉ mục toàn văn cho `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` với ngưỡng an toàn 10MB và 50.000 ký tự (có thể cấu hình trong bảng `config`).
+   - **Xây Dựng Lại Chỉ Mục**: Có thể thực hiện bất cứ lúc nào qua **OPTIONS ➜ Rebuild Indexes** để tái lập chỉ mục toàn bộ tệp đính kèm.
+
 

@@ -32,6 +32,15 @@ public class History extends AbstractItem {
     private String comment;
     private Double actualEffort;
     private Attachment attachment;
+    private transient String attachmentText;
+
+    public String getAttachmentText() {
+        return attachmentText;
+    }
+
+    public void setAttachmentText(String attachmentText) {
+        this.attachmentText = attachmentText;
+    }
 
     public History() {
         // zero arg constructor
@@ -61,6 +70,7 @@ public class History extends AbstractItem {
      */
     public Document createDocument() {
         Document d = new Document();
+        d.add(new org.apache.lucene.document.Field("docId", "history:" + getId(), Store.YES, Index.NOT_ANALYZED));
         d.add(new org.apache.lucene.document.Field("id", getId() + "", Store.YES, Index.NO));
         d.add(new org.apache.lucene.document.Field("itemId", getParent().getId() + "", Store.YES, Index.NO));
         d.add(new org.apache.lucene.document.Field("type", "history", Store.YES, Index.NO));
@@ -79,7 +89,19 @@ public class History extends AbstractItem {
                 sb.append(" | ");
             }
             sb.append(comment);
-        }        
+        }
+        if (attachment != null && attachment.getFileName() != null) {
+            if (sb.length() > 0) {
+                sb.append(" | ");
+            }
+            sb.append(attachment.getFileName());
+        }
+        if (attachmentText != null && !attachmentText.isEmpty()) {
+            if (sb.length() > 0) {
+                sb.append(" | ");
+            }
+            sb.append(attachmentText);
+        }
         d.add(new org.apache.lucene.document.Field("text", sb.toString(), Store.NO, Index.TOKENIZED));
         return d;
     }

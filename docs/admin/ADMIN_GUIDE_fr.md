@@ -115,4 +115,10 @@ JTrac propose des fonctionnalités natives de reprise après sinistre et de migr
 3. **Sauvegardes Régulières** :
    - Il est fortement recommandé d'utiliser régulièrement **OPTIONS** ➜ **Backup & Restore** pour télécharger une archive de sauvegarde complète (base de données et pièces jointes).
    - Sauvegardez régulièrement les dossiers `data/db/` et `data/attachments/`.
+4. **Partitionnement des Pièces Jointes et Recherche Plein Texte** :
+   - **Structure Partitionnée par ID de Projet (Option C)** : Fichiers organisés sous `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, insensibles aux renommages.
+   - **Filet de Sécurité à Double Lecture (Dual-Read Fallback)** : Repli automatique vers le dossier racine et la zone orpheline (`attachments/0_ORPHAN/`), assurant 0% d'erreurs 404.
+   - **Recherche Plein Texte & Gardes-Fous** : Indexation plein texte pour `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` avec seuils de 10 Mo par fichier et 50 000 caractères (configurables dans `config`).
+   - **Reconstruction des Index** : Accessible via **OPTIONS ➜ Rebuild Indexes** pour réindexer l'ensemble des pièces jointes.
+
 

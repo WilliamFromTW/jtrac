@@ -119,6 +119,10 @@ JTrac 2.3.3-2.0.0 核心採用 Servlet 4.0 規範（`javax.servlet`），能完�
    - 該腳本會寫入使用者與專案列表的預設分頁筆數配置（預設 25 筆）。
 2. **使用內建 HSQLDB**：
    - 系統在啟動時會自動調用 `HsqldbDatabaseMigrator`，全自動將舊版 HSQLDB 1.8 備份並無痛轉換至 HSQLDB 2.x 結構，**完全無需手動操作**。
+3. **附件儲存目錄自動遷移**：
+   - 伺服器啟動時由 `AttachmentStorageMigrator` 自動將平鋪歷史附件搬移至純專案 ID 目錄（`${jtrac.home}/attachments/{spaceId}/`），無關聯孤兒檔案隔離至 `attachments/0_ORPHAN/`。
+4. **Lucene 附件全文檢索**：
+   - 支援 `.xlsx`、`.docx`（純 JDK 串流 OpenXML 解析器）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log`，整合 `SmartCharsetDetector` 防止中文亂碼，並內建 10MB 與 50,000 字元防護限制。
 
 ---
 

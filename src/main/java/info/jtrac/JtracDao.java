@@ -125,5 +125,6 @@ public interface JtracDao {
     List<info.jtrac.domain.ItemTag> findAllItemTags();
     List<Attachment> findAllAttachments();
     List<History> findAllHistories();
+    java.util.Map<Long, Long> findAttachmentFilePrefixToSpaceIdMap();
     void clearSession();
 }

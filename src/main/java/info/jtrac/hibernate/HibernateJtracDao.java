@@ -676,6 +676,15 @@ public class HibernateJtracDao implements JtracDao {
             session.createQuery("update StoredSearch search set search.newWindow = true where search.newWindow is null").executeUpdate();
             session.createQuery("update User user set user.prettyDates = true where user.prettyDates is null").executeUpdate();
 
+            Config maxSize = session.get(Config.class, "attachment.index.maxSizeMb");
+            if (maxSize == null) {
+                session.save(new Config("attachment.index.maxSizeMb", "10"));
+            }
+            Config maxChars = session.get(Config.class, "attachment.index.maxChars");
+            if (maxChars == null) {
+                session.save(new Config("attachment.index.maxChars", "50000"));
+            }
+
             List<SpaceSequence> ssList = session.createQuery("from SpaceSequence", SpaceSequence.class).getResultList();
             Map<Long, SpaceSequence> ssMap = new HashMap<Long, SpaceSequence>(ssList.size());
             for (SpaceSequence ss : ssList) {
@@ -754,6 +763,36 @@ public class HibernateJtracDao implements JtracDao {
     @Override
     public List<History> findAllHistories() {
         return getCurrentSession().createQuery("from History h order by h.id", History.class).getResultList();
+    }
+
+    @Override
+    public Map<Long, Long> findAttachmentFilePrefixToSpaceIdMap() {
+        Session session;
+        boolean closeSession = false;
+        try {
+            session = sessionFactory.getCurrentSession();
+        } catch (org.hibernate.HibernateException e) {
+            session = sessionFactory.openSession();
+            closeSession = true;
+        }
+        try {
+            List<Object[]> list = session.createQuery(
+                    "select h.attachment.filePrefix, h.parent.space.id from History h where h.attachment is not null",
+                    Object[].class).getResultList();
+            Map<Long, Long> map = new HashMap<Long, Long>(list.size());
+            for (Object[] row : list) {
+                Long filePrefix = (Long) row[0];
+                Long spaceId = (Long) row[1];
+                if (filePrefix != null && spaceId != null) {
+                    map.put(filePrefix, spaceId);
+                }
+            }
+            return map;
+        } finally {
+            if (closeSession && session != null) {
+                session.close();
+            }
+        }
     }
 
     @Override

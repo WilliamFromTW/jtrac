@@ -39,11 +39,15 @@ import info.jtrac.domain.UserSpaceRole;
 import info.jtrac.lucene.IndexSearcher;
 import info.jtrac.lucene.Indexer;
 import info.jtrac.mail.MailSender;
+import info.jtrac.util.AttachmentStorageMigrator;
+import info.jtrac.util.AttachmentTextExtractor;
 import info.jtrac.util.AttachmentUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.sql.DataSource;
 import info.jtrac.backup.model.BackupManifest;
 import info.jtrac.backup.model.SystemBackupData;
@@ -94,6 +98,7 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     private BackupExportService backupExportService;
     private ZipBundleService zipBundleService;
     private BackupRestoreService backupRestoreService;
+    private ExecutorService attachmentIndexExecutor;
     private org.springframework.context.ApplicationContext applicationContext;
 
     @Override
@@ -183,6 +188,73 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         return attachmentMaxSizeInMb;
     }
 
+    public int getAttachmentIndexMaxSizeInMb() {
+        String val = loadConfig("attachment.index.maxSizeMb");
+        if (val != null) {
+            try {
+                return Integer.parseInt(val.trim());
+            } catch (NumberFormatException ignored) {}
+        }
+        return 10;
+    }
+
+    public int getAttachmentIndexMaxChars() {
+        String val = loadConfig("attachment.index.maxChars");
+        if (val != null) {
+            try {
+                return Integer.parseInt(val.trim());
+            } catch (NumberFormatException ignored) {}
+        }
+        return 50000;
+    }
+
+    public void setAttachmentIndexExecutor(ExecutorService attachmentIndexExecutor) {
+        this.attachmentIndexExecutor = attachmentIndexExecutor;
+    }
+
+    public ExecutorService getAttachmentIndexExecutor() {
+        return attachmentIndexExecutor;
+    }
+
+    public void destroy() {
+        logger.info("Shutting down JTrac service lifecycle...");
+        if (attachmentIndexExecutor != null && !attachmentIndexExecutor.isShutdown()) {
+            attachmentIndexExecutor.shutdown();
+        }
+    }
+
+    public void indexHistoryAttachmentAsync(History history, long spaceId, Attachment attachment) {
+        if (indexer == null || attachment == null) {
+            return;
+        }
+        if (attachmentIndexExecutor == null || attachmentIndexExecutor.isShutdown()) {
+            extractAndIndexAttachment(history, spaceId, attachment);
+            return;
+        }
+        attachmentIndexExecutor.submit(() -> {
+            try {
+                extractAndIndexAttachment(history, spaceId, attachment);
+            } catch (Throwable t) {
+                logger.error("Error in async attachment indexer for history id: " + history.getId(), t);
+            }
+        });
+    }
+
+    private void extractAndIndexAttachment(History history, long spaceId, Attachment attachment) {
+        try {
+            File file = AttachmentUtils.getFile(attachment, spaceId, jtracHome);
+            if (file != null && file.exists()) {
+                int maxSizeMb = getAttachmentIndexMaxSizeInMb();
+                int maxChars = getAttachmentIndexMaxChars();
+                String text = AttachmentTextExtractor.extractText(file, maxSizeMb, maxChars);
+                history.setAttachmentText(text);
+            }
+            indexer.index(history);
+        } catch (Throwable t) {
+            logger.error("Error extracting and indexing attachment for history id: " + history.getId(), t);
+        }
+    }
+
     public int getSessionTimeoutInMinutes() {
         return sessionTimeoutInMinutes;
     }
@@ -217,6 +289,16 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
      * TODO move config into a settings class to reduce service clutter
      */
     public void init() {
+        if (jtracHome != null && dao != null) {
+            AttachmentStorageMigrator.migrate(jtracHome, dao);
+        }
+        if (attachmentIndexExecutor == null || attachmentIndexExecutor.isShutdown()) {
+            attachmentIndexExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "attachment-indexer-thread");
+                t.setDaemon(true);
+                return t;
+            });
+        }
         Map<String, String> config = loadAllConfig();
         initDefaultLocale(config.get("locale.default"));
         initMailSender(config);
@@ -284,10 +366,14 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     }
 
     private void writeToFile(FileUpload fileUpload, Attachment attachment) {
+        writeToFile(fileUpload, attachment, 0L);
+    }
+
+    private void writeToFile(FileUpload fileUpload, Attachment attachment, long spaceId) {
         if(fileUpload == null) {
             return;
         }
-        File file = AttachmentUtils.getFile(attachment, jtracHome);
+        File file = AttachmentUtils.getAttachmentFileForWrite(attachment, spaceId, jtracHome);
         try {
             fileUpload.writeTo(file);
         } catch (Exception e) {
@@ -316,10 +402,14 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         // se http://opensource.atlassian.com/projects/hibernate/browse/HHH-1401
         // TODO confirm if above does not happen anymore
         dao.storeItem(item);
-        writeToFile(fileUpload, attachment);
+        writeToFile(fileUpload, attachment, item.getSpace().getId());
         if(indexer != null) {
             indexer.index(item);
-            indexer.index(history);
+            if(attachment != null) {
+                indexHistoryAttachmentAsync(history, item.getSpace().getId(), attachment);
+            } else {
+                indexer.index(history);
+            }
         }
         if (item.isSendNotifications()) {
             mailSender.send(item);
@@ -392,9 +482,13 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         }
         item.add(history);
         dao.storeItem(item);
-        writeToFile(fileUpload, attachment);
+        writeToFile(fileUpload, attachment, item.getSpace().getId());
         if(indexer != null) {
-            indexer.index(history);
+            if(attachment != null) {
+                indexHistoryAttachmentAsync(history, item.getSpace().getId(), attachment);
+            } else {
+                indexer.index(history);
+            }
         }
         if (history.isSendNotifications()) {
             mailSender.send(item);
@@ -853,7 +947,20 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
                 // more flexibility e.g. fine-grained search results
 
                 int historyCount = 0;
+                int maxSizeMb = getAttachmentIndexMaxSizeInMb();
+                int maxChars = getAttachmentIndexMaxChars();
                 for(History history : item.getHistory()) {
+                    if (history.getAttachment() != null) {
+                        try {
+                            File attFile = AttachmentUtils.getFile(history.getAttachment(), item.getSpace().getId(), jtracHome);
+                            if (attFile != null && attFile.exists()) {
+                                String text = AttachmentTextExtractor.extractText(attFile, maxSizeMb, maxChars);
+                                history.setAttachmentText(text);
+                            }
+                        } catch (Exception e) {
+                            logger.warn("Could not extract attachment text for history id: " + history.getId(), e);
+                        }
+                    }
                     indexer.index(history);
                     historyCount++;
                 }

@@ -128,4 +128,10 @@ JTrac provides built-in, native full-system disaster recovery and migration capa
    - Attachments: Regularly backup `data/attachments/`.
 4. **Reverse Proxy & HTTPS**:
    - When placing behind Nginx/Apache with HTTPS, set `jtrac.url.base` to `https://...` and preserve `Host` and `X-Forwarded-Proto` headers.
+5. **Attachment Storage Partitioning & Full-Text Search**:
+   - **Space-Partitioned Directory Structure (Option C)**: Attachments are organized by pure numeric Space ID (`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`), eliminating project renaming risks.
+   - **Dual-Read Fallback**: Automated fallback to flat root and orphan quarantine directory (`attachments/0_ORPHAN/`), guaranteeing 0% 404 broken download links during and after migration.
+   - **Full-Text Search & Guardrails**: Whitelist text indexing for `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` with configurable guardrails (`attachment.index.maxSizeMb` = 10MB, `attachment.index.maxChars` = 50,000 characters).
+   - **Rebuild Indexes**: Accessible via **OPTIONS ➜ Rebuild Indexes**, supporting full attachment content re-indexing.
+
 

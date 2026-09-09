@@ -78,6 +78,12 @@ This project is derived from [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.in
    - Completely removed legacy Excel import/export functionality and eliminated Apache POI dependencies, reducing the WAR package size by >3 MB.
 10. **Enhanced Full-System Backup Bundle (`jtrac-dump.sql`)**:
    - Full-system backup ZIP bundle now contains a comprehensive, cross-database ANSI SQL dump file (`jtrac-dump.sql`), complete with ANSI DDL, MySQL/PostgreSQL/HSQLDB dialect notes, foreign-key ordered INSERT statements, and sequence reset hints for DBA disaster recovery and database migration.
+11. **Space-Partitioned Attachments & Lucene Full-Text Indexing**:
+   - **Space-Partitioned Directory Structure (Option C)**: Stored by pure numeric space ID (`attachments/{spaceId}/{filePrefix}_{fileName}`), completely immune to space code or name changes.
+   - **Dual-Read Fallback**: Automated fallback to flat root and orphan quarantine directory (`attachments/0_ORPHAN/`), guaranteeing 0% 404 broken download links during and after migration.
+   - **Automated Startup Migration**: Automatically scans legacy flat attachments on server startup and partitions them into space subdirectories with a completion marker (`.attachment_migrated`).
+   - **Lucene Full-Text Search**: Whitelist text extraction for `.xlsx`, `.docx` (pure JDK streaming OpenXML parser), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` with `SmartCharsetDetector` (BOM detection and scoring heuristic).
+   - **Guardrails & Async Processing**: 10MB file limit and 50,000 character limit stored in `config`; async queue indexing for instant upload response; full attachment support in index rebuilds.
 
 ---
 

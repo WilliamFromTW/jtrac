@@ -78,6 +78,12 @@ Este proyecto se deriva de la versión [JTrac 2.3.3 (https://jtrac.info)](https:
    - Eliminación total de la importación y exportación de Excel y de la biblioteca Apache POI, reduciendo el tamaño del archivo WAR en más de 3 MB.
 10. **Paquete de Copia de Seguridad Mejorado (`jtrac-dump.sql`)**:
     - El archivo ZIP de copia de seguridad completa incluye ahora un volcado SQL ANSI integral (`jtrac-dump.sql`), con DDL ANSI, notas de dialectos MySQL/PostgreSQL/HSQLDB, instrucciones INSERT ordenadas por dependencias de claves foráneas y comandos de restablecimiento de secuencias para recuperación ante desastres y migración de BD por DBA.
+11. **Partición de Archivos Adjuntos e Indexación de Texto Completo con Lucene**:
+    - **Estructura Particionada por ID de Proyecto (Opción C)**: Almacenamiento organizado por ID numérico puro (`attachments/{spaceId}/{prefix}_{filename}`), eliminando riesgos por cambios de nombre de proyecto.
+    - **Mecanismo de Doble Lectura de Respaldo (Dual-Read Fallback)**: Respaldo automático al directorio raíz y a la carpeta de aislamiento de huérfanos (`attachments/0_ORPHAN/`), garantizando 0% de enlaces rotos (404).
+    - **Migración Automática en Inicio**: Detección y migración automática de archivos adjuntos antiguos a subcarpetas de proyectos al arrancar el servidor, con marca de finalización (`.attachment_migrated`).
+    - **Extracción de Texto Multiformato**: Compatible con `.xlsx`, `.docx` (analizador OpenXML streaming nativo de JDK), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log`, con detector inteligente `SmartCharsetDetector` para evitar caracteres corruptos.
+    - **Límites de Seguridad y Cola Asíncrona**: Límite de 10MB por archivo y 50,000 caracteres; cola en segundo plano (`ExecutorService`) para respuestas instantáneas de carga.
 
 ---
 

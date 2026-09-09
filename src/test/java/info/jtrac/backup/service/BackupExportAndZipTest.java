@@ -349,5 +349,6 @@ public class BackupExportAndZipTest {
         @Override public StoredSearch loadStoredSearch(Long id) { return null; }
         @Override public void removeStoredSearch(StoredSearch storedSearchToDel) {}
         @Override public void clearSession() {}
+        @Override public Map<Long, Long> findAttachmentFilePrefixToSpaceIdMap() { return Collections.emptyMap(); }
     }
 }

@@ -78,6 +78,12 @@ Dieses Projekt basiert auf der Version [JTrac 2.3.3 (https://jtrac.info)](https:
    - Vollständige Entfernung des Excel-Imports/-Exports und der Apache-POI-Bibliothek; das WAR-Paket wurde um mehr als 3 MB verkleinert.
 10. **Erweiterte Gesamtsystemsicherung (`jtrac-dump.sql`)**:
     - Das Sicherungs-ZIP-Archiv enthält nun eine vollständige ANSI-SQL-Dump-Datei `jtrac-dump.sql` (inklusive ANSI DDL, Dialektnotizen für MySQL/PostgreSQL/HSQLDB, fremdschlüsselgeordneten INSERT-Befehlen und Sequenz-Reset-Befehlen) für manuelle DBA-Wiederherstellungen und Datenbankmigrationen.
+11. **Projekt-ID-basierte Anhangpartitionierung & Lucene-Volltextindizierung**:
+    - **Partitionsstruktur nach numerischer Projekt-ID (Option C)**: Speicherung unter `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, vollständig immun gegen Projektumbenennungen.
+    - **Dual-Read-Fallback-Sicherheitsnetz**: Automatischer Rückfall auf Stammverzeichnis und Quarantäne-Ordner (`attachments/0_ORPHAN/`), garantiert 0% 404-Fehler.
+    - **Automatische Start-Migration**: Überprüfung und automatische Sortierung bestehender Anhänge in Projektunterverzeichnisse mit Fertigstellungsmarkierung (`.attachment_migrated`).
+    - **Mehrformat-Textextraktion**: Unterstützung für `.xlsx`, `.docx` (reiner JDK-Streaming-OpenXML-Parser), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` mit `SmartCharsetDetector`.
+    - **Schutzgrenzen & Asynchrone Warteschlange**: Konfigurierbare Obergrenzen von 10 MB pro Datei und 50.000 Zeichen; asynchroner Hintergrund-Thread-Pool (`ExecutorService`) für sofortige Upload-Antworten.
 
 ---
 

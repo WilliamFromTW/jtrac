@@ -171,4 +171,10 @@ sequenceDiagram
    - 附件目錄：預設位於 `data/attachments/`，請定期納入備份排程。
 4. **反向代理與 HTTPS 配置**：
    - 若生產環境透過 Nginx、Apache 或 Caddy 進行反向代理並啟用 HTTPS，請將 `jtrac.url.base` 設定為對應的 `https://...` 網址，並確認反向代理設定中保留 `Host` 與 `X-Forwarded-Proto` 標頭。
+5. **附件純專案 ID 分區儲存與全文檢索運維**：
+   - **純專案 ID 目錄結構 (選項 C)**：附件全面存放於 `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`，專案更名或變更代碼完全不受影響。
+   - **雙軌查檔安全網 (Dual-Read Fallback)**：讀取檔案時自動 Fallback 至根目錄與孤兒隔離目錄（`attachments/0_ORPHAN/`），確保升級與歷史附件 0% 斷鏈 404。
+   - **全文檢索與安全防護參數**：系統支援 `.xlsx`、`.docx`、`.pdf`、`.txt`、`.csv`、`.md`、`.log` 全文索引，預設單檔上限 10MB、抽取上限 50,000 字元（可於 `config` 表調節）。
+   - **重建索引功能**：可隨時透過 **OPTIONS ➜ Rebuild Indexes** 重建全文索引，系統會重新抽取所有附件文字納入 Lucene 索引庫。
+
 

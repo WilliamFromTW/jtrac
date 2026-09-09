@@ -76,11 +76,13 @@ JTrac 2.3.3-2.0.0 hỗ trợ chuẩn Servlet 4.0 (`javax.servlet`):
 
 ---
 
-## 5. Nâng cấp Cơ sở Dữ liệu
-
+## 5. Nâng cấp Cơ sở Dữ liệu & Lưu trữ
+ 
 Khi nâng cấp từ 2.3.3-1.0.0:
 - Cơ sở dữ liệu bên ngoài (MySQL, PostgreSQL, v.v.): Chạy [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
 - HSQLDB nhúng: Tự động sao lưu và nâng cấp lên 2.x khi khởi động máy chủ.
+- Di chuyển tệp đính kèm: `AttachmentStorageMigrator` tự động di chuyển tệp cũ vào thư mục theo ID dự án (`attachments/{spaceId}/`), cách ly tệp mồ côi vào `attachments/0_ORPHAN/`.
+- Tìm kiếm toàn văn: Tích hợp trích xuất văn bản cho `.xlsx`, `.docx` (bộ phân tích OpenXML thuần JDK), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` cùng `SmartCharsetDetector`.
 
 ---
 
