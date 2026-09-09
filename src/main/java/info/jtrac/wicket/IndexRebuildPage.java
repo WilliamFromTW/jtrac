@@ -16,15 +16,15 @@
 
 package info.jtrac.wicket;
 
-import info.jtrac.Jtrac;
 import info.jtrac.domain.BatchInfo;
-import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.model.IModel;
+
 import java.time.Duration;
 
 /**
@@ -45,70 +45,74 @@ public class IndexRebuildPage extends BasePage {
     /**
      * wicket form
      */    
-    private class RebuildIndexesForm extends Form {
-        
-        private BatchInfo batchInfo = new BatchInfo();
-        private String errorMessage;
-        private boolean complete;
+    private class RebuildIndexesForm extends Form<Void> {
         
         public RebuildIndexesForm(String id) {
-            
             super(id);
-            
-            final Label progress = new Label("progress");
-            progress.setOutputMarkupId(true);               
-            
-            Button button = new Button("start") {
+
+            final WebMarkupContainer actions = new WebMarkupContainer("actions");
+            actions.setOutputMarkupId(true);
+            actions.setOutputMarkupPlaceholderTag(true);
+            add(actions);
+
+            final Label progress = new Label("progress", new AbstractReadOnlyModel<String>() {
                 @Override
-                public void onSubmit() {
-                    // hide the button
-                    this.setVisible(false);                                        
-                    // long running process, use thread
-                    new Thread() {   
-                        private transient Jtrac jtrac = getJtrac();
-                        public void run() {                            
-                            try {                                
-                                jtrac.rebuildIndexes(batchInfo);                                
-                            } catch (Exception e) { 
-                                logger.error("indexing error", e);
-                                errorMessage = e.getMessage();                                
-                            }
-                            complete = true;
-                        }                    
-                    }.start();
-                    
-                    // poll and update the progress every 5 seconds
-                    progress.add(new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)));
-                    IModel model = new AbstractReadOnlyModel() {
-                        public Object getObject() {
-                            if(complete) {
-                                if(errorMessage != null) {
-                                    setResponsePage(new ErrorPage(errorMessage));
-                                } else {
-                                    // reshow the page, with success message
-                                    setResponsePage(new IndexRebuildPage(true));
-                                }
-                            }
-                            int total = batchInfo.getTotalSize();
-                            int current = batchInfo.getCurrentPosition();
-                            int percent = total == 0 ? 0 : 100 * current / total;
-                            return percent + "% [" + current + " / " + total + "]";
-                        };
-                    };
-                    progress.setDefaultModel(model);             
+                public String getObject() {
+                    BatchInfo status = getJtrac().getIndexRebuildStatus();
+                    if (status == null) {
+                        return "";
+                    }
+                    return status.getProgressText();
+                }
+            });
+            progress.setOutputMarkupId(true);
+            progress.setOutputMarkupPlaceholderTag(true);
+            add(progress);
+
+            final AbstractAjaxTimerBehavior timer = new AbstractAjaxTimerBehavior(Duration.ofSeconds(1)) {
+                @Override
+                protected void onTimer(AjaxRequestTarget target) {
+                    BatchInfo status = getJtrac().getIndexRebuildStatus();
+                    if (status != null && status.isComplete()) {
+                        stop(target);
+                        if (status.getErrorMessage() != null) {
+                            setResponsePage(new ErrorPage(status.getErrorMessage()));
+                        } else {
+                            setResponsePage(new IndexRebuildPage(true));
+                        }
+                    } else {
+                        target.add(progress);
+                    }
                 }
             };
-            
-            add(button);
-            
-            add(new Link("cancel") {
+
+            BatchInfo currentStatus = getJtrac().getIndexRebuildStatus();
+            boolean isRunning = currentStatus != null && !currentStatus.isComplete();
+
+            if (isRunning) {
+                actions.setVisible(false);
+                progress.add(timer);
+            }
+
+            AjaxButton button = new AjaxButton("start", this) {
+                @Override
+                protected void onSubmit(AjaxRequestTarget target) {
+                    getJtrac().startRebuildIndexes();
+                    actions.setVisible(false);
+                    target.add(actions);
+
+                    progress.add(timer);
+                    target.add(progress);
+                }
+            };
+            actions.add(button);
+
+            actions.add(new Link<Void>("cancel") {
+                @Override
                 public void onClick() {
                     setResponsePage(OptionsPage.class);
                 }
-                
             });
-
-            add(progress);            
         }
         
     }

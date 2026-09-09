@@ -28,12 +28,26 @@ public class BatchInfo implements Serializable {
     
     private static final int BATCH_SIZE = 500;
     
-    private int batchSize = BATCH_SIZE;  
-    private int totalSize;
-    private int currentPosition;
+    private volatile int batchSize = BATCH_SIZE;  
+    private volatile int totalSize;
+    private volatile int currentPosition;
+    private volatile boolean complete;
+    private volatile String errorMessage;
 
     public boolean isComplete() {
-        return currentPosition >= totalSize;
+        return complete;
+    }
+
+    public void setComplete(boolean complete) {
+        this.complete = complete;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
     
     public void incrementPosition() {
@@ -62,6 +76,17 @@ public class BatchInfo implements Serializable {
 
     public void setTotalSize(int totalSize) {
         this.totalSize = totalSize;
-    }        
+    }
+
+    public int getPercent() {
+        if (totalSize <= 0) {
+            return 0;
+        }
+        return (int) Math.min(100, Math.round((currentPosition * 100.0) / totalSize));
+    }
+
+    public String getProgressText() {
+        return getPercent() + "% [" + currentPosition + " / " + totalSize + "]";
+    }
 
 }

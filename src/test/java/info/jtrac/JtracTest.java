@@ -435,4 +435,18 @@ public class JtracTest extends JtracTestBase {
         Map<Long, List<UserSpaceRole>> map = jtrac.loadSpaceRolesMapForUser(u1.getId());
         Assert.assertEquals(1, map.size());
     }
+
+	@Test
+    public void testStartRebuildIndexesLifecycle() throws Exception {
+        jtrac.startRebuildIndexes();
+        info.jtrac.domain.BatchInfo status = jtrac.getIndexRebuildStatus();
+        Assert.assertNotNull(status);
+
+        long start = System.currentTimeMillis();
+        while (!status.isComplete() && System.currentTimeMillis() - start < 10000) {
+            Thread.sleep(50);
+        }
+        Assert.assertTrue(status.isComplete());
+        Assert.assertNull(status.getErrorMessage());
+    }
 }

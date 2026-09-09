@@ -923,6 +923,39 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
 
     //========================================================
 
+    private volatile BatchInfo indexRebuildStatus;
+    private final Object indexRebuildLock = new Object();
+
+    public BatchInfo getIndexRebuildStatus() {
+        return indexRebuildStatus;
+    }
+
+    public void startRebuildIndexes() {
+        synchronized (indexRebuildLock) {
+            if (indexRebuildStatus != null && !indexRebuildStatus.isComplete()) {
+                logger.warn("rebuildIndexes is already in progress");
+                return;
+            }
+            final BatchInfo batchInfo = new BatchInfo();
+            indexRebuildStatus = batchInfo;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        getJtracProxy().rebuildIndexes(batchInfo);
+                    } catch (Exception e) {
+                        logger.error("indexing error", e);
+                        batchInfo.setErrorMessage(e.getMessage());
+                    } finally {
+                        batchInfo.setComplete(true);
+                    }
+                }
+            }, "JTrac-IndexRebuild");
+            thread.setDaemon(true);
+            thread.start();
+        }
+    }
+
     public void rebuildIndexes(BatchInfo batchInfo) {
         File file = new File(jtracHome + "/indexes");
         for (File f : file.listFiles()) {
@@ -979,12 +1012,13 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
             if(logger.isDebugEnabled()) {
                 logger.debug("setting firstResult to: " + firstResult);
             }
-            if(batchInfo.isComplete()) {
+            if(items.isEmpty() || batchInfo.getCurrentPosition() >= batchInfo.getTotalSize()) {
                 logger.info("batch completed at position: " + batchInfo.getCurrentPosition());
                 break;
             }
         }
-
+        batchInfo.setComplete(true);
+        logger.info("indexing completed successfully, total indexed: " + batchInfo.getCurrentPosition());
     }
 
     public boolean validateTextSearchQuery(String text) {

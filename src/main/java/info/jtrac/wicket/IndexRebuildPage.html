@@ -6,13 +6,16 @@
                 <p>
                     <img src="resources/warning.gif" class="nav-link"/>
                     <wicket:message key="index_rebuild.warning"/>  
-                    <wicket:enclosure child="start">
-                        <input type="submit" wicket:id="start" wicket:message="value:submit"/>
-                        <p/>
-                        <a href="#" wicket:id="cancel"><img src="resources/cancel.gif" class="nav-link"/><wicket:message key="cancel"/></a>                                              
-                    </wicket:enclosure>
-                </p>                                                        
-                <span wicket:id="progress" class="selected"></span>
+                </p>
+                <div wicket:id="actions">
+                    <p/>
+                    <input type="submit" wicket:id="start" wicket:message="value:submit"/>
+                    <p/>
+                    <a href="#" wicket:id="cancel"><img src="resources/cancel.gif" class="nav-link"/><wicket:message key="cancel"/></a>                                              
+                </div>                                                        
+                <p>
+                    <span wicket:id="progress" class="selected"></span>
+                </p>
             </form>            
         </wicket:extend>
     </body>

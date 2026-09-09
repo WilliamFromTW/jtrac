@@ -123,6 +123,8 @@ public interface Jtrac extends UserDetailsService {
     String loadConfig(String param, String defaultValue);
     //========================================================
     void rebuildIndexes(BatchInfo batchInfo);
+    BatchInfo getIndexRebuildStatus();
+    void startRebuildIndexes();
     boolean validateTextSearchQuery(String text);
     //========================================================
     void executeHourlyTask();
