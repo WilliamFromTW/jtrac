@@ -280,6 +280,12 @@ code {
 	}
 
 	/* --- Mobile Hidden Elements (New, Export, Options) --- */
+	.nav-header td.nav-tab-new,
+	.nav-header td.nav-tab-export,
+	.nav-header td.nav-tab-options,
+	.nav-header .nav-tab-new,
+	.nav-header .nav-tab-export,
+	.nav-header .nav-tab-options,
 	.nav-tab-new,
 	.nav-tab-export,
 	.nav-tab-options,

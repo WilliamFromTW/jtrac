@@ -51,6 +51,7 @@ public class LogoutPage extends WebPage {
     public void renderHead(org.apache.wicket.markup.head.IHeaderResponse response) {
         super.renderHead(response);
         String cp = getRequest().getContextPath();
-        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css"));
+        String version = JtracApplication.get().getJtrac().getReleaseVersion();
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + version));
     }
 }
