@@ -119,6 +119,9 @@ JTrac proporciona capacidades nativas de recuperación ante desastres y migraci�
    - **Estructura Particionada por ID de Proyecto (Opción C)**: Los adjuntos se almacenan en `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, inmunes a cambios de nombre del proyecto.
    - **Mecanismo de Doble Lectura de Respaldo (Dual-Read Fallback)**: Fallback automático al directorio raíz y a la carpeta de huérfanos (`attachments/0_ORPHAN/`), asegurando 0% de enlaces 404 rotos.
    - **Búsqueda de Texto Completo y Parámetros de Seguridad**: Indexación de texto para `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` con límite de 10MB por archivo y 50,000 caracteres configurables en `config`.
-   - **Reconstrucción de Índices**: Accesible desde **OPTIONS ➜ Rebuild Indexes** para regenerar todos los índices de adjuntos.
+   - **Reconstrucción de Índices y Optimización de Búsqueda**:
+     - Con el analizador mejorado `JtracAnalyzer` (tokenización estándar, minúsculas y lematizador Porter), las consultas coinciden automáticamente entre singular/plural y tiempos verbales (por ejemplo, buscar `window` coincide exactamente con documentos que contienen `Windows`; buscar `test` coincide con `tests`/`testing`).
+     - Incorpora respaldo inteligente de prefijo: palabras simples (longitud >= 2) sin coincidencias exactas se expanden automáticamente a prefijo comodín (`win` a `win*`). Los caracteres CJK conservan su tokenización unigrama exacta, y los caracteres acentuados mantienen su precisión original.
+     - **Requisito Tras la Actualización**: Tras actualizar la versión, los administradores deben ir a **OPTIONS ➜ Rebuild Indexes** y ejecutar una reconstrucción completa de índices para reprocesar registros y adjuntos históricos con las nuevas reglas de lematización.
 
 

@@ -119,6 +119,9 @@ JTrac propose des fonctionnalités natives de reprise après sinistre et de migr
    - **Structure Partitionnée par ID de Projet (Option C)** : Fichiers organisés sous `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, insensibles aux renommages.
    - **Filet de Sécurité à Double Lecture (Dual-Read Fallback)** : Repli automatique vers le dossier racine et la zone orpheline (`attachments/0_ORPHAN/`), assurant 0% d'erreurs 404.
    - **Recherche Plein Texte & Gardes-Fous** : Indexation plein texte pour `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` avec seuils de 10 Mo par fichier et 50 000 caractères (configurables dans `config`).
-   - **Reconstruction des Index** : Accessible via **OPTIONS ➜ Rebuild Indexes** pour réindexer l'ensemble des pièces jointes.
+   - **Reconstruction des Index et Optimisation de la Recherche** :
+     - Grâce à l'analyseur amélioré `JtracAnalyzer` (tokenisation standard, minuscules et racinisation Porter), les requêtes font correspondre automatiquement le singulier/pluriel et les temps verbaux (ex. rechercher `window` correspond exactement aux documents contenant `Windows` ; rechercher `test` correspond à `tests`/`testing`).
+     - Comprend un repli automatique par préfixe intelligent : les mots simples (longueur >= 2) sans correspondance exacte sont automatiquement étendus en requêtes avec astérisque (`win` vers `win*`). Les caractères CJK conservent leur tokenisation unigramme exacte, et les caractères accentués préservent leur précision.
+     - **Action Requise Après Mise à Niveau** : Après une mise à niveau, les administrateurs doivent se rendre dans **OPTIONS ➜ Rebuild Indexes** et lancer une reconstruction complète pour réindexer les tickets et pièces jointes historiques selon les nouvelles règles.
 
 

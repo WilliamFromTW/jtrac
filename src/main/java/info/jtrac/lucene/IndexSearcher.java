@@ -86,6 +86,20 @@ public class IndexSearcher {
             reader = IndexReader.open(indexDirectory, true);
             searcher = new org.apache.lucene.search.IndexSearcher(reader);
             TopDocs topDocs = searcher.search(query, 1000);
+
+            // If no hits found for a simple single word, attempt automatic prefix wildcard fallback (e.g. win -> win*)
+            if (topDocs.scoreDocs.length == 0 && isEligibleForPrefixFallback(text)) {
+                try {
+                    Query fallbackQuery = parser.parse(text.trim() + "*");
+                    TopDocs fallbackDocs = searcher.search(fallbackQuery, 1000);
+                    if (fallbackDocs.scoreDocs.length > 0) {
+                        topDocs = fallbackDocs;
+                    }
+                } catch (Exception e) {
+                    logger.debug("Prefix fallback search failed for '{}': {}", text, e.getMessage());
+                }
+            }
+
             List<Long> hitIds = new ArrayList<Long>(topDocs.scoreDocs.length);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
@@ -114,5 +128,22 @@ public class IndexSearcher {
                 }
             }
         }
+    }
+
+    private boolean isEligibleForPrefixFallback(String text) {
+        if (text == null) {
+            return false;
+        }
+        String trimmed = text.trim();
+        if (trimmed.length() < 2) {
+            return false;
+        }
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (!Character.isLetterOrDigit(c) && c != '_' && c != '-') {
+                return false;
+            }
+        }
+        return true;
     }
 }

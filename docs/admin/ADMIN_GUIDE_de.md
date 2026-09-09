@@ -119,6 +119,9 @@ JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion,
    - **Partitionsstruktur nach Projekt-ID (Option C)**: Speicherung unter `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, unempfindlich gegenüber Projektumbenennungen.
    - **Dual-Read-Fallback-Sicherheitsnetz**: Automatischer Rückfall auf Stammverzeichnis und Quarantäne-Ordner (`attachments/0_ORPHAN/`), garantiert 0% 404-Fehler.
    - **Volltextsuche & Schutzgrenzen**: Volltextindizierung für `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` mit Schutzgrenzen von 10 MB pro Datei und 50.000 Zeichen (konfigurierbar in `config`).
-   - **Indexneuerstellung**: Jederzeit über **OPTIONS ➜ Rebuild Indexes** ausführbar, um den gesamten Anhangsbestand neu zu indizieren.
+   - **Indexneuerstellung & Suchoptimierung**:
+     - Durch den erweiterten `JtracAnalyzer` (Standard-Tokenisierung, Kleinschreibung und Porter-Stemming) stimmen Abfragen automatisch mit Singular/Plural und Zeitformen überein (z. B. findet die Suche nach `window` Dokumente mit `Windows`; `test` findet `tests`/`testing`).
+     - Enthält einen intelligenten Präfix-Fallback: einfache Wörter (Länge >= 2) ohne exakte Treffer werden automatisch zu Wildcard-Präfixabfragen erweitert (`win` zu `win*`). CJK-Zeichen behalten ihre Unigram-Tokenisierung bei, und Umlaute behalten ihre Genauigkeit.
+     - **Erforderliche Maßnahme nach dem Upgrade**: Nach einem Upgrade müssen Administratoren unter **OPTIONS ➜ Rebuild Indexes** eine vollständige Indexneuerstellung durchführen, um historische Vorgänge und Anhänge nach den neuen Regeln zu verarbeiten.
 
 

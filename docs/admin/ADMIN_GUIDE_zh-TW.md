@@ -175,6 +175,9 @@ sequenceDiagram
    - **純專案 ID 目錄結構 (選項 C)**：附件全面存放於 `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`，專案更名或變更代碼完全不受影響。
    - **雙軌查檔安全網 (Dual-Read Fallback)**：讀取檔案時自動 Fallback 至根目錄與孤兒隔離目錄（`attachments/0_ORPHAN/`），確保升級與歷史附件 0% 斷鏈 404。
    - **全文檢索與安全防護參數**：系統支援 `.xlsx`、`.docx`、`.pdf`、`.txt`、`.csv`、`.md`、`.log` 全文索引，預設單檔上限 10MB、抽取上限 50,000 字元（可於 `config` 表調節）。
-   - **重建索引功能**：可隨時透過 **OPTIONS ➜ Rebuild Indexes** 重建全文索引，系統會重新抽取所有附件文字納入 Lucene 索引庫。
+   - **重建索引與詞幹/前綴檢索維護 (Rebuild Indexes & Search Optimization)**：
+     - 系統採用強化型 `JtracAnalyzer`（整合標準分詞、小寫轉換與 Porter 英文詞幹分析），自動對齊英文單複數與時態（例如輸入 `window` 可精確命中包含 `Windows` 的附件與工單；輸入 `test` 命中 `tests`/`testing`）。
+     - 具備智慧前綴備援機制（長度 >= 2 個字元之單純單詞在查無精確結果時自動擴展為 `prefix*`，例如輸入 `win` 自動比對 `win*`）。中文/CJK 字符維持標準 Unigram 切詞，音標與全形字元維持原始精準度。
+     - **升級後必要操作**：系統升級後，請務必由管理員前往 **OPTIONS ➜ Rebuild Indexes** 執行一次索引重建，將現存工單與歷史附件以新詞幹規則重新納入 Lucene 索引庫。
 
 

@@ -132,6 +132,9 @@ JTrac provides built-in, native full-system disaster recovery and migration capa
    - **Space-Partitioned Directory Structure (Option C)**: Attachments are organized by pure numeric Space ID (`${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`), eliminating project renaming risks.
    - **Dual-Read Fallback**: Automated fallback to flat root and orphan quarantine directory (`attachments/0_ORPHAN/`), guaranteeing 0% 404 broken download links during and after migration.
    - **Full-Text Search & Guardrails**: Whitelist text indexing for `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` with configurable guardrails (`attachment.index.maxSizeMb` = 10MB, `attachment.index.maxChars` = 50,000 characters).
-   - **Rebuild Indexes**: Accessible via **OPTIONS ➜ Rebuild Indexes**, supporting full attachment content re-indexing.
+   - **Rebuild Indexes & Search Optimization**:
+     - Powered by the enhanced `JtracAnalyzer` (integrating standard tokenization, lowercasing, and Porter English stemming), queries automatically match plural/singular forms and verb tenses (e.g. searching `window` precisely matches documents containing `Windows`; searching `test` matches `tests`/`testing`).
+     - Features intelligent prefix fallback: simple words (length >= 2) with zero exact stem matches automatically expand to prefix wildcard queries (`win` falls back to `win*`). Multilingual CJK characters preserve exact unigram tokenization, and European accented characters maintain strict precision.
+     - **Post-Upgrade Requirement**: Following an upgrade, administrators must navigate to **OPTIONS ➜ Rebuild Indexes** and run a full index rebuild to re-process historical items and attachments under the new stemming rules.
 
 

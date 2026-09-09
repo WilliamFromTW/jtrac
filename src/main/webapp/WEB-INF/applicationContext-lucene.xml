@@ -9,7 +9,7 @@
         <property name="path" value="${jtrac.home}/indexes"/>
     </bean>
     
-    <bean id="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer"/>
+    <bean id="analyzer" class="info.jtrac.lucene.JtracAnalyzer"/>
 
     <bean id="indexer" class="info.jtrac.lucene.Indexer">
         <property name="indexDirectory" ref="indexDirectory"/>

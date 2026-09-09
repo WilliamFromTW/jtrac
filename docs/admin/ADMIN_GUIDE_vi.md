@@ -119,6 +119,9 @@ JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ li
    - **Cấu Trúc Thư Mục Phân Vùng Theo ID Số (Tùy Chọn C)**: Tệp đính kèm lưu tại `${jtrac.home}/attachments/{spaceId}/{prefix}_{filename}`, an toàn tuyệt đối khi đổi tên dự án.
    - **Cơ Chế Đọc Dự Phòng Kép (Dual-Read Fallback)**: Tự động chuyển hướng về thư mục gốc và thư mục cách ly (`attachments/0_ORPHAN/`), bảo đảm 0% lỗi liên kết tải xuống 404.
    - **Tìm Kiếm Toàn Văn & Thông Số An Toàn**: Lập chỉ mục toàn văn cho `.xlsx`, `.docx`, `.pdf`, `.txt`, `.csv`, `.md`, `.log` với ngưỡng an toàn 10MB và 50.000 ký tự (có thể cấu hình trong bảng `config`).
-   - **Xây Dựng Lại Chỉ Mục**: Có thể thực hiện bất cứ lúc nào qua **OPTIONS ➜ Rebuild Indexes** để tái lập chỉ mục toàn bộ tệp đính kèm.
+   - **Tái Lập Chỉ Mục & Tối Ưu Hóa Tìm Kiếm Toàn Văn**:
+     - Được trang bị bộ phân tích tăng cường `JtracAnalyzer` (tích hợp phân tách chuẩn, chuyển chữ thường và phân tích từ gốc tiếng Anh Porter), truy vấn tự động khớp số ít/số nhiều và thì động từ (ví dụ: tìm `window` sẽ khớp chính xác tài liệu chứa `Windows`; tìm `test` khớp `tests`/`testing`).
+     - Tích hợp cơ chế dự phòng tiền tố thông minh: các từ đơn giản (độ dài >= 2) không có kết quả khớp từ gốc chính xác sẽ tự động mở rộng thành truy vấn ký tự đại diện (`win` chuyển thành `win*`). Các ký tự CJK duy trì phân đoạn unigram chuẩn, và các ký tự có dấu thanh/ngữ âm được bảo toàn độ chính xác.
+     - **Yêu Cầu Sau Khi Nâng Cấp**: Sau khi nâng cấp, quản trị viên bắt buộc phải vào **OPTIONS ➜ Rebuild Indexes** và chạy tái lập chỉ mục toàn bộ một lần để xử lý lại các công việc và tệp đính kèm lịch sử theo quy tắc từ gốc mới.
 
 
