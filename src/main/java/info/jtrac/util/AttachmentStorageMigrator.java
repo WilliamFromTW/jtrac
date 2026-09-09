@@ -46,7 +46,7 @@ public class AttachmentStorageMigrator {
         if (flatFiles == null || flatFiles.length == 0) {
             writeMarker(marker);
             logger.info("No legacy attachment files found in root attachments directory. Marked as migrated.");
-            return true;
+            return false;
         }
 
         Map<Long, Long> prefixToSpaceMap = dao.findAttachmentFilePrefixToSpaceIdMap();
@@ -74,18 +74,19 @@ public class AttachmentStorageMigrator {
                 destDir.mkdirs();
             }
 
-            File destFile = new File(destDir, name);
+            Path targetPath = destDir.toPath().resolve(name);
             try {
-                moveFileSafely(file.toPath(), destFile.toPath());
-            } catch (Exception e) {
-                logger.error("Failed to migrate attachment file " + name + " to " + destFile.getAbsolutePath(), e);
+                Files.move(file.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                logger.debug("Migrated attachment file '{}' -> '{}'", file.getName(), targetPath);
+            } catch (IOException e) {
+                logger.error("Failed to move attachment file '{}' to '{}': {}", file.getAbsolutePath(), targetPath, e.getMessage());
             }
         }
 
         writeMarker(marker);
         logger.info("Attachment storage migration completed: {} migrated to space folders, {} quarantined to orphan folder",
                 migratedCount, orphanCount);
-        return true;
+        return (migratedCount > 0 || orphanCount > 0);
     }
 
     public static Long extractFilePrefix(String fileName) {

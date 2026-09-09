@@ -39,6 +39,7 @@ import info.jtrac.domain.UserSpaceRole;
 import info.jtrac.lucene.IndexSearcher;
 import info.jtrac.lucene.Indexer;
 import info.jtrac.mail.MailSender;
+import info.jtrac.tools.HsqldbDatabaseMigrator;
 import info.jtrac.util.AttachmentStorageMigrator;
 import info.jtrac.util.AttachmentTextExtractor;
 import info.jtrac.util.AttachmentUtils;
@@ -289,8 +290,9 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
      * TODO move config into a settings class to reduce service clutter
      */
     public void init() {
+        boolean attachmentsMigrated = false;
         if (jtracHome != null && dao != null) {
-            AttachmentStorageMigrator.migrate(jtracHome, dao);
+            attachmentsMigrated = AttachmentStorageMigrator.migrate(jtracHome, dao);
         }
         if (attachmentIndexExecutor == null || attachmentIndexExecutor.isShutdown()) {
             attachmentIndexExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -305,6 +307,14 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         initAttachmentMaxSize(config.get("attachment.maxsize"));
         initSessionTimeout(config.get("session.timeout"));
         initBackupServices();
+
+        // Proactively rebuild Lucene indexes in background if legacy data was migrated
+        boolean dbMigrated = HsqldbDatabaseMigrator.isDatabaseMigrated();
+        if (attachmentsMigrated || dbMigrated) {
+            logger.info("Legacy data migration detected (attachmentsMigrated={}, dbMigrated={}). Proactively launching background Lucene index rebuild...",
+                    attachmentsMigrated, dbMigrated);
+            startRebuildIndexes();
+        }
     }
 
     private void initBackupServices() {

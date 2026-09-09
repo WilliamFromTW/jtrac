@@ -30,6 +30,16 @@ public class HsqldbDatabaseMigrator {
 
     private static final Pattern UNICODE_ESCAPE_PATTERN = Pattern.compile("\\\\u([0-9a-fA-F]{4})");
 
+    private static volatile boolean databaseMigrated;
+
+    public static boolean isDatabaseMigrated() {
+        return databaseMigrated;
+    }
+
+    public static void setDatabaseMigrated(boolean migrated) {
+        databaseMigrated = migrated;
+    }
+
     /**
      * Check whether the specified database directory contains a legacy HSQLDB 1.8 database,
      * and if so, automatically migrate it to HSQLDB 2.x.
@@ -60,6 +70,7 @@ public class HsqldbDatabaseMigrator {
 
         try {
             migrate(dbDir, dbName, true);
+            databaseMigrated = true;
             logger.info("================================================================================");
             logger.info("HSQLDB DATABASE MIGRATION TO 2.x COMPLETED SUCCESSFULLY!");
             logger.info("================================================================================");
