@@ -74,8 +74,9 @@ public class BackupRestoreService {
         SystemBackupData currentData = jtrac != null ? jtrac.exportSystemData() : backupExportService.exportSystemData();
         BackupManifest manifest = backupExportService.createManifest(currentData, operatorLoginName);
 
+        String sqlDump = backupExportService != null ? backupExportService.generateSqlDump(currentData) : null;
         try (FileOutputStream fos = new FileOutputStream(snapshotFile)) {
-            zipBundleService.createBackupZip(manifest, currentData, jtracHome, fos);
+            zipBundleService.createBackupZip(manifest, currentData, sqlDump, jtracHome, fos);
         }
 
         logger.info("Safety snapshot successfully created at: {}", snapshotFile.getAbsolutePath());

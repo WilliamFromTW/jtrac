@@ -235,11 +235,6 @@
 			<version>${log4j2.version}</version>
 		</dependency>
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>5.2.5</version>
-        </dependency>
-        <dependency>
             <groupId>org.tmate</groupId>
             <artifactId>javasvn</artifactId>
             <version>1.0.4</version>

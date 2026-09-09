@@ -24,9 +24,7 @@ import info.jtrac.domain.History;
 import info.jtrac.domain.Item;
 import info.jtrac.domain.ItemSearch;
 import info.jtrac.util.DateUtils;
-import info.jtrac.util.ExcelUtils;
 import info.jtrac.util.ItemUtils;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -193,33 +191,6 @@ public class ItemListPanel extends BasePanel {
             }
         });
                 
-        //========================== EXCEL EXPORT ==============================
-        
-        add(new Link("exportToExcel") {
-            public void onClick() {
-                // temporarily switch off paging of results
-                itemSearch.setPageSize(-1);
-                final ExcelUtils eu = new ExcelUtils(getJtrac().findItems(itemSearch), itemSearch);
-                // restore page size
-                itemSearch.setPageSize(pageSize);
-                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
-                    @Override
-                    public void respond(IRequestCycle requestCycle) {
-                        WebResponse r = (WebResponse) requestCycle.getResponse();
-                        r.setAttachmentHeader("jtrac-export.xls");
-                        try {
-                            Map<Name, String> labels = BasePage.getLocalizedLabels(ItemListPanel.this);
-                            eu.exportToExcel(labels).write(r.getOutputStream());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    @Override
-                    public void detach(IRequestCycle requestCycle) {
-                    }                    
-                });
-            }
-        });
         
         //====================== HEADER ========================================        
 

@@ -929,7 +929,9 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     @Override
     public BackupExportService getBackupExportService() {
         if (backupExportService == null) {
-            backupExportService = new BackupExportService(dao, releaseVersion, jtracHome);
+            backupExportService = new BackupExportService(dao, releaseVersion, jtracHome, dataSource);
+        } else if (backupExportService.getDataSource() == null) {
+            backupExportService.setDataSource(dataSource);
         }
         return backupExportService;
     }
@@ -961,7 +963,8 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     public void exportBackupZip(OutputStream out, String operatorLoginName) throws Exception {
         SystemBackupData data = exportSystemData();
         BackupManifest manifest = getBackupExportService().createManifest(data, operatorLoginName);
-        getZipBundleService().createBackupZip(manifest, data, jtracHome, out);
+        String sqlDump = getBackupExportService().generateSqlDump(data);
+        getZipBundleService().createBackupZip(manifest, data, sqlDump, jtracHome, out);
     }
 
     @Override

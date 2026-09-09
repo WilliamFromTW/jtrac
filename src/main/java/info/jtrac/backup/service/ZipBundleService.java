@@ -37,6 +37,13 @@ public class ZipBundleService {
      * Bundle manifest, structured JSON data, and physical attachment files into a single ZIP stream.
      */
     public void createBackupZip(BackupManifest manifest, SystemBackupData data, String jtracHome, OutputStream out) throws IOException {
+        createBackupZip(manifest, data, null, jtracHome, out);
+    }
+
+    /**
+     * Bundle manifest, structured JSON data, SQL dump script, and physical attachment files into a single ZIP stream.
+     */
+    public void createBackupZip(BackupManifest manifest, SystemBackupData data, String sqlDump, String jtracHome, OutputStream out) throws IOException {
         logger.info("Starting ZIP bundle creation...");
         ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(out), StandardCharsets.UTF_8);
 
@@ -53,7 +60,14 @@ public class ZipBundleService {
             zos.write(dataBytes);
             zos.closeEntry();
 
-            // 3. Write physical attachments
+            // 3. Write jtrac-dump.sql
+            if (sqlDump != null && !sqlDump.trim().isEmpty()) {
+                zos.putNextEntry(new ZipEntry("jtrac-dump.sql"));
+                zos.write(sqlDump.getBytes(StandardCharsets.UTF_8));
+                zos.closeEntry();
+            }
+
+            // 4. Write physical attachments
             if (jtracHome != null) {
                 File attachDir = new File(jtracHome, "attachments");
                 if (attachDir.exists() && attachDir.isDirectory()) {

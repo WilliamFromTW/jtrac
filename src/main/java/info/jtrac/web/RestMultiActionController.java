@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.codec.binary.Base64;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -85,8 +86,8 @@ public class RestMultiActionController extends AbstractMultiActionController {
             String basic = st.nextToken();
             if (basic.equalsIgnoreCase("Basic")) {
                 String credentials = st.nextToken();
-                Base64 decoder = new Base64();
-                String userPass = new String(decoder.decode(credentials.getBytes()));
+                byte[] decodedBytes = Base64.getDecoder().decode(credentials);
+                String userPass = new String(decodedBytes, StandardCharsets.UTF_8);
                 int p = userPass.indexOf(":");
                 if (p == -1) {
                     return false;

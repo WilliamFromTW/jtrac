@@ -126,6 +126,138 @@ public class BackupExportAndZipTest {
         assertEquals("Hello JTrac Backup!", new String(Files.readAllBytes(extractedFile.toPath()), StandardCharsets.UTF_8));
     }
 
+    @Test
+    public void testSqlDumpGenerationAndZipPackaging() throws Exception {
+        StubJtracDao dao = new StubJtracDao();
+
+        Config cfg = new Config("users.list.pageSize", "25");
+        dao.configs.add(cfg);
+
+        Tag tag = new Tag();
+        tag.setId(5L);
+        tag.setName("backend");
+        tag.setDescription("Backend tickets");
+        dao.tags.add(tag);
+
+        Metadata md = new Metadata();
+        md.setId(1L);
+        md.setName("Default Meta");
+        md.setXmlString("<metadata/>");
+        dao.metadatas.add(md);
+
+        Space space = new Space();
+        space.setId(10L);
+        space.setPrefixCode("TEST");
+        space.setName("Test Project");
+        space.setMetadata(md);
+        space.setGuestAllowed(true);
+        space.setIsActive(true);
+        dao.spaces.add(space);
+
+        User user = new User();
+        user.setId(20L);
+        user.setLoginName("john_doe");
+        user.setName("John O'Connor");
+        user.setPassword("hashedPass");
+        user.setEmail("john@example.com");
+        user.setLocked(false);
+        user.setPrettyDates(true);
+        dao.users.add(user);
+
+        UserSpaceRole usr = new UserSpaceRole(user, space, Role.ROLE_ADMIN);
+        usr.setId(30L);
+        dao.userSpaceRoles.add(usr);
+
+        Item item = new Item();
+        item.setId(100L);
+        item.setSpace(space);
+        item.setSequenceNum(1L);
+        item.setLoggedBy(user);
+        item.setSummary("Fix user's profile bug");
+        item.setDetail("Quotes in detail: 'O'Reilly' and \"double quotes\"");
+        item.setStatus(1);
+        item.setTimeStamp(new Date());
+        dao.items.add(item);
+
+        History history = new History();
+        history.setId(200L);
+        history.setParent(item);
+        history.setLoggedBy(user);
+        history.setComment("Fixed user's issue in rev 123");
+        history.setTimeStamp(new Date());
+        dao.histories.add(history);
+
+        File mockHome = tempDir.resolve("jtracHomeSql").toFile();
+        mockHome.mkdirs();
+
+        BackupExportService exportService = new BackupExportService(dao, "2.3.3-2.0.0", mockHome.getAbsolutePath());
+        SystemBackupData data = exportService.exportSystemData();
+        BackupManifest manifest = exportService.createManifest(data, "admin");
+
+        // 1. Generate SQL dump
+        String sql = exportService.generateSqlDump(data, "HSQL Database Engine 2.7.2");
+        assertNotNull(sql);
+
+        // Header assertions
+        assertTrue(sql.contains("JTrac Database Dump (jtrac-dump.sql)"));
+        assertTrue(sql.contains("HSQL Database Engine 2.7.2"));
+        assertTrue(sql.contains("2.3.3-2.0.0"));
+
+        // DDL assertions
+        assertTrue(sql.contains("CREATE TABLE config ("));
+        assertTrue(sql.contains("CREATE TABLE tags ("));
+        assertTrue(sql.contains("CREATE TABLE storedsearch ("));
+        assertTrue(sql.contains("CREATE TABLE metadata ("));
+        assertTrue(sql.contains("CREATE TABLE space_sequence ("));
+        assertTrue(sql.contains("CREATE TABLE spaces ("));
+        assertTrue(sql.contains("CREATE TABLE users ("));
+        assertTrue(sql.contains("CREATE TABLE user_space_roles ("));
+        assertTrue(sql.contains("CREATE TABLE attachments ("));
+        assertTrue(sql.contains("CREATE TABLE items ("));
+        assertTrue(sql.contains("CREATE TABLE item_items ("));
+        assertTrue(sql.contains("CREATE TABLE item_users ("));
+        assertTrue(sql.contains("CREATE TABLE item_tags ("));
+        assertTrue(sql.contains("CREATE TABLE history ("));
+
+        // Dialect reference comments assertions
+        assertTrue(sql.contains("-- MySQL:"));
+        assertTrue(sql.contains("-- PostgreSQL:"));
+        assertTrue(sql.contains("-- HSQLDB:"));
+
+        // Single quote escaping assertions
+        assertTrue(sql.contains("'John O''Connor'"));
+        assertTrue(sql.contains("'Fix user''s profile bug'"));
+        assertTrue(sql.contains("'Quotes in detail: ''O''Reilly'' and \"double quotes\"'"));
+        assertTrue(sql.contains("'Fixed user''s issue in rev 123'"));
+
+        // Sequence / Auto-Increment assertions
+        assertTrue(sql.contains("-- ALTER TABLE items AUTO_INCREMENT = 101;"));
+        assertTrue(sql.contains("-- ALTER TABLE history AUTO_INCREMENT = 201;"));
+        assertTrue(sql.contains("-- SELECT setval(pg_get_serial_sequence('items', 'id'), 100, true);"));
+        assertTrue(sql.contains("-- ALTER TABLE items ALTER COLUMN id RESTART WITH 101;"));
+
+        // 2. Package into ZIP with SQL dump
+        ZipBundleService zipService = new ZipBundleService();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        zipService.createBackupZip(manifest, data, sql, mockHome.getAbsolutePath(), baos);
+
+        byte[] zipBytes = baos.toByteArray();
+        assertTrue(zipBytes.length > 0);
+
+        // 3. Extract and verify jtrac-dump.sql is present
+        File extractDir = tempDir.resolve("extractedSql").toFile();
+        ZipBundleService.ZipExtractResult result = zipService.extractAndParseZip(
+                new ByteArrayInputStream(zipBytes), extractDir);
+
+        assertNotNull(result.getManifest());
+        assertNotNull(result.getData());
+
+        File extractedSqlFile = new File(extractDir, "jtrac-dump.sql");
+        assertTrue(extractedSqlFile.exists(), "jtrac-dump.sql must exist in extracted backup root");
+        String extractedSqlContent = new String(Files.readAllBytes(extractedSqlFile.toPath()), StandardCharsets.UTF_8);
+        assertEquals(sql, extractedSqlContent, "Extracted SQL content must match generated SQL dump");
+    }
+
     // Minimal DAO Stub for testing export
     private static class StubJtracDao implements JtracDao {
         List<Config> configs = new ArrayList<>();

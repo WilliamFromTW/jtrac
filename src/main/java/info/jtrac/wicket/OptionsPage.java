@@ -71,13 +71,6 @@ public class OptionsPage extends BasePage {
             }
         }.setVisible(isSuperUser));
 
-        // for the future
-        add(new Link("import") {
-            public void onClick() {
-                setResponsePage(new ExcelImportPage());
-            }
-        }.setVisible(isSuperUser));
-
         add(new Link("backupRestore") {
             public void onClick() {
                 setResponsePage(new BackupRestorePage());

@@ -42,7 +42,7 @@ public abstract class BasePage extends WebPage {
     
     protected static final Logger logger = LoggerFactory.getLogger(BasePage.class);        
     
-    // helper to avoid polluting non-wicket packages (e.g. excel export, import) with Wicket i18n
+    // helper to retrieve localized column labels using Wicket i18n
     public static Map<Name, String> getLocalizedLabels(Component c) {
         Map<Name, String> map = new EnumMap<Name, String>(Name.class);
         for(Name name : Name.values()) {
