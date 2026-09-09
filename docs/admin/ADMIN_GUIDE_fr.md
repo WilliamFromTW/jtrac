@@ -9,7 +9,8 @@
 2. [Paramètres d'Initialisation Obligatoires](#2-paramètres-dinitialisation-obligatoires)
 3. [Architecture et Flux E-mail (Mermaid)](#3-architecture-et-flux-e-mail-mermaid)
 4. [Fonctions d'Administration Principales](#4-fonctions-dadministration-principales)
-5. [Sécurité, Mise à Niveau de la Base de Données et Maintenance](#5-sécurité-mise-à-niveau-de-la-base-de-données-et-maintenance)
+5. [Sauvegarde et Restauration Complète du Système (Bouclier Anti-Verrouillage)](#5-sauvegarde-et-restauration-complète-du-système-bouclier-anti-verrouillage)
+6. [Sécurité, Mise à Niveau de la Base de Données et Maintenance](#6-sécurité-mise-à-niveau-de-la-base-de-données-et-maintenance)
 
 ---
 
@@ -86,10 +87,26 @@ flowchart TD
 | **Rebuild Indexes** | Reconstruire l'index de recherche plein texte Lucene. |
 | **Import From Excel** | Importation en masse de tickets via Excel. |
 | **Export HTML** | Exportation HTML et téléchargement ZIP directement depuis le Web. |
+| **Backup & Restore** | Sauvegarde et restauration complète du système : Réservé aux SuperUsers. Permet le téléchargement en 1 clic d'une archive ZIP regroupant la base de données et les pièces jointes, ainsi qu'une restauration sécurisée avec instantané automatique et bouclier anti-verrouillage. |
 
 ---
 
-## 5. Sécurité, Mise à Niveau de la Base de Données et Maintenance
+## 5. Sauvegarde et Restauration Complète du Système (Bouclier Anti-Verrouillage)
+
+JTrac propose des fonctionnalités natives de reprise après sinistre et de migration de données pour l'ensemble du système, exclusivement accessibles aux utilisateurs disposant des privilèges SuperUser :
+
+1. **Exportation Complète de la Sauvegarde en Un Clic** :
+   - Accédez à **OPTIONS** ➜ **Backup & Restore**.
+   - Cliquez sur **Télécharger la sauvegarde (.zip)**. L'ensemble des entités de la base de données (configurations, utilisateurs, espaces, tickets, historique, pièces jointes, etc.) est sérialisé dans un format JSON standard multiplateforme et compressé avec le répertoire physique `${jtrac.home}/attachments/` dans une unique archive `.zip` horodatée prête au téléchargement.
+2. **Moteur de Restauration Sécurisée (Safe Restore Engine)** :
+   - Sélectionnez un fichier ZIP de sauvegarde JTrac valide, cochez la case de confirmation d'écrasement et cliquez sur **Exécuter la restauration**.
+   - **Instantané d'Urgence Automatique sur le Serveur (Safety Snapshot)** : Avant d'écraser les données existantes, le système crée automatiquement une sauvegarde instantanée dans `${jtrac.home}/backups/` sur le serveur, garantissant un retour en arrière immédiat en cas d'imprévu.
+   - **Bouclier Anti-Verrouillage des Identifiants Administrateur (Anti-Lockout Credential Shield)** : Le moteur identifie l'administrateur en train de procéder à la restauration. Même si l'archive de sauvegarde contient des mots de passe administrateur oubliés ou obsolètes, le système **préserve obligatoirement le hachage du mot de passe actif et les privilèges `ROLE_ADMIN` de l'opérateur en cours** (ou l'injecte s'il est absent), éliminant tout risque de verrouillage hors du système.
+   - **Reconstruction Asynchrone des Index de Recherche en Arrière-Plan** : Une fois la restauration terminée, les index de recherche plein texte Lucene sont automatiquement reconstruits en tâche de fond. La session administrateur reste active sans la moindre interruption.
+
+---
+
+## 6. Sécurité, Mise à Niveau de la Base de Données et Maintenance
 
 1. **Sécurité des Mots de Passe (Migration BCrypt)** :
    - Migration vers Spring Security 5.8 avec hachage BCrypt. Les anciens hachages MD5 sont automatiquement convertis en BCrypt lors de la connexion réussie.
@@ -97,4 +114,6 @@ flowchart TD
    - Bases externes : Exécutez [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB intégrée : Sauvegarde et mise à niveau automatiques vers 2.x au démarrage du serveur.
 3. **Sauvegardes Régulières** :
+   - Il est fortement recommandé d'utiliser régulièrement **OPTIONS** ➜ **Backup & Restore** pour télécharger une archive de sauvegarde complète (base de données et pièces jointes).
    - Sauvegardez régulièrement les dossiers `data/db/` et `data/attachments/`.
+

@@ -9,7 +9,8 @@
 2. [系統初始化必填關鍵設定 (極重要)](#二系統初始化必填關鍵設定-極重要)
 3. [系統架構與郵件流程圖 (Mermaid)](#三系統架構與郵件流程圖-mermaid)
 4. [常用系統管理功能指引](#四常用系統管理功能指引)
-5. [安全維護、資料庫升級與日常運維建議](#五安全維護資料庫升級與日常運維建議)
+5. [全系統備份、還原與防鎖死機制 (System Backup & Restore)](#五全系統備份還原與防鎖死機制-system-backup--restore)
+6. [安全維護、資料庫升級與日常運維建議](#六安全維護資料庫升級與日常運維建議)
 
 ---
 
@@ -138,10 +139,26 @@ sequenceDiagram
 | **Rebuild Indexes** | Lucene 全文檢索索引重建：手動操作資料庫或檢索結果異常時，一鍵重新建立全文檢索索引庫。 |
 | **Import From Excel** | Excel 批次匯入：支援透過制式 Excel 試算表批次匯入專案歷程與 Issue 清單。 |
 | **Export HTML (導航列)** | 離線 HTML 匯出與 ZIP 下載：可於網頁直接勾選複數空間打包下載完整靜態討論串與附件。 |
+| **Backup & Restore** | 全系統備份與還原：最高管理員專屬功能，支援一鍵下載跨資料庫與附件之單一備份 ZIP，並提供安全還原（具備自動快照與防鎖死保護）。 |
 
 ---
 
-## 五、安全維護、資料庫升級與日常運維建議
+## 五、全系統備份、還原與防鎖死機制 (System Backup & Restore)
+
+本系統具備原生之全系統災難復原與資料遷移機制，僅限最高管理員（SuperUser）操作：
+
+1. **一鍵匯出全系統備份包 (Full Backup Bundle)**：
+   - 前往 **OPTIONS** ➜ **Backup & Restore (系統備份與還原)**。
+   - 點擊「**下載備份 (.zip)**」按鈕，系統會將 Config、Users、Spaces、Items、History、Attachments 等所有資料庫實體序列化為跨資料庫通用標準 JSON，並與實體附件目錄（`${jtrac.home}/attachments/`）合併壓縮為單一 `.zip` 檔案供即時下載。
+2. **安全系統還原 (Safe Restore Engine)**：
+   - 選擇合法的 JTrac 備份 `.zip` 檔案並勾選確認覆蓋方塊，點擊「**執行還原**」。
+   - **自動建立伺服器端緊急快照 (Safety Snapshot)**：在執行任何覆寫前，系統會自動在伺服器端 `${jtrac.home}/backups/` 產生一份當前系統的完整快照，確保任何意外皆可回復。
+   - **最高管理員防鎖死保護 (Anti-Lockout Credential Shield)**：還原時系統會自動辨識目前正在操作還原的管理者帳號。即使備份檔中的管理者密碼已遺失或為舊密碼，系統仍會**強制保留當前登入者之密碼雜湊與最高管理權限 (`ROLE_ADMIN`)**，若備份中無該帳號則主動注入，徹底杜絕管理員遭反鎖於系統外的風險。
+   - **背景非同步重建搜尋索引**：還原完成後，系統自動於背景重建 Lucene 全量全文檢索索引，且管理員 Session 保持有效無中斷，可立即繼續瀏覽與操作工單。
+
+---
+
+## 六、安全維護、資料庫升級與日常運維建議
 
 1. **密碼安全性升級 (BCrypt & Hybrid Migration)**：
    - 本增強版 JTrac 已全面升級至 Spring Security 5.8，支援強安全的 BCrypt 密碼雜湊。
@@ -150,7 +167,9 @@ sequenceDiagram
    - 若使用外部關聯式資料庫（MySQL、PostgreSQL、SQL Server、Oracle），請執行腳本：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)。
    - 若使用內建 HSQLDB，系統啟動時由 `HsqldbDatabaseMigrator` 自動建立備份並無縫遷移至 HSQLDB 2.x，無需手動執行 SQL。
 3. **定期資料備份**：
+   - 推薦定期使用 **OPTIONS** ➜ **Backup & Restore** 下載完整備份包，包含資料庫紀錄與實體附件。
    - 資料庫檔案：預設位於 `data/db/`（HSQLDB），若使用外部關聯式資料庫請依照常規排程進行備份。
    - 附件目錄：預設位於 `data/attachments/`，請定期納入備份排程。
 4. **反向代理與 HTTPS 配置**：
    - 若生產環境透過 Nginx、Apache 或 Caddy 進行反向代理並啟用 HTTPS，請將 `jtrac.url.base` 設定為對應的 `https://...` 網址，並確認反向代理設定中保留 `Host` 與 `X-Forwarded-Proto` 標頭。
+

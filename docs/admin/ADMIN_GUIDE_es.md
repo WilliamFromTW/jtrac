@@ -9,7 +9,8 @@
 2. [Configuración Inicial Obligatoria](#2-configuración-inicial-obligatoria)
 3. [Flujograma del Sistema y Correo (Mermaid)](#3-flujograma-del-sistema-y-correo-mermaid)
 4. [Funciones Principales de Administración](#4-funciones-principales-de-administración)
-5. [Seguridad, Actualización de Base de Datos y Mantenimiento](#5-seguridad-actualización-de-base-de-datos-y-mantenimiento)
+5. [Copia de Seguridad y Restauración Completa del Sistema (Protección Antibloqueo)](#5-copia-de-seguridad-y-restauración-completa-del-sistema-protección-antibloqueo)
+6. [Seguridad, Actualización de Base de Datos y Mantenimiento](#6-seguridad-actualización-de-base-de-datos-y-mantenimiento)
 
 ---
 
@@ -86,10 +87,26 @@ flowchart TD
 | **Rebuild Indexes** | Reconstruir el índice de búsqueda Lucene. |
 | **Import From Excel** | Importar incidencias mediante plantillas de Excel. |
 | **Export HTML** | Exportación de incidencias a HTML y ZIP desde la web. |
+| **Backup & Restore** | Copia de seguridad y restauración completa del sistema: Exclusivo para SuperUsers. Permite la descarga en 1 clic de un archivo ZIP con base de datos y adjuntos, y restauración segura con instantánea de emergencia y protección antibloqueo de credenciales. |
 
 ---
 
-## 5. Seguridad, Actualización de Base de Datos y Mantenimiento
+## 5. Copia de Seguridad y Restauración Completa del Sistema (Protección Antibloqueo)
+
+JTrac proporciona capacidades nativas de recuperación ante desastres y migración de todo el sistema, disponibles exclusivamente para administradores con privilegios de SuperUser:
+
+1. **Exportación de Paquete de Respaldo Completo en un Clic**:
+   - Navegue a **OPTIONS** ➜ **Backup & Restore**.
+   - Haga clic en **Descargar respaldo (.zip)**. Todas las entidades de la base de datos (configuraciones, usuarios, espacios, incidencias, historial, adjuntos, etc.) se serializan en un formato JSON estándar multiplataforma y se comprimen junto con el directorio físico `${jtrac.home}/attachments/` en un único archivo `.zip` con marca de tiempo listo para su descarga inmediata.
+2. **Motor de Restauración Segura (Safe Restore Engine)**:
+   - Seleccione un archivo `.zip` de respaldo válido de JTrac, marque la casilla de verificación de confirmación de sobrescritura y haga clic en **Ejecutar restauración**.
+   - **Instantánea de Emergencia Automática en el Servidor (Safety Snapshot)**: Antes de sobrescribir cualquier dato existente, el sistema crea automáticamente una instantánea completa en `${jtrac.home}/backups/` en el servidor, garantizando que el estado actual siempre se pueda revertir ante imprevistos.
+   - **Escudo de Protección Antibloqueo de Credenciales (Anti-Lockout Credential Shield)**: El motor identifica al administrador que ejecuta la restauración. Incluso si el respaldo contiene contraseñas desactualizadas u olvidadas, el sistema **preserva obligatoriamente el hash de contraseña activo y el estatus de `ROLE_ADMIN` del operador actual** (o lo inyecta si no existía), eliminando por completo el riesgo de que el administrador quede bloqueado fuera del sistema.
+   - **Reconstrucción Asíncrona de Índices de Búsqueda**: Una vez finalizada la restauración, los índices de búsqueda de texto completo Lucene se reconstruyen automáticamente en segundo plano. La sesión activa del administrador se mantiene sin interrupción alguna.
+
+---
+
+## 6. Seguridad, Actualización de Base de Datos y Mantenimiento
 
 1. **Seguridad de Contraseñas (Migración a BCrypt)**:
    - Modernizado con Spring Security 5.8 (BCrypt). Los hashes MD5 existentes se actualizan automáticamente tras el inicio de sesión.
@@ -97,4 +114,6 @@ flowchart TD
    - Bases externas: Ejecute [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB embebida: Se actualiza automáticamente a 2.x con respaldo al iniciar.
 3. **Copias de Seguridad**:
+   - Se recomienda descargar periódicamente una copia de seguridad completa (base de datos y adjuntos) desde **OPTIONS** ➜ **Backup & Restore**.
    - Respalde periódicamente las carpetas `data/db/` y `data/attachments/`.
+

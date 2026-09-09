@@ -9,7 +9,8 @@
 2. [Cấu hình Khởi tạo Bắt buộc](#2-cấu-hình-khởi-tạo-bắt-buộc)
 3. [Sơ đồ Luồng Cấu hình (Mermaid)](#3-sơ-đồ-luồng-cấu-hình-mermaid)
 4. [Các Chức năng Quản trị Chính](#4-các-chức-năng-quản-trị-chính)
-5. [Bảo mật, Nâng cấp Cơ sở Dữ liệu & Bảo trì](#5-bảo-mật-nâng-cấp-cơ-sở-dữ-liệu--bảo-trì)
+5. [Sao lưu & Phục hồi Toàn bộ Hệ thống (Chống Khóa Tài khoản)](#5-sao-lưu--phục-hồi-toàn-bộ-hệ-thống-chống-khóa-tài-khoản)
+6. [Bảo mật, Nâng cấp Cơ sở Dữ liệu & Bảo trì](#6-bảo-mật-nâng-cấp-cơ-sở-dữ-liệu--bảo-trì)
 
 ---
 
@@ -86,10 +87,26 @@ flowchart TD
 | **Rebuild Indexes** | Tạo lại chỉ mục tìm kiếm toàn văn Lucene. |
 | **Import From Excel** | Nhập danh sách công việc hàng loạt từ Excel. |
 | **Export HTML** | Xuất dữ liệu HTML và tệp đính kèm ZIP trực tiếp từ Web. |
+| **Backup & Restore** | Sao lưu & Phục hồi toàn bộ hệ thống: Tính năng dành riêng cho SuperUser, hỗ trợ tải gói ZIP sao lưu cơ sở dữ liệu và tệp đính kèm, cùng cơ chế phục hồi an toàn (tự động tạo ảnh chụp khẩn cấp và bảo vệ chống khóa tài khoản). |
 
 ---
 
-## 5. Bảo mật, Nâng cấp Cơ sở Dữ liệu & Bảo trì
+## 5. Sao lưu & Phục hồi Toàn bộ Hệ thống (Chống Khóa Tài khoản)
+
+JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ liệu toàn diện tích hợp sẵn, chỉ dành riêng cho SuperUser:
+
+1. **Xuất gói sao lưu toàn bộ hệ thống bằng một cú nhấp**:
+   - Truy cập **OPTIONS** ➜ **Backup & Restore**.
+   - Nhấp vào **Tải xuống bản sao lưu (.zip)**. Hệ thống sẽ tuần tự hóa toàn bộ thực thể cơ sở dữ liệu sang định dạng JSON chuẩn tương thích đa nền tảng, đồng thời nén cùng thư mục tệp đính kèm vật lý (`${jtrac.home}/attachments/`) thành một tệp `.zip` duy nhất để tải xuống ngay qua trình duyệt.
+2. **Động cơ phục hồi an toàn**:
+   - Chọn tệp `.zip` sao lưu JTrac hợp lệ, đánh dấu vào ô xác nhận ghi đè và nhấn **Thực hiện phục hồi**.
+   - **Tự động chụp ảnh an toàn khẩn cấp trên máy chủ (Safety Snapshot)**: Trước khi xóa dữ liệu cũ, hệ thống tự động lưu bản sao lưu khẩn cấp vào `${jtrac.home}/backups/` trên máy chủ, đảm bảo có thể khôi phục nếu xảy ra sự cố.
+   - **Lá chắn bảo vệ chống khóa tài khoản quản trị (Anti-Lockout Credential Shield)**: Động cơ phục hồi tự động nhận diện quản trị viên đang thực hiện thao tác. Ngay cả khi mật khẩu quản trị trong bản sao lưu đã mất hoặc là mật khẩu cũ, hệ thống vẫn **bảo lưu nghiêm ngặt băm mật khẩu hiện tại và quyền quản trị cao nhất (`ROLE_ADMIN`) của người đang thao tác**, loại bỏ hoàn toàn nguy cơ quản trị viên bị khóa khỏi hệ thống.
+   - **Tự động xây dựng lại chỉ mục tìm kiếm nền**: Sau khi phục hồi xong, chỉ mục toàn văn Lucene được tự động xây dựng lại trong nền, phiên làm việc (Session) của quản trị viên vẫn duy trì liên tục không bị gián đoạn.
+
+---
+
+## 6. Bảo mật, Nâng cấp Cơ sở Dữ liệu & Bảo trì
 
 1. **Bảo mật Mật khẩu (BCrypt)**:
    - Hệ thống tự động chuyển đổi mật khẩu MD5 cũ sang BCrypt khi người dùng đăng nhập thành công.
@@ -97,4 +114,6 @@ flowchart TD
    - Cơ sở dữ liệu bên ngoài: Thực thi [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - HSQLDB nhúng: Tự động sao lưu và nâng cấp lên 2.x khi khởi động máy chủ.
 3. **Sao lưu**:
+   - Khuyến nghị định kỳ sử dụng **OPTIONS** ➜ **Backup & Restore** để tải bản sao lưu hoàn chỉnh (bao gồm DB và tệp đính kèm).
    - Định kỳ sao lưu thư mục `data/db/` và `data/attachments/`.
+

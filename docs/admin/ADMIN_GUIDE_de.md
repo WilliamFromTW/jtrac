@@ -9,7 +9,8 @@
 2. [Erforderliche Initialkonfiguration](#2-erforderliche-initialkonfiguration)
 3. [Architektur & E-Mail-Ablaufdiagramm (Mermaid)](#3-architektur--e-mail-ablaufdiagramm-mermaid)
 4. [Übersicht der Administrationsfunktionen](#4-übersicht-der-administrationsfunktionen)
-5. [Sicherheit, Datenbank-Upgrade & Wartung](#5-sicherheit-datenbank-upgrade--wartung)
+5. [Vollständige Systemsicherung & Wiederherstellung (Anti-Aussperrschutz)](#5-vollständige-systemsicherung--wiederherstellung-anti-aussperrschutz)
+6. [Sicherheit, Datenbank-Upgrade & Wartung](#6-sicherheit-datenbank-upgrade--wartung)
 
 ---
 
@@ -86,10 +87,26 @@ flowchart TD
 | **Rebuild Indexes** | Lucene-Volltextsuchindex neu erstellen. |
 | **Import From Excel** | Vorgänge per Excel importieren. |
 | **Export HTML** | Web-basierter HTML-Export und ZIP-Download. |
+| **Backup & Restore** | Vollständige Systemsicherung & Wiederherstellung: Exklusiv für SuperUser. Ermöglicht den 1-Klick-ZIP-Download von Datenbank und Dateianhängen sowie eine sichere Wiederherstellung mit automatischem Sicherheits-Snapshot und Anti-Aussperrschutz. |
 
 ---
 
-## 5. Sicherheit, Datenbank-Upgrade & Wartung
+## 5. Vollständige Systemsicherung & Wiederherstellung (Anti-Aussperrschutz)
+
+JTrac bietet eine native Gesamtsystem-Disaster-Recovery- und Migrationsfunktion, die ausschließlich Administratoren mit SuperUser-Rechten zur Verfügung steht:
+
+1. **Vollständiges Backup-Paket mit einem Klick exportieren**:
+   - Gehen Sie zu **OPTIONS** ➜ **Backup & Restore**.
+   - Klicken Sie auf **Sicherung herunterladen (.zip)**. Alle Datenbankentitäten (Konfigurationen, Benutzer, Spaces, Vorgänge, Historie, Anhänge usw.) werden in ein plattformunabhängiges Standard-JSON-Format serialisiert und zusammen mit dem physischen Anhangsverzeichnis (`${jtrac.home}/attachments/`) in ein einzelnes ZIP-Archiv gepackt und zum Download bereitgestellt.
+2. **Sichere Wiederherstellungs-Engine (Safe Restore Engine)**:
+   - Wählen Sie eine gültige JTrac-Backup-ZIP-Datei aus, aktivieren Sie das Bestätigungskontrollkästchen und klicken Sie auf **Wiederherstellung ausführen**.
+   - **Automatischer serverseitiger Notfall-Snapshot (Safety Snapshot)**: Vor dem Löschen oder Überschreiben bestehender Daten wird automatisch unter `${jtrac.home}/backups/` eine vollständige Momentaufnahme des aktuellen Systems erstellt, um bei unvorhergesehenen Fehlern eine vollständige Rückkehr zu gewährleisten.
+   - **Anti-Aussperrschutz für Administratoren (Anti-Lockout Credential Shield)**: Das System erkennt den aktuell angemeldeten Administrator. Selbst wenn das Backup veraltete oder unbekannte Passwörter enthält, **bleibt der aktuelle Passwort-Hash und der `ROLE_ADMIN`-Status des ausführenden Administrators garantiert erhalten** (oder wird neu injiziert), wodurch ein Aussperren vollständig ausgeschlossen ist.
+   - **Asynchroner Suchindex-Neuaufbau im Hintergrund**: Nach Abschluss der Wiederherstellung wird der Lucene-Volltextsuchindex automatisch im Hintergrund neu erstellt. Die Administratorsitzung bleibt unterbrechungsfrei bestehen.
+
+---
+
+## 6. Sicherheit, Datenbank-Upgrade & Wartung
 
 1. **Passwortsicherheit (BCrypt-Migration)**:
    - Modernisiert auf Spring Security 5.8 mit BCrypt. Alte MD5-Hashes werden beim nächsten erfolgreichen Benutzer-Login automatisch konvertiert.
@@ -97,4 +114,6 @@ flowchart TD
    - Externe Datenbanken: Führen Sie [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) aus.
    - Eingebettete HSQLDB: Die Migration auf Version 2.x erfolgt automatisch beim Serverstart.
 3. **Datensicherung**:
+   - Es wird empfohlen, regelmäßig unter **OPTIONS** ➜ **Backup & Restore** ein vollständiges Backup (DB und Anhänge) herunterzuladen.
    - Sichern Sie regelmäßig die Verzeichnisse `data/db/` und `data/attachments/`.
+

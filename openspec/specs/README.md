@@ -14,6 +14,8 @@
 | [`backend-security`](backend-security/spec.md) | Spring Security 5.8 現代化安全認證與授權規範 | 規範 JTrac 系統以 Spring Security 5.8 替代過時 Acegi 1.0.7 之現代化安全認證與授權機制，包含雙模無痛密碼雜湊升級、LDAP/AD 整合與權限上下文管理。 | Active |
 | [`backend-persistence`](backend-persistence/spec.md) | Hibernate 5.6 持久層 DAO 與原生 Lucene 全文檢索規範 | 規範 JTrac 資料持久層現代化架構，以原生 Hibernate 5.6 `SessionFactory` 重構 `HibernateJtracDao`，徹底解耦過時之 `HibernateDaoSupport` 與 `HibernateTemplate`，並整合資料表結構自動同步與原生輕量 Lucene 全文檢索。 | Active |
 | [`mobile-rwd`](mobile-rwd/spec.md) | 全站行動端 RWD 響應式體驗與深色主題適配 | 為 JTrac 提供全站行動端響應式網頁設計（RWD），透過純 CSS 技術重構導航列、問題清單、詳細頁與儀表板，支援小螢幕卡片化呈現、漢堡折疊選單與系統深色模式自動切換，實現零外部依賴、輕量流暢的行動端 Issue 查閱體驗。 | Active |
+| [`system-backup-restore`](system-backup-restore/spec.md) | 全系統備份、還原與防鎖死機制 | 提供 JTrac 系統最高管理員一鍵匯出包含結構化資料與實體附件之單一 ZIP 壓縮包，並在還原時具備自動建立安全快照、最高管理員憑證防反鎖保護、外鍵拓撲批次注入、以及背景自動重建 Lucene 搜尋索引之高可用防護架構。 | Active |
+
 
 ---
 
@@ -203,6 +205,39 @@ stateDiagram-v2
     }
     
     Expanded --> Collapsed: 使用者點擊 [✕] 或點擊任一導航項目
+```
+
+### 7. `system-backup-restore` 全系統備份與還原防鎖死架構
+
+#### 7.1 備份打包流程 (Backup Export Flow)
+```mermaid
+flowchart TD
+    Start([管理員點擊「立即匯出全系統備份包」]) --> CheckAuth{檢查是否為 SuperUser?}
+    CheckAuth -- 否 --> Deny[拒絕存取並顯示 403 錯誤]
+    CheckAuth -- 是 --> QueryDB[從資料庫讀取系統所有實體資料]
+    QueryDB --> GenJSON[序列化為跨資料庫標準結構化 JSON 資料]
+    GenJSON --> ScanAttach[掃描 attachments/ 實體附件目錄]
+    ScanAttach --> ZipBundle[將結構化資料與實體附件壓縮為單一 ZIP]
+    ZipBundle --> StreamDownload[輸出串流供瀏覽器下載備份包]
+    StreamDownload --> End([完成備份匯出])
+```
+
+#### 7.2 還原與防鎖死防護流程 (Restore & Anti-Lockout Shield Flow)
+```mermaid
+flowchart TD
+    StartRestore([管理員上傳備份 ZIP 檔案]) --> VerifyZip{校驗 ZIP 結構與資料完整性}
+    VerifyZip -- 失敗 --> ShowError[還原終止並顯示錯誤訊息]
+    VerifyZip -- 成功 --> CaptureOp[暫存當前操作者憑證資訊: 帳號/密碼雜湊/權限]
+    CaptureOp --> TakeSnapshot[自動建立還原前緊急快照 Safety Snapshot]
+    TakeSnapshot --> ClearDB[交易內清空現有資料庫與附件目錄]
+    ClearDB --> RestoreData[匯入專案設定、工單資料、歷史討論串與實體附件]
+    RestoreData --> CheckUser{備份檔中是否存在當前登入之操作者帳號?}
+    CheckUser -- 存在 --> MergeUser[保留該帳號關聯，但強制保留現行密碼雜湊與 ROLE_ADMIN]
+    CheckUser -- 不存在 --> InjectUser[將當前操作者帳號主動注入為 SuperUser]
+    MergeUser --> Reindex[背景自動觸發 Lucene 全文檢索索引重建]
+    InjectUser --> Reindex
+    Reindex --> SuccessNotice[提示還原成功，管理員 Session 保持有效無中斷]
+    SuccessNotice --> EndRestore([還原完成])
 ```
 
 ---

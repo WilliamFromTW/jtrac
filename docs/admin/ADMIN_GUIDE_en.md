@@ -9,7 +9,8 @@
 2. [Mandatory System Initialization Settings](#2-mandatory-system-initialization-settings)
 3. [Architecture & Mail Flowchart (Mermaid)](#3-architecture--mail-flowchart-mermaid)
 4. [Administrative Functions Overview](#4-administrative-functions-overview)
-5. [Security, Database Upgrade & Maintenance Recommendations](#5-security-database-upgrade--maintenance-recommendations)
+5. [Full System Backup & Restore (Anti-Lockout Shield)](#5-full-system-backup--restore-anti-lockout-shield)
+6. [Security, Database Upgrade & Maintenance Recommendations](#6-security-database-upgrade--maintenance-recommendations)
 
 ---
 
@@ -95,10 +96,26 @@ flowchart TD
 | **Rebuild Indexes** | Rebuild Lucene full-text search indexes. |
 | **Import From Excel** | Batch import issues via Excel spreadsheet templates. |
 | **Export HTML** | Web-based batch HTML export and ZIP download. |
+| **Backup & Restore** | Full system backup and restore: SuperUser exclusive feature supporting one-click ZIP bundle download of database and attachments, with safe restore, automatic safety snapshot, and anti-lockout credential protection. |
 
 ---
 
-## 5. Security, Database Upgrade & Maintenance Recommendations
+## 5. Full System Backup & Restore (Anti-Lockout Shield)
+
+JTrac provides built-in, native full-system disaster recovery and migration capabilities, accessible exclusively to SuperUsers:
+
+1. **One-Click Full System Backup Bundle Export**:
+   - Navigate to **OPTIONS** ➜ **Backup & Restore**.
+   - Click **Download Backup (.zip)**. The system serializes all database entities (Configs, Users, Spaces, Items, Histories, Attachments, etc.) into cross-database standard JSON format, and compresses them along with the physical `${jtrac.home}/attachments/` directory into a single timestamped `.zip` bundle for instant browser download.
+2. **Safe System Restore Engine**:
+   - Choose a valid JTrac backup `.zip` file, check the confirmation checkbox, and click **Execute Restore**.
+   - **Automatic Server-Side Safety Snapshot**: Prior to wiping any existing data, the system automatically creates an emergency snapshot backup in `${jtrac.home}/backups/` on the server, guaranteeing that current data can be recovered in case of an unexpected anomaly.
+   - **Anti-Lockout Credential Shield**: The restore engine identifies the administrator currently performing the restore operation. Even if the backup bundle contains outdated or forgotten administrative passwords, the system **strictly preserves the current operator's active password hash and global `ROLE_ADMIN` status** (or injects the operator if absent from the backup), completely eliminating administrative lockout risks.
+   - **Asynchronous Background Search Index Rebuild**: Once restore finishes, Lucene full-text indexes are automatically rebuilt in the background. The administrator's active session remains valid with zero interruption.
+
+---
+
+## 6. Security, Database Upgrade & Maintenance Recommendations
 
 1. **Password Security (BCrypt & Hybrid Migration)**:
    - Upgraded to Spring Security 5.8 with BCrypt password hashing.
@@ -107,7 +124,9 @@ flowchart TD
    - External DBs (MySQL, PostgreSQL, SQL Server, Oracle): Execute [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
    - Embedded HSQLDB: Automatic backup and migration to HSQLDB 2.x is handled on server startup.
 3. **Backup Schedule**:
-   - Database: Backup `data/db/` or external database on a regular schedule.
+   - Regularly use **OPTIONS** ➜ **Backup & Restore** to download complete backup bundles containing both structured database records and physical attachment files.
+   - Database files: Backup `data/db/` or external database on a regular schedule.
    - Attachments: Regularly backup `data/attachments/`.
 4. **Reverse Proxy & HTTPS**:
    - When placing behind Nginx/Apache with HTTPS, set `jtrac.url.base` to `https://...` and preserve `Host` and `X-Forwarded-Proto` headers.
+
