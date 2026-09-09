@@ -1,8 +1,8 @@
 ## 1. 基礎結構與資料序列化服務 (Data Serialization & Packaging)
 
-- [ ] 1.1 定義備份 Manifest 與資料傳輸結構（包含 JTrac 版本、備份時間戳記、各資料表統計），並撰寫單元測試驗證 JSON 序列化與反序列化。
-- [ ] 1.2 實作跨資料庫通用資料匯出服務，依序讀取 Config, Metadata, Spaces, Users, UserSpaceRoles, Items, ItemItems, History, Attachments 實體並轉為結構化 JSON 資料。
-- [ ] 1.3 實作 ZIP 串流打包工具，將結構化資料與 `${jtrac.home}/attachments/` 目錄封裝為單一 ZIP 壓縮檔，並驗證 ZIP 解壓縮與檔案完整性。
+- [x] 1.1 定義備份 Manifest 與資料傳輸結構（包含 JTrac 版本、備份時間戳記、各資料表統計），並撰寫單元測試驗證 JSON 序列化與反序列化。
+- [x] 1.2 實作跨資料庫通用資料匯出服務，依序讀取 Config, Metadata, Spaces, Users, UserSpaceRoles, Items, ItemItems, History, Attachments 實體並轉為結構化 JSON 資料。
+- [x] 1.3 實作 ZIP 串流打包工具，將結構化資料與 `${jtrac.home}/attachments/` 目錄封裝為單一 ZIP 壓縮檔，並驗證 ZIP 解壓縮與檔案完整性。
 
 ## 2. 還原引擎與防鎖死核心邏輯 (Restore Engine & Anti-Lockout Shield)
 

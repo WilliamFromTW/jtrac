@@ -705,4 +705,55 @@ public class HibernateJtracDao implements JtracDao {
             session.close();
         }
     }
+
+    @Override
+    public List<Metadata> findAllMetadata() {
+        return getCurrentSession().createQuery("from Metadata metadata order by metadata.id", Metadata.class).getResultList();
+    }
+
+    @Override
+    public List<SpaceSequence> findAllSpaceSequences() {
+        return getCurrentSession().createQuery("from SpaceSequence ss order by ss.id", SpaceSequence.class).getResultList();
+    }
+
+    @Override
+    public List<UserSpaceRole> findAllUserSpaceRoles() {
+        return getCurrentSession().createQuery("from UserSpaceRole usr order by usr.id", UserSpaceRole.class).getResultList();
+    }
+
+    @Override
+    public List<info.jtrac.domain.Tag> findAllTags() {
+        return getCurrentSession().createQuery("from Tag tag order by tag.id", info.jtrac.domain.Tag.class).getResultList();
+    }
+
+    @Override
+    public List<Item> findAllItems() {
+        return getCurrentSession().createQuery("from Item item order by item.id", Item.class).getResultList();
+    }
+
+    @Override
+    public List<ItemItem> findAllItemItems() {
+        return getCurrentSession().createQuery("from ItemItem ii order by ii.id", ItemItem.class).getResultList();
+    }
+
+    @Override
+    public List<ItemUser> findAllItemUsers() {
+        return getCurrentSession().createQuery("from ItemUser iu order by iu.id", ItemUser.class).getResultList();
+    }
+
+    @Override
+    public List<info.jtrac.domain.ItemTag> findAllItemTags() {
+        return getCurrentSession().createQuery("from ItemTag it order by it.id", info.jtrac.domain.ItemTag.class).getResultList();
+    }
+
+    @Override
+    public List<Attachment> findAllAttachments() {
+        return getCurrentSession().createQuery("from Attachment att order by att.id", Attachment.class).getResultList();
+    }
+
+    @Override
+    public List<History> findAllHistories() {
+        return getCurrentSession().createQuery("from History h order by h.id", History.class).getResultList();
+    }
 }
+

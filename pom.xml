@@ -298,6 +298,16 @@
 			<artifactId>commonmark-ext-gfm-tables</artifactId>
 			<version>${commonmark.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
 
     </dependencies>
 
@@ -395,5 +405,6 @@
 		<log4j2.version>2.23.1</log4j2.version>
 		<slf4j.version>2.0.13</slf4j.version>
 		<wicket.version>9.16.0</wicket.version>
+		<jackson.version>2.15.2</jackson.version>
 	</properties>
 </project>

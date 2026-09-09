@@ -113,4 +113,16 @@ public interface JtracDao {
     void storeStoredSearch(StoredSearch storedSearch);
     StoredSearch loadStoredSearch(Long id);
     void removeStoredSearch(StoredSearch storedSearchToDel);
+    //===========================================
+    // Full backup and restore operations
+    List<Metadata> findAllMetadata();
+    List<SpaceSequence> findAllSpaceSequences();
+    List<UserSpaceRole> findAllUserSpaceRoles();
+    List<info.jtrac.domain.Tag> findAllTags();
+    List<Item> findAllItems();
+    List<ItemItem> findAllItemItems();
+    List<ItemUser> findAllItemUsers();
+    List<info.jtrac.domain.ItemTag> findAllItemTags();
+    List<Attachment> findAllAttachments();
+    List<History> findAllHistories();
 }
