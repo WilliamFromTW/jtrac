@@ -73,7 +73,7 @@ You can also run the official pre-built image directly from Docker Hub:
 **[https://hub.docker.com/r/inmethod/jtrac](https://hub.docker.com/r/inmethod/jtrac)**
 
 ```bash
-docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:tag
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:latest
 ```
 
 ---

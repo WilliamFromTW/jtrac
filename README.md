@@ -32,7 +32,7 @@ A ready-to-run container image based on Eclipse Temurin 17, Jetty 12, and full m
 
 Run directly with Docker:
 ```bash
-docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:tag
+docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:latest
 ```
 
 Access the application at `http://localhost:8888/`.
