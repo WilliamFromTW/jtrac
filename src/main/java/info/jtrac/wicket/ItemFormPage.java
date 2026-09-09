@@ -24,7 +24,10 @@ import info.jtrac.domain.State;
 import info.jtrac.domain.User;
 import info.jtrac.domain.UserSpaceRole;
 import info.jtrac.util.UserUtils;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.markup.head.OnLoadHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,8 +56,30 @@ public class ItemFormPage extends BasePage {
      * Default constructor
      */
     public ItemFormPage() {
+        User user = getPrincipal();
+        if (user == null || user.getId() == 0) {
+            throw new RestartResponseAtInterceptPageException(LoginPage.class);
+        }
+        Space space = getCurrentSpace();
+        if (space == null) {
+            List<Space> availableSpaces;
+            if (user.isSuperUser()) {
+                availableSpaces = getJtrac().findAllSpaces();
+            } else {
+                availableSpaces = new ArrayList<Space>(user.getSpaces());
+            }
+            if (availableSpaces == null || availableSpaces.isEmpty()) {
+                throw new RestartResponseAtInterceptPageException(new ErrorPage("No spaces available to create an item. Please create a space first."));
+            }
+            if (availableSpaces.size() == 1) {
+                space = availableSpaces.get(0);
+                setCurrentSpace(space);
+            } else {
+                throw new RestartResponseAtInterceptPageException(new ErrorPage("Please select a space before creating an item."));
+            }
+        }
         Item item = new Item();
-        item.setSpace(getCurrentSpace());
+        item.setSpace(space);
         item.setStatus(State.NEW);
         add(new ItemForm("form", item));
     }
@@ -66,6 +91,9 @@ public class ItemFormPage extends BasePage {
      */
     public ItemFormPage(long itemId) {
         Item item = getJtrac().loadItem(itemId);
+        if (item == null) {
+            throw new RestartResponseAtInterceptPageException(new ErrorPage("Item not found: " + itemId));
+        }
 		addOrReplace(new Label("title", "JTrac "+item.getRefId()));
         add(new ItemForm("form", item));
     }
@@ -205,8 +233,15 @@ public class ItemFormPage extends BasePage {
                  * ===================================================
                  */
                 Space space = item.getSpace();
-                List<UserSpaceRole> userSpaceRoles = getJtrac().findUserRolesForSpace(space.getId());
-                List<User> assignable = UserUtils.filterUsersAbleToTransitionFrom(userSpaceRoles, space, State.OPEN);
+                if (space == null) {
+                    space = getCurrentSpace();
+                }
+                List<UserSpaceRole> userSpaceRoles = space != null ? getJtrac().findUserRolesForSpace(space.getId()) : Collections.<UserSpaceRole>emptyList();
+                List<User> assignable = space != null ? UserUtils.filterUsersAbleToTransitionFrom(userSpaceRoles, space, State.OPEN) : new ArrayList<User>();
+                User currentUser = getPrincipal();
+                if (assignable.isEmpty() && currentUser != null && currentUser.isSuperUser()) {
+                    assignable.add(currentUser);
+                }
 				assignable.forEach(u -> UserUtils.addInfoToName(u));
                 DropDownChoice choice = new DropDownChoice("assignedTo", assignable, new IChoiceRenderer() {
                     public Object getDisplayValue(Object o) {

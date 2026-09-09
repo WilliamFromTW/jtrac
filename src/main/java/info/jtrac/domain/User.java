@@ -109,7 +109,11 @@ public class User implements UserDetails, Serializable, Comparable<User> {
             if (metadata == null) {
                 return Collections.emptyMap();
             }
-            return metadata.getPermittedTransitions(getRoleKeys(space), status);
+            List<String> roleKeys = getRoleKeys(space);
+            if (isSuperUser() && (roleKeys == null || roleKeys.isEmpty())) {
+                roleKeys = new ArrayList<String>(metadata.getRoleKeys());
+            }
+            return metadata.getPermittedTransitions(roleKeys, status);
         } catch (Exception e) {
             return Collections.emptyMap();
         }
@@ -124,7 +128,11 @@ public class User implements UserDetails, Serializable, Comparable<User> {
             if (metadata == null) {
                 return Collections.emptyList();
             }
-            return metadata.getEditableFields(getRoleKeys(space), status);
+            List<String> roleKeys = getRoleKeys(space);
+            if (isSuperUser() && (roleKeys == null || roleKeys.isEmpty())) {
+                roleKeys = new ArrayList<String>(metadata.getRoleKeys());
+            }
+            return metadata.getEditableFields(roleKeys, status);
         } catch (Exception e) {
             return Collections.emptyList();
         }

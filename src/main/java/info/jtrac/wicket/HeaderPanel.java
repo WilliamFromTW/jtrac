@@ -57,7 +57,12 @@ public class HeaderPanel extends BasePanel {
             }
         }
         final Space space = currentSpace;
-        final List<Space> spaces = new ArrayList<Space>(user != null ? user.getSpaces() : java.util.Collections.<Space>emptyList());
+        final List<Space> spaces;
+        if (user != null && user.isSuperUser()) {
+            spaces = getJtrac().findAllSpaces();
+        } else {
+            spaces = new ArrayList<Space>(user != null ? user.getSpaces() : java.util.Collections.<Space>emptyList());
+        }
 
         add(new Link("dashboard") {
             public void onClick() {
