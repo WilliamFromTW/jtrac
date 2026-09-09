@@ -72,7 +72,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.MessageSource;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -85,7 +90,8 @@ import org.slf4j.LoggerFactory;
  * This is where all the business logic is
  * For data persistence this delegates to JtracDao
  */
-public class JtracImpl implements Jtrac, org.springframework.context.ApplicationContextAware {
+public class JtracImpl implements Jtrac, org.springframework.context.ApplicationContextAware,
+        ApplicationListener<ContextRefreshedEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(JtracImpl.class);
 
@@ -101,10 +107,31 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     private BackupRestoreService backupRestoreService;
     private ExecutorService attachmentIndexExecutor;
     private org.springframework.context.ApplicationContext applicationContext;
+    private PlatformTransactionManager transactionManager;
+    private volatile boolean needsIndexRebuildAfterStartup;
 
     @Override
     public void setApplicationContext(org.springframework.context.ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+    }
+
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
+    }
+
+    public PlatformTransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        if (event.getApplicationContext().getParent() == null) {
+            if (needsIndexRebuildAfterStartup) {
+                needsIndexRebuildAfterStartup = false;
+                logger.info("Application context fully refreshed. Launching background Lucene index rebuild for migrated legacy data...");
+                startRebuildIndexes();
+            }
+        }
     }
 
     private Jtrac getJtracProxy() {
@@ -311,9 +338,9 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         // Proactively rebuild Lucene indexes in background if legacy data was migrated
         boolean dbMigrated = HsqldbDatabaseMigrator.isDatabaseMigrated();
         if (attachmentsMigrated || dbMigrated) {
-            logger.info("Legacy data migration detected (attachmentsMigrated={}, dbMigrated={}). Proactively launching background Lucene index rebuild...",
+            logger.info("Legacy data migration detected (attachmentsMigrated={}, dbMigrated={}). Lucene index rebuild will be scheduled upon container startup completion.",
                     attachmentsMigrated, dbMigrated);
-            startRebuildIndexes();
+            this.needsIndexRebuildAfterStartup = true;
         }
     }
 
@@ -952,7 +979,7 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
                 @Override
                 public void run() {
                     try {
-                        getJtracProxy().rebuildIndexes(batchInfo);
+                        rebuildIndexes(batchInfo);
                     } catch (Exception e) {
                         logger.error("indexing error", e);
                         batchInfo.setErrorMessage(e.getMessage());
@@ -966,69 +993,91 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         }
     }
 
-    public void rebuildIndexes(BatchInfo batchInfo) {
+    public void rebuildIndexes(final BatchInfo batchInfo) {
         File file = new File(jtracHome + "/indexes");
-        for (File f : file.listFiles()) {
-            logger.debug("deleting file: " + f);
-            f.delete();
+        if (file.exists() && file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    logger.debug("deleting file: " + f);
+                    f.delete();
+                }
+            }
         }
         logger.info("existing index files deleted successfully");
-        int totalSize = dao.loadCountOfAllItems();
+
+        final TransactionTemplate txTemplate = transactionManager != null
+                ? new TransactionTemplate(transactionManager)
+                : null;
+        if (txTemplate != null) {
+            txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        }
+
+        int totalSize = 0;
+        if (txTemplate != null) {
+            totalSize = txTemplate.execute(status -> dao.loadCountOfAllItems());
+        } else {
+            totalSize = dao.loadCountOfAllItems();
+        }
         batchInfo.setTotalSize(totalSize);
         logger.info("total items to index: " + totalSize);
         int firstResult = 0;
-        long lastFetchedId = 0;
-        while(true) {
+        while (true) {
             logger.info("processing batch starting from: " + firstResult + ", current: " + batchInfo.getCurrentPosition());
-            List<Item> items = dao.findAllItems(firstResult, batchInfo.getBatchSize());
-            for (Item item : items) {
-
-            	indexer.index(item);
-
-                // currently history is indexed separately from item
-                // not sure if this is a good thing, maybe it gives
-                // more flexibility e.g. fine-grained search results
-
-                int historyCount = 0;
-                int maxSizeMb = getAttachmentIndexMaxSizeInMb();
-                int maxChars = getAttachmentIndexMaxChars();
-                for(History history : item.getHistory()) {
-                    if (history.getAttachment() != null) {
-                        try {
-                            File attFile = AttachmentUtils.getFile(history.getAttachment(), item.getSpace().getId(), jtracHome);
-                            if (attFile != null && attFile.exists()) {
-                                String text = AttachmentTextExtractor.extractText(attFile, maxSizeMb, maxChars);
-                                history.setAttachmentText(text);
-                            }
-                        } catch (Exception e) {
-                            logger.warn("Could not extract attachment text for history id: " + history.getId(), e);
-                        }
-                    }
-                    indexer.index(history);
-                    historyCount++;
-                }
-                if(logger.isDebugEnabled()) {
-                    logger.debug("indexed item: " + item.getId()
-                            + " : " + item.getRefId() + ", history: " + historyCount);
-                }
-                batchInfo.incrementPosition();
-                lastFetchedId = item.getId();
+            final int currentFirst = firstResult;
+            final int batchSize = batchInfo.getBatchSize();
+            final List<Item> items;
+            if (txTemplate != null) {
+                items = txTemplate.execute(status -> indexBatch(currentFirst, batchSize, batchInfo));
+            } else {
+                items = indexBatch(currentFirst, batchSize, batchInfo);
             }
-            if(logger.isDebugEnabled()) {
-              logger.debug("size of current batch: " + items.size());
-              logger.debug("last fetched Id: " + lastFetchedId);
+            if (logger.isDebugEnabled()) {
+                logger.debug("size of current batch: " + (items != null ? items.size() : 0));
             }
             firstResult += batchInfo.getBatchSize();
-            if(logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 logger.debug("setting firstResult to: " + firstResult);
             }
-            if(items.isEmpty() || batchInfo.getCurrentPosition() >= batchInfo.getTotalSize()) {
+            if (items == null || items.isEmpty() || batchInfo.getCurrentPosition() >= batchInfo.getTotalSize()) {
                 logger.info("batch completed at position: " + batchInfo.getCurrentPosition());
                 break;
             }
         }
         batchInfo.setComplete(true);
         logger.info("indexing completed successfully, total indexed: " + batchInfo.getCurrentPosition());
+    }
+
+    private List<Item> indexBatch(int currentFirst, int batchSize, BatchInfo batchInfo) {
+        List<Item> items = dao.findAllItems(currentFirst, batchSize);
+        int maxSizeMb = getAttachmentIndexMaxSizeInMb();
+        int maxChars = getAttachmentIndexMaxChars();
+        for (Item item : items) {
+            indexer.index(item);
+
+            int historyCount = 0;
+            for (History history : item.getHistory()) {
+                if (history.getAttachment() != null) {
+                    try {
+                        File attFile = AttachmentUtils.getFile(history.getAttachment(), item.getSpace().getId(), jtracHome);
+                        if (attFile != null && attFile.exists()) {
+                            String text = AttachmentTextExtractor.extractText(attFile, maxSizeMb, maxChars);
+                            history.setAttachmentText(text);
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Could not extract attachment text for history id: " + history.getId(), e);
+                    }
+                }
+                indexer.index(history);
+                historyCount++;
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("indexed item: " + item.getId()
+                        + " : " + item.getRefId() + ", history: " + historyCount);
+            }
+            batchInfo.incrementPosition();
+        }
+        return items;
     }
 
     public boolean validateTextSearchQuery(String text) {
