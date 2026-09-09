@@ -53,20 +53,6 @@ Convenient helper scripts are provided in this directory:
 
 ---
 
-### Method 3: Docker Compose
-
-```bash
-cd docker
-docker compose up -d
-```
-
-Stop the container:
-```bash
-docker compose down
-```
-
----
-
 ### Method 4: Run Pre-built Image from Docker Hub
 
 You can also run the official pre-built image directly from Docker Hub:
@@ -75,27 +61,3 @@ You can also run the official pre-built image directly from Docker Hub:
 ```bash
 docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:latest
 ```
-
----
-
-## Data Persistence
-
-All system configurations, database files, and uploaded attachments are persisted in `/jtrac-data`:
-
-| Path | Description |
-|---|---|
-| `/jtrac-data/jtrac.properties` | Database connection driver and parameters |
-| `/jtrac-data/db/` | Embedded HSQLDB 2.x database files |
-| `/jtrac-data/attachments/` | Issue attachments partitioned by space ID |
-| `/jtrac-data/indexes/` | Lucene full-text search index repository |
-| `/jtrac-data/backups/` | Full system backup snapshots |
-
-### Host Directory Mount Example:
-```bash
-docker run -d \
-  -p 8888:8080 \
-  -v /path/to/host/data:/jtrac-data \
-  --name jtrac \
-  jtrac:latest
-```
-*(The entrypoint automatically fixes directory ownership on boot).*

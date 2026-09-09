@@ -54,20 +54,6 @@ docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
 
 ---
 
-### 方式三：Docker Compose
-
-```bash
-cd docker
-docker compose up -d
-```
-
-停止容器：
-```bash
-docker compose down
-```
-
----
-
 ### 方式四：直接運行 Docker Hub 官方映像檔
 
 亦可直接拉取並執行已發佈於 Docker Hub 之官方映像檔：
@@ -76,27 +62,3 @@ docker compose down
 ```bash
 docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:latest
 ```
-
----
-
-## 資料持久化 (Data Persistence)
-
-JTrac 所有系統設定、使用者資料庫與上傳附件皆統一持久化於 `/jtrac-data`：
-
-| 目錄 / 檔案路徑 | 說明 |
-|---|---|
-| `/jtrac-data/jtrac.properties` | 系統資料庫連線驅動與參數設定檔 |
-| `/jtrac-data/db/` | 內建 HSQLDB 2.x 資料庫實體檔案 |
-| `/jtrac-data/attachments/` | 依專案 ID 分區儲存之工單歷史附件 |
-| `/jtrac-data/indexes/` | Lucene 全文檢索索引庫（可由後台重建） |
-| `/jtrac-data/backups/` | 全系統備份與還原安全快照 |
-
-### 掛載本機宿主目錄範例：
-```bash
-docker run -d \
-  -p 8888:8080 \
-  -v /path/to/host/data:/jtrac-data \
-  --name jtrac \
-  jtrac:latest
-```
-*(無論宿主機目錄擁有者為何，Entrypoint 均會自動進行權限修復)*
