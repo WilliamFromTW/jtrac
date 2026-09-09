@@ -526,14 +526,6 @@ code {
 		width: 100% !important;
 	}
 
-	.item-history-table tr.history-header {
-		display: none !important;
-	}
-
-	.item-history-table tr.no-comment {
-		display: none !important;
-	}
-
 	.item-history-table tr.history-row,
 	.item-history-table tbody tr:not(.history-header) {
 		display: flex !important;
@@ -553,6 +545,15 @@ code {
 	.item-history-table tr.history-row.alt,
 	.item-history-table tbody tr.alt {
 		background: #F1F5F9 !important;
+	}
+
+	/* Hide initial ticket creation row ("Open") and entries without comments on mobile */
+	.item-history-table tr.history-header,
+	.item-history-table tr.history-initial-row,
+	.item-history-table tr.no-comment,
+	.item-history-table tr.history-row.history-initial-row,
+	.item-history-table tr.history-row.no-comment {
+		display: none !important;
 	}
 
 	.item-history-table td.col-hist-loggedBy,
