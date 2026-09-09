@@ -6,12 +6,12 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
-[![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
+[![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](../openspec/specs/README.md)
 
 本项目为源自 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 版本。致力于提供更轻量、高兼容性、具备离线静态归档、良好用户界面的 Q&A 文字记录追踪系统，非常适合知识管理使用，若有复杂的流程则佐以附件。本项目开发过程中使用 OpenSpec v1.12.0 规格驱动流程，并由 Antigravity 辅助架构重构与质量把关。
 
@@ -21,14 +21,14 @@
 
 | 语言 / Language | 构建指南 / Build Guide |
 |---|---|
-| **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](docs/build/BUILD_zh-CN.md) |
-| **English** | [English Build & Compilation Guide](docs/build/BUILD_en.md) |
-| **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](docs/build/BUILD_zh-TW.md) |
-| **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](docs/build/BUILD_ja.md) |
-| **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](docs/build/BUILD_vi.md) |
-| **Deutsch (German)** | [Deutscher Kompilierungs- und Build-Leitfaden](docs/build/BUILD_de.md) |
-| **Español (Spanish)** | [Guía de compilación y construcción en español](docs/build/BUILD_es.md) |
-| **Français (French)** | [Guide complet de compilation et de construction en français](docs/build/BUILD_fr.md) |
+| **简体中文 (Simplified Chinese)** | [简体中文编译与构建完整指南](build/BUILD_zh-CN.md) |
+| **English** | [English Build & Compilation Guide](build/BUILD_en.md) |
+| **繁體中文 (Traditional Chinese)** | [繁體中文編譯與建置完整指南](build/BUILD_zh-TW.md) |
+| **日本語 (Japanese)** | [日本語ビルド・コンパイル詳細ガイド](build/BUILD_ja.md) |
+| **Tiếng Việt (Vietnamese)** | [Hướng dẫn biên dịch và đóng gói Tiếng Việt](build/BUILD_vi.md) |
+| **Deutsch (German)** | [Deutscher Kompilierungs- und Build-Leitfaden](build/BUILD_de.md) |
+| **Español (Spanish)** | [Guía de compilación y construcción en español](build/BUILD_es.md) |
+| **Français (French)** | [Guide complet de compilation et de construction en français](build/BUILD_fr.md) |
 
 ---
 
@@ -36,14 +36,14 @@
 
 | 语言 / Language | 管理员指南 / Admin Guide |
 |---|---|
-| **简体中文 (Simplified Chinese)** | [简体中文系统管理员完整指南](docs/admin/ADMIN_GUIDE_zh-CN.md) |
-| **English** | [English Administrator & System Configuration Guide](docs/admin/ADMIN_GUIDE_en.md) |
-| **繁體中文 (Traditional Chinese)** | [繁體中文系統管理者完整指南](docs/admin/ADMIN_GUIDE_zh-TW.md) |
-| **日本語 (Japanese)** | [日本語システム管理者総合ガイド](docs/admin/ADMIN_GUIDE_ja.md) |
-| **Tiếng Việt (Vietnamese)** | [Hướng dẫn Quản trị viên và Cấu hình Hệ thống](docs/admin/ADMIN_GUIDE_vi.md) |
-| **Deutsch (German)** | [Deutscher Systemadministrator- und Konfigurationsleitfaden](docs/admin/ADMIN_GUIDE_de.md) |
-| **Español (Spanish)** | [Guía del Administrador del Sistema y Configuración en Español](docs/admin/ADMIN_GUIDE_es.md) |
-| **Français (French)** | [Guide d'administration et de configuration du système en français](docs/admin/ADMIN_GUIDE_fr.md) |
+| **简体中文 (Simplified Chinese)** | [简体中文系统管理员完整指南](admin/ADMIN_GUIDE_zh-CN.md) |
+| **English** | [English Administrator & System Configuration Guide](admin/ADMIN_GUIDE_en.md) |
+| **繁體中文 (Traditional Chinese)** | [繁體中文系統管理者完整指南](admin/ADMIN_GUIDE_zh-TW.md) |
+| **日本語 (Japanese)** | [日本語システム管理者総合ガイド](admin/ADMIN_GUIDE_ja.md) |
+| **Tiếng Việt (Vietnamese)** | [Hướng dẫn Quản trị viên và Cấu hình Hệ thống](admin/ADMIN_GUIDE_vi.md) |
+| **Deutsch (German)** | [Deutscher Systemadministrator- und Konfigurationsleitfaden](admin/ADMIN_GUIDE_de.md) |
+| **Español (Spanish)** | [Guía del Administrador del Sistema y Configuración en Español](admin/ADMIN_GUIDE_es.md) |
+| **Français (French)** | [Guide d'administration et de configuration du système en français](admin/ADMIN_GUIDE_fr.md) |
 
 ---
 
@@ -144,4 +144,4 @@ mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
 
 ## 授权条款 (License)
 
-JTrac 为开源软件，遵循 [Apache Software License, Version 2.0](license.txt)。
+JTrac 为开源软件，遵循 [Apache Software License, Version 2.0](../license.txt)。
