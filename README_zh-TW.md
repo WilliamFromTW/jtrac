@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-本專案為 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 的現代化增強 Fork 版本。致力於提供更輕量、高相容性、具備離線靜態歸檔、現代化 UI 與最新企業級安全規格的 Issue Tracking 系統。本專案開發過程中使用 OpenSpec v1.12.0 規格驅動流程，並由 Antigravity 輔助架構重構與品質把關。
+本專案為源自 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 版本。致力於提供更輕量、高相容性、具備離線靜態歸檔、良好使用者介面的 Q&A 文字紀錄追蹤系統，非常適合知識管理使用，若有複雜的流程則佐以附件。本專案開發過程中使用 OpenSpec v1.12.0 規格驅動流程，並由 Antigravity 輔助架構重構與品質把關。
 
 ---
 
@@ -49,19 +49,19 @@
 
 ## 本 Fork 版本重點更新 (Changelog & Major Updates)
 
-### 🚀 版本 2.3.3-2.0.0 重大升級 (Major Architectural Modernization)
+### 🚀 版本 2.3.3-2.0.0 重大升級 (Major Architecture Upgrade)
 
-1. **後端核心架構全面現代化 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
+1. **後端核心架構全面升級 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
    - 全面升級至 Spring Framework 5.3.37，移除已廢棄的 `HibernateTemplate` 與 `TimerFactoryBean`。
    - 升級至 Hibernate ORM 5.6.15.Final，原生 SessionFactory 管理與 JPA 規範查詢。
    - 全文檢索脫離已停護的 `spring-modules-lucene`，改用原生輕量 Lucene 檢索實作。
-   - 單元測試全面現代化升級至 JUnit 5 (Jupiter)。
+   - 單元測試全面升級至 JUnit 5 (Jupiter)。
 2. **安全性架構全面重構 (Spring Security 5.8 + BCrypt 平滑遷移)**：
    - 徹底移除過時且存在安全隱患的 Acegi Security 1.0.7，引進標準 Spring Security 5.8.14。
    - 實作雙模相容 `JtracHybridPasswordEncoder`：相容舊有 MD5 密碼雜湊，並於使用者登入成功時無感自動重新雜湊升級為強安全的 BCrypt，資料庫升級無需人為介入重設密碼。
 3. **Web 表現層升級至 Apache Wicket 9.16.0**：
-   - 徹底揮別 2008 年的 Wicket 1.3.7，升級至現代化 Wicket 9.16.0，元件與模型全面泛型化（`IModel<T>`）。
-   - 支援 Servlet 4.0 現代容器（如 Jetty 10.0.26、Jetty 12、Tomcat 9 與 Tomcat 10+）。
+   - 升級至 Wicket 9.16.0，元件與模型全面泛型化（`IModel<T>`）。
+   - 支援 Servlet 4.0 容器（如 Jetty 10.0.26、Jetty 12、Tomcat 9 與 Tomcat 10+）。
 4. **使用者管理與專案空間分頁導覽 (Pagination & System Config)**：
    - 使用者列表 (`UserListPage`) 與專案列表 (`SpaceListPage`) 升級支援自訂分頁（10, 25, 50, 100, 全部），避免大量資料效能瓶頸。
    - 於 `config` 表註冊全域參數 `users.list.pageSize` 與 `spaces.list.pageSize`，支援預設值自訂。
@@ -142,7 +142,7 @@ mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
 - [HTML Exporter 規格文件](openspec/specs/html-exporter/spec.md)
 - [語系與資源規格文件](openspec/specs/i18n-resources/spec.md)
 - [建置手冊規格文件](openspec/specs/build-documentation/spec.md)
-- [後端架構現代化規格](openspec/changes/archive/2026-09-08-modernize-backend-spring5-security-hibernate5/specs/backend-persistence/spec.md)
+- [後端持久層架構規格](openspec/changes/archive/2026-09-08-modernize-backend-spring5-security-hibernate5/specs/backend-persistence/spec.md)
 - [後端安全認證規格](openspec/changes/archive/2026-09-08-modernize-backend-spring5-security-hibernate5/specs/backend-security/spec.md)
 - [專案開發鐵律](.agents/AGENTS.md)
 

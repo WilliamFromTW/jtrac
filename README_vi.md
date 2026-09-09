@@ -1,4 +1,4 @@
-# JTrac (Phiên bản Fork Hiện đại Hóa Nâng cao)
+# JTrac (Phiên bản Fork Nâng cao)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-Dự án này là phiên bản fork hiện đại hóa và nâng cấp toàn diện từ [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Dự án hướng đến việc cung cấp một hệ thống theo dõi vấn đề (Issue Tracking) gọn nhẹ, độ tương thích cao, hỗ trợ lưu trữ tĩnh ngoại tuyến, giao diện hiện đại và các tiêu chuẩn bảo mật doanh nghiệp mới nhất. Dự án được phát triển theo quy trình OpenSpec v1.12.0 với sự hỗ trợ của Antigravity.
+Dự án này bắt nguồn từ phiên bản [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Dự án nỗ lực cung cấp một hệ thống theo dõi và ghi chép văn bản Q&A gọn nhẹ, độ tương thích cao, hỗ trợ lưu trữ tĩnh ngoại tuyến và giao diện người dùng thân thiện, rất thích hợp cho mục đích quản lý tri thức (Knowledge Management), kèm theo tệp đính kèm cho các quy trình phức tạp. Quá trình phát triển dự án tuân theo quy trình điều khiển bởi đặc tả OpenSpec v1.12.0 và được hỗ trợ bởi Antigravity trong việc tái cấu trúc kiến trúc và đảm bảo chất lượng.
 
 ---
 
@@ -49,9 +49,9 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp toàn di�
 
 ## Nhật ký Cập nhật Quan trọng (Changelog & Major Updates)
 
-### 🚀 Phiên bản 2.3.3-2.0.0 Nâng cấp Lớn (Major Architectural Modernization)
+### 🚀 Phiên bản 2.3.3-2.0.0 Nâng cấp Lớn (Major Architecture Upgrade)
 
-1. **Hiện đại hóa Kiến trúc Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
+1. **Nâng cấp Kiến trúc Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
    - Nâng cấp lên Spring Framework 5.3.37, loại bỏ hoàn toàn `HibernateTemplate` và `TimerFactoryBean`.
    - Nâng cấp lên Hibernate ORM 5.6.15.Final với quản lý `SessionFactory` nguyên bản và truy vấn chuẩn JPA.
    - Chuyển đổi tìm kiếm toàn văn sang API Lucene nguyên bản, tách biệt khỏi thư viện cũ `spring-modules-lucene`.
@@ -59,8 +59,8 @@ Dự án này là phiên bản fork hiện đại hóa và nâng cấp toàn di�
 2. **Cải tiến Bảo mật Toàn diện (Spring Security 5.8 + Tự động chuyển đổi BCrypt)**:
    - Thay thế Acegi Security 1.0.7 cũ kỹ bằng Spring Security 5.8.14 chuẩn mực.
    - Cung cấp `JtracHybridPasswordEncoder`: tương thích mã băm MD5 cũ và tự động tái băm sang BCrypt an toàn ngay khi người dùng đăng nhập thành công.
-3. **Hiện đại hóa Tầng Web (Apache Wicket 9.16.0)**:
-   - Thay thế Wicket 1.3.7 từ năm 2008 bằng Wicket 9.16.0 hiện đại với Generics toàn diện (`IModel<T>`).
+3. **Nâng cấp Tầng Web (Apache Wicket 9.16.0)**:
+   - Thay thế Wicket 1.3.7 từ năm 2008 bằng Wicket 9.16.0 với Generics toàn diện (`IModel<T>`).
    - Tương thích hoàn hảo với các Servlet Container chuẩn Servlet 4.0 (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
 4. **Phân trang Danh sách Người dùng & Không gian Dự án (Pagination & Settings)**:
    - Danh sách người dùng (`UserListPage`) và không gian (`SpaceListPage`) hỗ trợ phân trang linh hoạt (10, 25, 50, 100, Tất cả).

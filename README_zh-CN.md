@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-本项目为 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 的现代化增强 Fork 版本。致力于提供更轻量、高兼容性、具备离线静态归档、现代化 UI 与企业级安全规格的 Issue Tracking 系统。本项目开发过程中使用 OpenSpec v1.12.0 规格驱动流程，并由 Antigravity 辅助架构重构与质量把关。
+本项目为源自 [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) 版本。致力于提供更轻量、高兼容性、具备离线静态归档、良好用户界面的 Q&A 文字记录追踪系统，非常适合知识管理使用，若有复杂的流程则佐以附件。本项目开发过程中使用 OpenSpec v1.12.0 规格驱动流程，并由 Antigravity 辅助架构重构与质量把关。
 
 ---
 
@@ -49,9 +49,9 @@
 
 ## 本 Fork 版本重点更新 (Changelog & Major Updates)
 
-### 🚀 版本 2.3.3-2.0.0 重大升级 (Major Architectural Modernization)
+### 🚀 版本 2.3.3-2.0.0 重大升级 (Major Architecture Upgrade)
 
-1. **后端核心架构全面现代化 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
+1. **后端核心架构全面升级 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
    - 全面升级至 Spring Framework 5.3.37，移除废弃的 `HibernateTemplate` 与 `TimerFactoryBean`。
    - 升级至 Hibernate ORM 5.6.15.Final，原生 SessionFactory 管理与 JPA 规范查询。
    - 全文检索脱离已停止维护的 `spring-modules-lucene`，改用轻量原生 Lucene API。
@@ -60,7 +60,7 @@
    - 彻底移除过时且存在已知安全风险的 Acegi Security 1.0.7，引入标准 Spring Security 5.8.14。
    - 实现双模兼容 `JtracHybridPasswordEncoder`：兼容旧版 MD5 密码哈希，并在用户成功登录时自动重新哈希升级为高强度的 BCrypt，数据库平滑过渡无需人工重置密码。
 3. **Web 表现层升级至 Apache Wicket 9.16.0**：
-   - 彻底告别 2008 年的 Wicket 1.3.7，升级至现代化 Wicket 9.16.0，组件与模型全面泛型化（`IModel<T>`）。
+   - 升级至 Wicket 9.16.0，组件与模型全面泛型化（`IModel<T>`）。
    - 完美适配 Servlet 4.0 容器（Jetty 10.0.26、Jetty 12、Tomcat 9、Tomcat 10+）。
 4. **用户管理与项目空间分页导航 (Pagination & System Config)**：
    - 用户列表 (`UserListPage`) 与项目空间列表 (`SpaceListPage`) 支持自定义分页（10, 25, 50, 100, 全部），消除大量数据加载性能瓶颈。

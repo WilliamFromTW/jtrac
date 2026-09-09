@@ -1,4 +1,4 @@
-# JTrac (機能強化モダンフォーク版)
+# JTrac (機能強化フォーク版)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-本プロジェクトは、[JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) の近代化・機能強化フォーク版です。軽量性、高互換性、オフライン静的アーカイブ機能、洗練されたモダン UI、およびエンタープライズグレードのセキュリティ標準を備えた課題管理（Issue Tracking）システムを提供します。本プロジェクトは OpenSpec v1.12.0 仕様駆動プロセスを採用し、Antigravity の支援のもとでアーキテクチャ刷新を行っています。
+本プロジェクトは、[JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info) から派生したバージョンです。軽量で高い互換性を持ち、オフライン静的アーカイブ機能と優れたユーザーインターフェースを備えた Q&A テキスト記録・追跡システムの提供に注力しており、ナレッジマネジメント（知識管理）に最適です。複雑な業務プロセスには添付ファイルを添えて運用できます。本プロジェクトの開発には OpenSpec v1.12.0 仕様駆動プロセスを採用し、Antigravity の支援のもとでアーキテクチャ刷新と品質保証を行っています。
 
 ---
 
@@ -49,9 +49,9 @@
 
 ## 本フォークの主要な更新履歴 (Changelog & Major Updates)
 
-### 🚀 バージョン 2.3.3-2.0.0 メジャーアップデート (Major Architectural Modernization)
+### 🚀 バージョン 2.3.3-2.0.0 メジャーアップデート (Major Architecture Upgrade)
 
-1. **バックエンドコアの全面近代化 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
+1. **バックエンドコアのアーキテクチャ刷新 (Spring 5.3 + Hibernate 5.6 + JUnit 5)**：
    - Spring Framework 5.3.37 へアップグレード。非推奨の `HibernateTemplate` および `TimerFactoryBean` を完全撤去。
    - Hibernate ORM 5.6.15.Final への移行、ネイティブ `SessionFactory` および JPA 準拠クエリの導入。
    - 保守終了した `spring-modules-lucene` を排除し、軽量ネイティブ Lucene API 実装へ刷新。
@@ -60,7 +60,7 @@
    - 脆弱性を抱える旧 Acegi Security 1.0.7 を完全撤去し、Spring Security 5.8.14 を導入。
    - ハイブリッド暗号化 `JtracHybridPasswordEncoder` を実装：従来の MD5 ハッシュを検証しつつ、ユーザーの初回ログイン成功時にダウンタイムなしで自動的に強固な BCrypt ハッシュへとアップグレード。
 3. **Web プレゼンテーション層の刷新 (Apache Wicket 9.16.0)**：
-   - 2008 年の Wicket 1.3.7 からモダンな Wicket 9.16.0 へ全面移行。モデルとコンポーネントを型安全なジェネリクス化（`IModel<T>`）。
+   - 2008 年の Wicket 1.3.7 から Wicket 9.16.0 へ全面移行。モデルとコンポーネントを型安全なジェネリクス化（`IModel<T>`）。
    - Servlet 4.0 コンテナ（Jetty 10.0.26、Jetty 12、Tomcat 9、Tomcat 10+）に完全適合。
 4. **ユーザーおよびスペース管理のページネーション機能 (Pagination & Config)**：
    - ユーザー一覧 (`UserListPage`) およびスペース一覧 (`SpaceListPage`) で件数切り替え（10, 25, 50, 100, 全件）に対応。

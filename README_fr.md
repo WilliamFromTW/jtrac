@@ -1,4 +1,4 @@
-# JTrac (Fork Modernisé et Amélioré)
+# JTrac (Fork Amélioré)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-Ce projet est un fork modernisé et amélioré de [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Il vise à fournir un système de suivi des anomalies (Issue Tracking) léger, hautement compatible, doté de capacités d'archivage statique hors ligne, d'une interface utilisateur moderne et des derniers standards de sécurité d'entreprise. Le développement est guidé par OpenSpec v1.12.0 avec l'assistance d'Antigravity.
+Ce projet est dérivé de la version [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Il est dédié à fournir un système de suivi et d'enregistrement textuel de Q&R (Questions/Réponses) léger, hautement compatible, doté de fonctionnalités d'archivage statique hors ligne et d'une interface utilisateur soignée, parfaitement adapté à la gestion des connaissances (Knowledge Management), avec support de pièces jointes pour les flux de travail complexes. Le développement de ce projet s'appuie sur le processus piloté par spécifications OpenSpec v1.12.0 et bénéficie de l'assistance d'Antigravity pour la refactorisation de l'architecture et le contrôle qualité.
 
 ---
 
@@ -49,19 +49,19 @@ Ce projet est un fork modernisé et amélioré de [JTrac 2.3.3 (https://jtrac.in
 
 ## Principales Mises à Jour (Changelog & Major Updates)
 
-### 🚀 Version 2.3.3-2.0.0 (Modernisation Architecturale Majeure)
+### 🚀 Version 2.3.3-2.0.0 (Mise à Niveau Architecturale Majeure)
 
-1. **Modernisation du Cœur Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)** :
+1. **Mise à Niveau du Cœur Backend (Spring 5.3 + Hibernate 5.6 + JUnit 5)** :
    - Mise à niveau vers Spring Framework 5.3.37 ; suppression de `HibernateTemplate` et `TimerFactoryBean`.
    - Migration vers Hibernate ORM 5.6.15.Final avec gestion native de `SessionFactory` et requêtes standard JPA.
    - Indexation et recherche plein texte migrées vers l'API Lucene native (découplage de `spring-modules-lucene`).
-   - Tests unitaires modernisés sous JUnit 5 (Jupiter).
+   - Tests unitaires mis à niveau sous JUnit 5 (Jupiter).
 2. **Refonte Complète de la Sécurité (Spring Security 5.8 + Migration BCrypt)** :
    - Remplacement complet d'Acegi Security 1.0.7 obsolète par Spring Security 5.8.14.
    - Encodeur hybride `JtracHybridPasswordEncoder` : valide les anciens hachages MD5 et les convertit automatiquement et de manière transparente en BCrypt lors de la connexion réussie de l'utilisateur.
-3. **Couche de Présentation Web Moderne (Apache Wicket 9.16.0)** :
+3. **Couche de Présentation Web (Apache Wicket 9.16.0)** :
    - Remplacement de Wicket 1.3.7 par Wicket 9.16.0 avec support complet des types génériques (`IModel<T>`).
-   - Compatible avec les conteneurs de servlets modernes (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
+   - Compatible avec les conteneurs de servlets Servlet 4.0 (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
 4. **Pagination des Utilisateurs et Espaces (Pagination & Config)** :
    - Prise en charge de la pagination personnalisable dans `UserListPage` et `SpaceListPage` (10, 25, 50, 100, Tout).
    - Enregistrement des clés `users.list.pageSize` et `spaces.list.pageSize` dans la table `config`.

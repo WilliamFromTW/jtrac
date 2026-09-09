@@ -1,4 +1,4 @@
-# JTrac (Erweiterter moderner Fork)
+# JTrac (Erweiterter Fork)
 
 [English](README.md) | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
@@ -13,7 +13,7 @@
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 [![OpenSpec](https://img.shields.io/badge/OpenSpec-v1.12.0-brightgreen.svg)](openspec/specs/README.md)
 
-Dieses Projekt ist ein modernisierter, erweiterter Fork von [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Ziel ist es, ein schlankes, hochkompatibles Issue-Tracking-System bereitzustellen, das über Offline-Archivierungsfunktionen, eine überarbeitete Benutzeroberfläche und moderne Sicherheitsstandards verfügt. Die Entwicklung wird über OpenSpec v1.12.0 geführt und durch Antigravity unterstützt.
+Dieses Projekt basiert auf der Version [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Es widmet sich der Bereitstellung eines schlanken, hochkompatiblen Q&A-Textprotokollierungs- und Verfolgungssystems mit Offline-Archivierungsfunktionen und einer benutzerfreundlichen Oberfläche, das sich hervorragend für das Wissensmanagement eignet und komplexe Arbeitsabläufe durch Dateianhänge unterstützt. Die Entwicklung erfolgt nach dem spezifikationsgesteuerten Prozess OpenSpec v1.12.0 und wird von Antigravity bei Architekturrefaktorierung und Qualitätssicherung unterstützt.
 
 ---
 
@@ -49,9 +49,9 @@ Dieses Projekt ist ein modernisierter, erweiterter Fork von [JTrac 2.3.3 (https:
 
 ## Wichtigste Neuerungen (Changelog & Major Updates)
 
-### 🚀 Version 2.3.3-2.0.0 (Große Architekturmodernisierung)
+### 🚀 Version 2.3.3-2.0.0 (Großes Architektur-Upgrade)
 
-1. **Modernisierung des Backend-Kerns (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
+1. **Upgrade des Backend-Kerns (Spring 5.3 + Hibernate 5.6 + JUnit 5)**:
    - Upgrade auf Spring Framework 5.3.37; veraltetes `HibernateTemplate` und `TimerFactoryBean` entfernt.
    - Upgrade auf Hibernate ORM 5.6.15.Final mit nativer `SessionFactory`-Verwaltung und JPA-konformen Abfragen.
    - Volltextsuche auf native Lucene-API umgestellt; Abhängigkeit vom veralteten `spring-modules-lucene` entfernt.
@@ -61,7 +61,7 @@ Dieses Projekt ist ein modernisierter, erweiterter Fork von [JTrac 2.3.3 (https:
    - `JtracHybridPasswordEncoder`: Erkennt alte MD5-Passwort-Hashes und konvertiert sie beim erfolgreichen Benutzer-Login automatisch in sichere BCrypt-Hashes.
 3. **Web-Präsentationsschicht (Apache Wicket 9.16.0)**:
    - Wicket 1.3.7 durch Wicket 9.16.0 ersetzt; Modelle und Komponenten vollständig typisiert (`IModel<T>`).
-   - Kompatibel mit modernen Servlet 4.0-Containern (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
+   - Kompatibel mit Servlet 4.0-Containern (Jetty 10.0.26, Jetty 12, Tomcat 9, Tomcat 10+).
 4. **Paginierung für Benutzer und Projekte (Pagination & Config)**:
    - Dynamische Paginierung für `UserListPage` und `SpaceListPage` (10, 25, 50, 100, Alle).
    - Parameter `users.list.pageSize` und `spaces.list.pageSize` in der `config`-Tabelle registriert.
