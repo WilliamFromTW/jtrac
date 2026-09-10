@@ -189,8 +189,8 @@ div.error-input select { border: none; }
     align-items: center;
     background: var(--bg-body);
     border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 2px 8px;
+    border-radius: 16px;
+    padding: 4px 12px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .desktop-search-wrap:focus-within {
@@ -201,8 +201,8 @@ div.error-input select { border: none; }
     box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
 }
 .desktop-search-icon {
-    font-size: 0.85em;
-    margin-right: 4px;
+    font-size: 1em;
+    margin-right: 6px;
     user-select: none;
     opacity: 0.7;
 }
@@ -210,14 +210,14 @@ div.error-input select { border: none; }
     border: none !important;
     background: transparent !important;
     color: var(--text-color);
-    font-size: 0.9em;
-    width: 140px;
+    font-size: 1.05em;
+    width: 200px;
     outline: none;
     padding: 2px 0;
     transition: width 0.2s ease;
 }
 .desktop-search-input:focus {
-    width: 180px;
+    width: 260px;
 }
 img.nav-link { margin-top: 1px; margin-right: 0.3em; }
 a img.nav-link { vertical-align: top; display: block; float: left; }
@@ -417,8 +417,8 @@ code {
 	align-items: center;
 	background: var(--bg-body);
 	border: 1px solid var(--border-color);
-	border-radius: 14px;
-	padding: 2px 8px;
+	border-radius: 16px;
+	padding: 4px 12px;
 	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .item-list-search-wrap:focus-within {
@@ -429,8 +429,8 @@ code {
 	box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
 }
 .item-list-search-icon {
-	font-size: 0.85em;
-	margin-right: 4px;
+	font-size: 1em;
+	margin-right: 6px;
 	user-select: none;
 	opacity: 0.7;
 }
@@ -438,14 +438,14 @@ code {
 	border: none !important;
 	background: transparent !important;
 	color: var(--text-color);
-	font-size: 0.9em;
-	width: 150px;
+	font-size: 1.05em;
+	width: 220px;
 	outline: none;
 	padding: 2px 0;
 	transition: width 0.2s ease;
 }
 .item-list-search-input:focus {
-	width: 200px;
+	width: 280px;
 }
 .search-keyword-banner {
 	display: flex;
@@ -777,14 +777,14 @@ code {
 		background: var(--bg-body);
 		border: 1px solid var(--border-color);
 		border-radius: 20px;
-		padding: 4px 10px;
+		padding: 6px 12px;
 		box-sizing: border-box;
 		width: 100%;
 	}
 
 	.mobile-search-prefix-icon {
-		font-size: 0.95em;
-		margin-right: 6px;
+		font-size: 1.05em;
+		margin-right: 8px;
 		opacity: 0.7;
 		user-select: none;
 	}
@@ -794,7 +794,7 @@ code {
 		border: none !important;
 		background: transparent !important;
 		color: var(--text-color);
-		font-size: 1em;
+		font-size: 1.08em;
 		padding: 4px 0;
 		outline: none;
 		min-width: 0;
@@ -804,8 +804,8 @@ code {
 		background: transparent;
 		border: none;
 		color: var(--text-muted);
-		font-size: 1.1em;
-		padding: 0 4px;
+		font-size: 1.2em;
+		padding: 0 6px;
 		cursor: pointer;
 		line-height: 1;
 	}
@@ -1008,15 +1008,20 @@ code {
 		padding-top: 0 !important;
 	}
 
-	.item-list-filter-form,
-	.item-list-search-wrap {
+	.item-list-filter-form {
 		width: 100% !important;
 		box-sizing: border-box;
 	}
 
+	.item-list-search-wrap {
+		width: 100% !important;
+		box-sizing: border-box;
+		padding: 6px 12px !important;
+	}
+
 	.item-list-search-input {
 		width: 100% !important;
-		font-size: 1em;
+		font-size: 1.05em !important;
 	}
 
 	.item-list-search-input:focus {
