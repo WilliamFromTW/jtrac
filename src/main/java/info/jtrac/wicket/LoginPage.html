@@ -3,14 +3,71 @@
     <head>
         <title wicket:id="title"></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
-        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>        
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+        <script type="text/javascript">
+            //<![CDATA[
+            (function() {
+                try {
+                    var t = localStorage.getItem('jtrac-theme');
+                    var d = document.documentElement;
+                    if (t === 'light') {
+                        d.setAttribute('data-theme', 'light');
+                        d.setAttribute('data-theme-mode', 'light');
+                    } else if (t === 'dark') {
+                        d.setAttribute('data-theme', 'dark');
+                        d.setAttribute('data-theme-mode', 'dark');
+                    } else {
+                        var isDark = (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
+                        d.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                        d.setAttribute('data-theme-mode', 'system');
+                    }
+                } catch(e) {}
+            })();
+            function jtracToggleTheme() {
+                try {
+                    var m = document.documentElement.getAttribute('data-theme-mode') || 'system';
+                    var nextMode = (m === 'light') ? 'dark' : ((m === 'dark') ? 'system' : 'light');
+                    var d = document.documentElement;
+                    if (nextMode === 'light') {
+                        localStorage.setItem('jtrac-theme', 'light');
+                        d.setAttribute('data-theme', 'light');
+                        d.setAttribute('data-theme-mode', 'light');
+                    } else if (nextMode === 'dark') {
+                        localStorage.setItem('jtrac-theme', 'dark');
+                        d.setAttribute('data-theme', 'dark');
+                        d.setAttribute('data-theme-mode', 'dark');
+                    } else {
+                        localStorage.setItem('jtrac-theme', 'system');
+                        var isDark = (window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
+                        d.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                        d.setAttribute('data-theme-mode', 'system');
+                    }
+                } catch(e) {}
+            }
+            if (window.matchMedia) {
+                try {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                        if (document.documentElement.getAttribute('data-theme-mode') === 'system') {
+                            document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                        }
+                    });
+                } catch(e) {}
+            }
+            //]]>
+        </script>
     </head>
     <body>
         <span wicket:id="individuel"></span><br/>
         <table width="100%" class="jtrac alt">
             <tr>
                 <td><a href="app"><wicket:message key="login.home"/></a></td>
-                <td align="right"></td>
+                <td align="right">
+                    <button type="button" class="login-theme-btn" aria-label="Toggle theme" title="Toggle theme (Light / Dark / System)" onclick="jtracToggleTheme()">
+                        <span class="theme-icon-light">☀️</span>
+                        <span class="theme-icon-dark">🌙</span>
+                        <span class="theme-icon-system">🖥️</span>
+                    </button>
+                </td>
             </tr>
         </table>             
         <form wicket:id="form" class="content">

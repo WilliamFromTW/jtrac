@@ -3,11 +3,18 @@
         <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox" aria-label="Toggle navigation"/>
         <div class="nav-mobile-bar">
             <span class="nav-brand-title">JTrac</span>
-            <label for="nav-toggle" class="nav-toggle-btn" aria-label="Menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </label>
+            <div class="nav-mobile-actions">
+                <button type="button" class="mobile-theme-btn" aria-label="Toggle theme" title="Toggle theme (Light / Dark / System)" onclick="jtracToggleTheme()">
+                    <span class="theme-icon-light">☀️</span>
+                    <span class="theme-icon-dark">🌙</span>
+                    <span class="theme-icon-system">🖥️</span>
+                </button>
+                <label for="nav-toggle" class="nav-toggle-btn" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </label>
+            </div>
         </div>
         <div class="nav-menu-wrapper">
             <table class="nav-table-left" style="float:left">
@@ -25,6 +32,11 @@
                     <wicket:enclosure><td class="action-tab nav-tab-logout"><a href="#" wicket:id="logout"><img src="resources/logout.gif"/><wicket:message key="header.logout"/></a></td></wicket:enclosure>
                     <wicket:enclosure><td class="action-tab nav-tab-login"><a href="#" wicket:id="login"><wicket:message key="header.login"/></a></td></wicket:enclosure>
                     <wicket:enclosure><td class="info-tab nav-tab-user"><span class="nav-item-content"><img src="resources/user.gif"/><span wicket:id="user"></span></span></td></wicket:enclosure>
+                    <td class="action-tab nav-tab-theme" onclick="jtracToggleTheme()" title="Toggle theme (Light / Dark / System)">
+                        <span class="theme-icon-light">☀️</span>
+                        <span class="theme-icon-dark">🌙</span>
+                        <span class="theme-icon-system">🖥️</span>
+                    </td>
                 </tr>
             </table>
             <div style="clear:both"></div>

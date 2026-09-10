@@ -16,7 +16,6 @@
 
 package info.jtrac.wicket;
 
-import info.jtrac.util.WebUtils;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.markup.html.WebPage;
@@ -44,7 +43,6 @@ public class LogoutPage extends WebPage {
         add(new Label("title", getLocalizer().getString("logout.title", this)));
         String jtracVersion = JtracApplication.get().getJtrac().getReleaseVersion();
         add(new Label("version", jtracVersion));
-		add(WebUtils.getColorChangeHeaderContributor());
     }
 
     @Override

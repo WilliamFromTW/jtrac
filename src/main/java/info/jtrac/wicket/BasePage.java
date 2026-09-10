@@ -81,7 +81,6 @@ public abstract class BasePage extends WebPage {
         String jtracVersion = getJtrac().getReleaseVersion();
         add(new Label("version", jtracVersion));
         add(new Label("title", "JTrac"));
-		add(WebUtils.getColorChangeHeaderContributor());
     }
 
     @Override

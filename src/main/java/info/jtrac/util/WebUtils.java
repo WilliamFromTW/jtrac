@@ -16,15 +16,7 @@
 
 package info.jtrac.util;
 
-import info.jtrac.Jtrac;
-import info.jtrac.wicket.JtracApplication;
-
 import javax.servlet.http.Cookie;
-
-import info.jtrac.wicket.HeaderContributor;
-import info.jtrac.wicket.IHeaderContributor;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 
 /**
  * utilities for http, web related stuff etc
@@ -40,30 +32,5 @@ public class WebUtils {
                 + "version: '" + cookie.getVersion() + "', " 
                 + "maxAge: '" + cookie.getMaxAge() + "', " 
                 + "comment: '" + cookie.getComment() + "'";
-    }
- 
- 	public static HeaderContributor getColorChangeHeaderContributor() {
-		Jtrac jtrac = JtracApplication.get().getJtrac();
-		String colorGray = jtrac.loadConfig("jtrac.color.gray", "#CCCCCC");
-		String colorHeader = jtrac.loadConfig("jtrac.color.header", "#E1ECFE");
-		String colorLightBlue = jtrac.loadConfig("jtrac.color.lightblue", "#E1ECFE");
-		String colorMediumBlue = jtrac.loadConfig("jtrac.color.mediumblue", "#C3D9FF");
-		String colorDarkBlue = jtrac.loadConfig("jtrac.color.darkblue", "#0000D9");
-		String colorError = jtrac.loadConfig("jtrac.color.error", "#CC2200");
-		String colorErrorBg = jtrac.loadConfig("jtrac.color.errorbg", "#FFB6C1");
-
-		return new HeaderContributor(new IHeaderContributor() {
-			public void renderHead(IHeaderResponse response) {
-				String js = "var r = document.querySelector(':root');\n"
-						+ "r.style.setProperty('--header', '"+colorHeader+"');\n"
-						+ "r.style.setProperty('--lightblue', '"+colorLightBlue+"');\n"
-						+ "r.style.setProperty('--mediumblue', '"+colorMediumBlue+"');\n"
-						+ "r.style.setProperty('--darkblue', '"+colorDarkBlue+"');\n"
-						+ "r.style.setProperty('--error', '"+colorError+"');\n"
-						+ "r.style.setProperty('--errorbg', '"+colorErrorBg+"');\n"
-						+ "r.style.setProperty('--gray', '"+colorGray+"');\n";
-				response.render(OnDomReadyHeaderItem.forScript(js));
-			}
-		});
     }
 }

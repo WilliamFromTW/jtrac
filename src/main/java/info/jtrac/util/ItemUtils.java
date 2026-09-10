@@ -196,19 +196,8 @@ public final class ItemUtils {
     }    
     
     private static String getAsHtml (Item item, HttpServletRequest request, HttpServletResponse response, MessageSource ms, Locale loc) {        
-        String colorLightBlue = "#E1ECFE";
-        String colorGray = "#CCCCCC";
-        try {
-            if (org.apache.wicket.Application.exists()) {
-                JtracApplication app = JtracApplication.get();
-                if (app != null && app.getJtrac() != null) {
-                    colorLightBlue = app.getJtrac().loadConfig("jtrac.color.lightblue", "#E1ECFE");
-                    colorGray = app.getJtrac().loadConfig("jtrac.color.gray", "#CCCCCC");
-                }
-            }
-        } catch (Exception e) {
-            // ignore if not running in Wicket context
-        }
+        final String colorLightBlue = "#E1ECFE";
+        final String colorGray = "#CCCCCC";
 
         String tableStyle = " class='jtrac'";
         String tdStyle = "";

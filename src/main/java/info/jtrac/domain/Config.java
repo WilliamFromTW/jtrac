@@ -55,13 +55,6 @@ public class Config implements Serializable {
         PARAMS.add("jtrac.url.base");
         PARAMS.add("jtrac.header.picture");
         PARAMS.add("jtrac.header.text");
-        PARAMS.add("jtrac.color.gray");
-        PARAMS.add("jtrac.color.header");
-        PARAMS.add("jtrac.color.lightblue");
-        PARAMS.add("jtrac.color.mediumblue");
-        PARAMS.add("jtrac.color.darkblue");
-        PARAMS.add("jtrac.color.error");
-        PARAMS.add("jtrac.color.errorbg");
         PARAMS.add("jtrac.edit.item");
         PARAMS.add("jtrac.comment.closed");
         PARAMS.add("locale.default");
@@ -95,13 +88,6 @@ public class Config implements Serializable {
         NUMBER_PARAMS.add("attachment.index.maxChars");
 
         COLOR_PARAMS = new LinkedHashSet<String>();
-        COLOR_PARAMS.add("jtrac.color.gray");
-        COLOR_PARAMS.add("jtrac.color.header");
-        COLOR_PARAMS.add("jtrac.color.lightblue");
-        COLOR_PARAMS.add("jtrac.color.mediumblue");
-        COLOR_PARAMS.add("jtrac.color.darkblue");
-        COLOR_PARAMS.add("jtrac.color.error");
-        COLOR_PARAMS.add("jtrac.color.errorbg");
     }
 
     public static Set<String> getParams() {

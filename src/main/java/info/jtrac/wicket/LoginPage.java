@@ -57,7 +57,6 @@ public class LoginPage extends WebPage {
         add(new LoginForm("form"));
         String jtracVersion = JtracApplication.get().getJtrac().getReleaseVersion();
         add(new Label("version", jtracVersion));
-		add(WebUtils.getColorChangeHeaderContributor());
     }
 
     @Override
