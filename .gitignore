@@ -29,3 +29,5 @@ data/
 # Development specifications & agent configurations
 .agents/
 openspec/
+docker/Build
+docker/Building
