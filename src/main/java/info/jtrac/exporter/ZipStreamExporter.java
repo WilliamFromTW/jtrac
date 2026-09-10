@@ -67,12 +67,12 @@ public class ZipStreamExporter {
                 for (ItemDto item : space.getItems()) {
                     // 議題直接關聯附件
                     for (AttachmentDto att : item.getAttachmentList()) {
-                        writeAttachmentToZip(zos, att, addedAttachments, buffer);
+                        writeAttachmentToZip(zos, att, space.getId(), addedAttachments, buffer);
                     }
                     // 討論串歷史更新中之附件
                     for (HistoryDto history : item.getHistoryList()) {
                         if (history.getAttachment() != null) {
-                            writeAttachmentToZip(zos, history.getAttachment(), addedAttachments, buffer);
+                            writeAttachmentToZip(zos, history.getAttachment(), space.getId(), addedAttachments, buffer);
                         }
                     }
                 }
@@ -83,16 +83,51 @@ public class ZipStreamExporter {
         zos.flush();
     }
 
-    private void writeAttachmentToZip(ZipOutputStream zos, AttachmentDto att, Set<String> addedAttachments, byte[] buffer) {
+    public static File resolveAttachmentFile(File baseDir, Long spaceId, String physicalName) {
+        if (baseDir == null || !baseDir.exists()) {
+            return null;
+        }
+        // 1. 優先檢查依 Space ID 分區之子目錄: attachments/{spaceId}/{physicalName}
+        if (spaceId != null && spaceId > 0) {
+            File partitioned = new File(new File(baseDir, String.valueOf(spaceId)), physicalName);
+            if (partitioned.exists() && partitioned.isFile()) {
+                return partitioned;
+            }
+        }
+        // 2. 向下相容檢查平鋪根目錄: attachments/{physicalName}
+        File flat = new File(baseDir, physicalName);
+        if (flat.exists() && flat.isFile()) {
+            return flat;
+        }
+        // 3. 檢查孤兒隔離目錄: attachments/0_ORPHAN/{physicalName}
+        File orphan = new File(new File(baseDir, "0_ORPHAN"), physicalName);
+        if (orphan.exists() && orphan.isFile()) {
+            return orphan;
+        }
+        // 4. 自動探索備援: 掃描 attachments 目錄下所有子目錄
+        File[] subDirs = baseDir.listFiles(File::isDirectory);
+        if (subDirs != null) {
+            for (File subDir : subDirs) {
+                File candidate = new File(subDir, physicalName);
+                if (candidate.exists() && candidate.isFile()) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void writeAttachmentToZip(ZipOutputStream zos, AttachmentDto att, Long spaceId, Set<String> addedAttachments, byte[] buffer) {
         String physicalName = att.getPhysicalFileName();
         if (addedAttachments.contains(physicalName)) {
             return;
         }
         addedAttachments.add(physicalName);
 
-        File srcFile = new File(attachmentsDir, physicalName);
-        if (!srcFile.exists() || !srcFile.isFile()) {
-            logger.warn("附件實體檔案不存在，略過打包: {}", srcFile.getAbsolutePath());
+        Long effectiveSpaceId = (spaceId != null && spaceId > 0) ? spaceId : att.getSpaceId();
+        File srcFile = resolveAttachmentFile(attachmentsDir, effectiveSpaceId, physicalName);
+        if (srcFile == null || !srcFile.exists() || !srcFile.isFile()) {
+            logger.warn("附件實體檔案不存在，略過打包: spaceId={}, fileName={}", effectiveSpaceId, physicalName);
             return;
         }
 

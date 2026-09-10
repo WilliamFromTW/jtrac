@@ -227,7 +227,7 @@ public class HtmlGenerator {
             sb.append("          <div class='box-title'>📎 ").append(HtmlEscaper.escape(i18n.get("attachment.title"))).append("</div>\n");
             sb.append("          <div class='attachments-list'>\n");
             for (AttachmentDto att : item.getAttachmentList()) {
-                appendAttachmentHtml(sb, att, attachmentsOutDir);
+                appendAttachmentHtml(sb, att, item.getSpaceId(), attachmentsOutDir);
             }
             sb.append("          </div>\n");
             sb.append("        </div>\n");
@@ -279,7 +279,7 @@ public class HtmlGenerator {
                 // 歷史記錄關聯之附件
                 if (h.getAttachment() != null) {
                     sb.append("          <div class='comment-attachment'>\n");
-                    appendAttachmentHtml(sb, h.getAttachment(), attachmentsOutDir);
+                    appendAttachmentHtml(sb, h.getAttachment(), item.getSpaceId(), attachmentsOutDir);
                     sb.append("          </div>\n");
                 }
 
@@ -291,27 +291,64 @@ public class HtmlGenerator {
         sb.append("  </section>\n"); // 結束 issue-thread-section
     }
 
-    private void appendAttachmentHtml(StringBuilder sb, AttachmentDto att, File attachmentsOutDir) {
+    public static File resolveAttachmentFile(File baseDir, Long spaceId, String physicalName) {
+        if (baseDir == null || !baseDir.exists()) {
+            return null;
+        }
+        // 1. 優先檢查依 Space ID 分區之子目錄: attachments/{spaceId}/{physicalName}
+        if (spaceId != null && spaceId > 0) {
+            File partitioned = new File(new File(baseDir, String.valueOf(spaceId)), physicalName);
+            if (partitioned.exists() && partitioned.isFile()) {
+                return partitioned;
+            }
+        }
+        // 2. 向下相容檢查平鋪根目錄: attachments/{physicalName}
+        File flat = new File(baseDir, physicalName);
+        if (flat.exists() && flat.isFile()) {
+            return flat;
+        }
+        // 3. 檢查孤兒隔離目錄: attachments/0_ORPHAN/{physicalName}
+        File orphan = new File(new File(baseDir, "0_ORPHAN"), physicalName);
+        if (orphan.exists() && orphan.isFile()) {
+            return orphan;
+        }
+        // 4. 自動探索備援: 掃描 attachments 目錄下所有子目錄
+        File[] subDirs = baseDir.listFiles(File::isDirectory);
+        if (subDirs != null) {
+            for (File subDir : subDirs) {
+                File candidate = new File(subDir, physicalName);
+                if (candidate.exists() && candidate.isFile()) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void appendAttachmentHtml(StringBuilder sb, AttachmentDto att, Long spaceId, File attachmentsOutDir) {
         String physicalName = att.getPhysicalFileName();
         File srcFile = null;
         boolean exists = false;
 
         if (config.getAttachmentsDir() != null) {
-            srcFile = new File(config.getAttachmentsDir(), physicalName);
-            if (srcFile.exists() && srcFile.isFile()) {
+            Long effectiveSpaceId = (spaceId != null && spaceId > 0) ? spaceId : att.getSpaceId();
+            srcFile = resolveAttachmentFile(config.getAttachmentsDir(), effectiveSpaceId, physicalName);
+            if (srcFile != null && srcFile.exists() && srcFile.isFile()) {
                 exists = true;
             }
         }
 
         if (exists) {
-            // 複製檔案至 output attachments/
-            File destFile = new File(attachmentsOutDir, physicalName);
-            if (!copiedAttachments.contains(physicalName)) {
-                try {
-                    Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    copiedAttachments.add(physicalName);
-                } catch (IOException e) {
-                    System.err.println("[警告] 複製附件檔案失敗: " + physicalName + " (" + e.getMessage() + ")");
+            // 複製檔案至 output attachments/ (若有指定輸出目錄，如 CLI 模式)
+            if (attachmentsOutDir != null) {
+                File destFile = new File(attachmentsOutDir, physicalName);
+                if (!copiedAttachments.contains(physicalName)) {
+                    try {
+                        Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        copiedAttachments.add(physicalName);
+                    } catch (IOException e) {
+                        System.err.println("[警告] 複製附件檔案失敗: " + physicalName + " (" + e.getMessage() + ")");
+                    }
                 }
             }
 

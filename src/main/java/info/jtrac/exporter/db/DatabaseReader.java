@@ -226,6 +226,9 @@ public class DatabaseReader implements AutoCloseable {
                 // 關聯附件
                 List<AttachmentDto> atts = attachmentsByItemId.get(id);
                 if (atts != null) {
+                    for (AttachmentDto att : atts) {
+                        att.setSpaceId(space.getId());
+                    }
                     item.getAttachmentList().addAll(atts);
                 }
 
@@ -261,7 +264,13 @@ public class DatabaseReader implements AutoCloseable {
                 long attId = rs.getLong(findCol(rs, "attachment_id"));
                 if (!rs.wasNull()) {
                     h.setAttachmentId(attId);
-                    h.setAttachment(attachmentsById.get(attId));
+                    AttachmentDto att = attachmentsById.get(attId);
+                    if (att != null) {
+                        if (att.getSpaceId() == null) {
+                            att.setSpaceId(item.getSpaceId());
+                        }
+                        h.setAttachment(att);
+                    }
                 }
 
                 Timestamp ts = rs.getTimestamp(findCol(rs, "time_stamp"));

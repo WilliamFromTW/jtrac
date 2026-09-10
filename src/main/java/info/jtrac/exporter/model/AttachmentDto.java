@@ -5,6 +5,7 @@ public class AttachmentDto {
     private long itemId;
     private String fileName;
     private long filePrefix;
+    private Long spaceId;
 
     public AttachmentDto() {}
 
@@ -13,6 +14,22 @@ public class AttachmentDto {
         this.itemId = itemId;
         this.fileName = fileName;
         this.filePrefix = filePrefix;
+    }
+
+    public AttachmentDto(long id, long itemId, String fileName, long filePrefix, Long spaceId) {
+        this.id = id;
+        this.itemId = itemId;
+        this.fileName = fileName;
+        this.filePrefix = filePrefix;
+        this.spaceId = spaceId;
+    }
+
+    public Long getSpaceId() {
+        return spaceId;
+    }
+
+    public void setSpaceId(Long spaceId) {
+        this.spaceId = spaceId;
     }
 
     public long getId() {

@@ -25,9 +25,15 @@ public class ExporterIntegrationTest {
         Path attachmentsDir = tempDir.resolve("attachments");
         Files.createDirectories(attachmentsDir);
 
-        // 建立測試實體附件
+        // 建立測試實體附件 1 (舊版根目錄平鋪備援)
         Path testFile = attachmentsDir.resolve("101_sample-patch.txt");
         Files.write(testFile, "This is a test patch content.".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        // 建立測試實體附件 2 (新版 Space ID 分區子目錄: attachments/1/)
+        Path space1Dir = attachmentsDir.resolve("1");
+        Files.createDirectories(space1Dir);
+        Path testPartitionedFile = space1Dir.resolve("102_partitioned-doc.pdf");
+        Files.write(testPartitionedFile, "%PDF-1.4 simulated content".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
         // 初始化模擬 JTrac 資料庫結構
         Class.forName("org.hsqldb.jdbcDriver");
@@ -49,9 +55,11 @@ public class ExporterIntegrationTest {
             stmt.execute("INSERT INTO items VALUES (10, 1, 1, '修正認證模組 NullPointerException', '在未輸入密碼時點擊登入會造成系統拋出異常。', 1, 1, 2, 1, 2, CURRENT_TIMESTAMP, 4.0)");
 
             stmt.execute("INSERT INTO attachments VALUES (101, 10, 'sample-patch.txt', 101)");
+            stmt.execute("INSERT INTO attachments VALUES (102, 10, 'partitioned-doc.pdf', 102)");
 
             stmt.execute("INSERT INTO history VALUES (1, 10, '問題已確認重現，建立議題追蹤。', NULL, CURRENT_TIMESTAMP, 1, 2, 1, 1, 2, NULL)");
             stmt.execute("INSERT INTO history VALUES (2, 10, '已撰寫防呆防護並提交修復補丁。', 101, CURRENT_TIMESTAMP, 2, 1, 99, 1, 2, 3.5)");
+            stmt.execute("INSERT INTO history VALUES (3, 10, '補充規格說明文件。', 102, CURRENT_TIMESTAMP, 1, 2, 99, 1, 2, 1.0)");
         }
 
         // 執行匯出
@@ -76,7 +84,7 @@ public class ExporterIntegrationTest {
             SpaceDto space = spaces.get(0);
             assertEquals("DEV", space.getPrefixCode());
             assertEquals(1, space.getItems().size());
-            assertEquals(2, space.getItems().get(0).getHistoryList().size());
+            assertEquals(3, space.getItems().get(0).getHistoryList().size());
 
             HtmlGenerator generator = new HtmlGenerator(config);
             generator.generate(spaces);
@@ -85,11 +93,13 @@ public class ExporterIntegrationTest {
         // 驗證輸出產物
         Path indexHtml = outDir.resolve("index.html");
         Path spaceHtml = outDir.resolve("DEV.html");
-        Path copiedAttachment = outDir.resolve("attachments").resolve("101_sample-patch.txt");
+        Path copiedAttachment1 = outDir.resolve("attachments").resolve("101_sample-patch.txt");
+        Path copiedAttachment2 = outDir.resolve("attachments").resolve("102_partitioned-doc.pdf");
 
         assertTrue(Files.exists(indexHtml), "index.html 必須存在");
         assertTrue(Files.exists(spaceHtml), "DEV.html 必須存在");
-        assertTrue(Files.exists(copiedAttachment), "附件必須成功複製到 attachments/ 目錄");
+        assertTrue(Files.exists(copiedAttachment1), "舊版平鋪附件必須成功複製到 attachments/ 目錄");
+        assertTrue(Files.exists(copiedAttachment2), "新版 Space 分區附件必須成功複製到 attachments/ 目錄");
 
         String indexContent = new String(Files.readAllBytes(indexHtml), java.nio.charset.StandardCharsets.UTF_8);
         assertTrue(indexContent.contains("DEV"), "索引頁應包含空間代碼 DEV");
@@ -99,6 +109,7 @@ public class ExporterIntegrationTest {
         assertTrue(spaceContent.contains("id='DEV-1'"), "議題頁面應具備 Section ID DEV-1");
         assertTrue(spaceContent.contains("修正認證模組 NullPointerException"), "議題頁面應包含主題");
         assertTrue(spaceContent.contains("已撰寫防呆防護並提交修復補丁。"), "議題頁面應包含討論串留言");
-        assertTrue(spaceContent.contains("sample-patch.txt"), "議題頁面應包含附件超連結");
+        assertTrue(spaceContent.contains("sample-patch.txt"), "議題頁面應包含附件 1 超連結");
+        assertTrue(spaceContent.contains("partitioned-doc.pdf"), "議題頁面應包含分區附件 2 超連結");
     }
 }
