@@ -5,6 +5,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class AttachmentUtilsTest {
@@ -67,5 +69,48 @@ public class AttachmentUtilsTest {
         File resolvedOrphan = AttachmentUtils.getFile(orphanAtt, 99L, tempHome.getAbsolutePath());
         Assert.assertTrue(resolvedOrphan.exists());
         Assert.assertEquals(orphanFile.getAbsolutePath(), resolvedOrphan.getAbsolutePath());
+    }
+
+    @Test
+    public void testIsValidUtf8() throws Exception {
+        // 1. Non-existent and null file
+        Assert.assertFalse(AttachmentUtils.isValidUtf8(null));
+        Assert.assertFalse(AttachmentUtils.isValidUtf8(new File("non-existent-file-xyz.txt")));
+
+        // 2. Empty file -> valid UTF-8
+        File emptyFile = File.createTempFile("empty-", ".txt");
+        emptyFile.deleteOnExit();
+        Assert.assertTrue(AttachmentUtils.isValidUtf8(emptyFile));
+
+        // 3. Pure ASCII text
+        File asciiFile = File.createTempFile("ascii-", ".txt");
+        asciiFile.deleteOnExit();
+        Files.write(asciiFile.toPath(), "Hello world, this is pure ASCII text.\nLine 2.".getBytes(StandardCharsets.US_ASCII));
+        Assert.assertTrue(AttachmentUtils.isValidUtf8(asciiFile));
+
+        // 4. Valid UTF-8 text with Traditional Chinese
+        File utf8File = File.createTempFile("utf8-", ".txt");
+        utf8File.deleteOnExit();
+        Files.write(utf8File.toPath(), "這是一段 UTF-8 繁體中文測試檔案。\n包括特殊符號：€、©、★。".getBytes(StandardCharsets.UTF_8));
+        Assert.assertTrue(AttachmentUtils.isValidUtf8(utf8File));
+
+        // 5. Big5 encoded text -> Should fail UTF-8 validation
+        File big5File = File.createTempFile("big5-", ".txt");
+        big5File.deleteOnExit();
+        Files.write(big5File.toPath(), "這是一段 Big5 繁體中文測試檔案。".getBytes(Charset.forName("Big5")));
+        Assert.assertFalse(AttachmentUtils.isValidUtf8(big5File));
+
+        // 6. GBK encoded text -> Should fail UTF-8 validation
+        File gbkFile = File.createTempFile("gbk-", ".txt");
+        gbkFile.deleteOnExit();
+        Files.write(gbkFile.toPath(), "这是一段 GBK 简体中文测试文件。".getBytes(Charset.forName("GBK")));
+        Assert.assertFalse(AttachmentUtils.isValidUtf8(gbkFile));
+
+        // 7. Binary file with NUL byte
+        File binaryFile = File.createTempFile("binary-", ".bin");
+        binaryFile.deleteOnExit();
+        byte[] binaryData = new byte[] { 't', 'e', 's', 't', 0x00, 'b', 'i', 'n' };
+        Files.write(binaryFile.toPath(), binaryData);
+        Assert.assertFalse(AttachmentUtils.isValidUtf8(binaryFile));
     }
 }

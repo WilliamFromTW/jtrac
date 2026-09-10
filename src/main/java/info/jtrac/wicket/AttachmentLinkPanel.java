@@ -50,7 +50,11 @@ public class AttachmentLinkPanel extends BasePanel {
 
         final String fileName = attachment.getFileName();
         final String fileType = AttachmentUtils.guessFileType(attachment, getJtrac().getJtracHome());
-        final boolean isViewable = fileType != null && (fileType.startsWith("image") || fileType.startsWith("text"));
+        File initialFile = AttachmentUtils.getFile(attachment, getJtrac().getJtracHome());
+        final boolean isText = fileType != null && fileType.startsWith("text");
+        final boolean isImage = fileType != null && fileType.startsWith("image");
+        final boolean isUtf8Text = isText && AttachmentUtils.isValidUtf8(initialFile);
+        final boolean isViewable = isImage || isUtf8Text;
         final boolean openInNewWindow = openNewWindow() && isViewable;
 
         Link<Void> link = new Link<Void>("attachment") {
@@ -64,11 +68,23 @@ public class AttachmentLinkPanel extends BasePanel {
                     return;
                 }
 
+                final boolean isTextFile = fileType != null && fileType.startsWith("text");
+                final boolean isImageFile = fileType != null && fileType.startsWith("image");
+                final boolean isUtf8 = isTextFile && AttachmentUtils.isValidUtf8(file);
+                final boolean canViewInline = openInNewWindow && (isImageFile || isUtf8);
+
+                final String contentType;
+                if (isUtf8) {
+                    contentType = fileType.toLowerCase().contains("charset") ? fileType : (fileType + "; charset=UTF-8");
+                } else {
+                    contentType = fileType != null ? fileType : "application/octet-stream";
+                }
+
                 IResourceStream resourceStream = new FileResourceStream(file) {
                     private static final long serialVersionUID = 1L;
                     @Override
                     public String getContentType() {
-                        return fileType;
+                        return contentType;
                     }
                 };
 
@@ -76,14 +92,17 @@ public class AttachmentLinkPanel extends BasePanel {
                     @Override
                     public void respond(IRequestCycle requestCycle) {
                         WebResponse r = (WebResponse) requestCycle.getResponse();
-                        String disposition = openInNewWindow ? "inline" : "attachment";
+                        String disposition = canViewInline ? "inline" : "attachment";
                         String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
                         r.setHeader("Content-Disposition", disposition + "; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+                        if (contentType != null) {
+                            r.setHeader("Content-Type", contentType);
+                        }
                         super.respond(requestCycle);
                     }
                 };
 
-                if (openInNewWindow) {
+                if (canViewInline) {
                     handler.setContentDisposition(ContentDisposition.INLINE);
                 } else {
                     handler.setContentDisposition(ContentDisposition.ATTACHMENT);

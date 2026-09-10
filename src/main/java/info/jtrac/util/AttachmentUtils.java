@@ -5,6 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 /**
@@ -133,5 +139,51 @@ public class AttachmentUtils {
             }
         }
         return fileType != null ? fileType : "application/octet-stream";
+    }
+
+    /**
+     * Checks whether the file content is valid UTF-8 encoded text.
+     * Uses strict CharsetDecoder with REPORT on malformed input and unmappable characters.
+     * Samples up to 64KB for non-ASCII text or 512KB for pure ASCII to ensure responsiveness on large files.
+     * Rejects binary files containing null bytes (0x00).
+     */
+    public static boolean isValidUtf8(File file) {
+        if (file == null || !file.exists() || !file.isFile()) {
+            return false;
+        }
+        if (file.length() == 0) {
+            return true;
+        }
+        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        try (InputStream is = Files.newInputStream(file.toPath());
+             Reader reader = new InputStreamReader(is, decoder)) {
+            char[] buffer = new char[8192];
+            int totalRead = 0;
+            int read;
+            boolean hasNonAscii = false;
+            while ((read = reader.read(buffer)) != -1) {
+                for (int i = 0; i < read; i++) {
+                    char c = buffer[i];
+                    if (c == 0) {
+                        return false;
+                    }
+                    if (c > 127) {
+                        hasNonAscii = true;
+                    }
+                }
+                totalRead += read;
+                if (hasNonAscii && totalRead >= 65536) {
+                    break;
+                }
+                if (totalRead >= 524288) {
+                    break;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
