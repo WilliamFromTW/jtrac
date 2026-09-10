@@ -71,13 +71,16 @@ public class ItemViewFormPanel extends BasePanel {
         
         private FileUploadField fileUploadField;
         private long itemId;
+        private String itemRefId;
         private DropDownChoice assignedToChoice;
         private DropDownChoice statusChoice;
+        private boolean submitted = false;
         
         public ItemViewForm(String id, final Item item) {
             super(id);
             setMultiPart(true);
             this.itemId = item.getId();
+            this.itemRefId = item.getRefId();
             final History history = new History();
             history.setItemUsers(item.getItemUsers());
             final BoundCompoundPropertyModel model = new BoundCompoundPropertyModel(history);
@@ -188,6 +191,12 @@ public class ItemViewFormPanel extends BasePanel {
         
         @Override
         protected void onSubmit() {
+            if (submitted) {
+                logger.warn("Prevented duplicate submission for history on item id {}", itemId);
+                setResponsePage(ItemViewPage.class, new PageParameters().set("0", itemRefId));
+                return;
+            }
+            submitted = true;
             final FileUpload fileUpload = fileUploadField.getFileUpload();
             History history = (History) getModelObject();
             User user = JtracSession.get().getUser();

@@ -177,28 +177,4 @@ public class RestMultiActionController extends AbstractMultiActionController {
         }
         writeXml(d, response);
     }
-
-    public void itemSearchGet(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        logger.debug("parsing queryString: {}", request.getQueryString());
-        PageParameters params = new PageParameters();
-        for (java.util.Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-            for (String val : entry.getValue()) {
-                params.add(entry.getKey(), val);
-            }
-        }
-        User user = (User) request.getAttribute("user");
-        ItemSearch itemSearch = ItemUtils.getItemSearch(user, params, jtrac);
-        initXmlResponse(response);
-        ItemUtils.writeAsXml(itemSearch, jtrac, response.getWriter());
-    }
-
-    public void itemAllGet(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        User user = (User) request.getAttribute("user");
-        if (!user.isSuperUser()) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-        initXmlResponse(response);
-        ItemUtils.writeAsXml(jtrac, response.getWriter());
-    }
 }

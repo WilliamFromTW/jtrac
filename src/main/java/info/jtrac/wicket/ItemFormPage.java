@@ -106,6 +106,7 @@ public class ItemFormPage extends BasePage {
         private FileUploadField fileUploadField = new FileUploadField("file", new ListModel<FileUpload>());
         private boolean editMode;
         private int version;
+        private boolean submitted = false;
         
         /**
          * Constructor
@@ -327,8 +328,18 @@ public class ItemFormPage extends BasePage {
          */
         @Override
         protected void onSubmit() {
-            final FileUpload fileUpload = fileUploadField.getFileUpload();
             Item item = (Item) getModelObject();
+            if (!editMode && (submitted || (item.getId() > 0))) {
+                logger.warn("Prevented duplicate submission for item id {}", item.getId());
+                if (item.getRefId() != null) {
+                    setResponsePage(ItemViewPage.class, new PageParameters().set("0", item.getRefId()));
+                } else {
+                    setResponsePage(DashboardPage.class);
+                }
+                return;
+            }
+            submitted = true;
+            final FileUpload fileUpload = fileUploadField.getFileUpload();
             User user = getPrincipal();
             if (editMode) {
                 getJtrac().updateItem(item, user);

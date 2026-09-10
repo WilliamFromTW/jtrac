@@ -176,25 +176,6 @@ public class ItemListPanel extends BasePanel {
         
         add(pagination);
         
-        //========================== XML EXPORT ================================
-        
-        add(new Link("exportToXml") {            
-            public void onClick() {
-                getRequestCycle().scheduleRequestHandlerAfterCurrent(new IRequestHandler() {
-                    @Override
-                    public void respond(IRequestCycle requestCycle) {
-                        WebResponse r = (WebResponse) requestCycle.getResponse();
-                        r.setAttachmentHeader("jtrac-export.xml");     
-                        ItemUtils.writeAsXml(itemSearch, getJtrac(), new OutputStreamWriter(r.getOutputStream()));                   
-                    }
-                    @Override
-                    public void detach(IRequestCycle requestCycle) {                        
-                    }                    
-                });
-            }
-        });
-                
-        
         //====================== HEADER ========================================        
 
         final List<ColumnHeading> columnHeadings = itemSearch.getColumnHeadingsToRender();

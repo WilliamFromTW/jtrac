@@ -90,5 +90,47 @@ public abstract class BasePage extends WebPage {
         String cp = getRequest().getContextPath();
         String version = getJtrac() != null ? getJtrac().getReleaseVersion() : "2.3.3";
         response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + version));
+        
+        String doubleSubmitScript = 
+            "(function() {\n" +
+            "    if (window._jtracDoubleSubmitGuardInstalled) return;\n" +
+            "    window._jtracDoubleSubmitGuardInstalled = true;\n" +
+            "    function resetFormState(form) {\n" +
+            "        if (!form) return;\n" +
+            "        form.removeAttribute('data-submitting');\n" +
+            "        var btns = form.querySelectorAll('input[type=\"submit\"], button[type=\"submit\"]');\n" +
+            "        for (var i = 0; i < btns.length; i++) {\n" +
+            "            btns[i].style.pointerEvents = '';\n" +
+            "            btns[i].style.opacity = '';\n" +
+            "            btns[i].style.cursor = '';\n" +
+            "        }\n" +
+            "    }\n" +
+            "    document.addEventListener('submit', function(e) {\n" +
+            "        var form = e.target;\n" +
+            "        if (!form || form.tagName.toLowerCase() !== 'form') return;\n" +
+            "        if (form.checkValidity && !form.checkValidity()) return;\n" +
+            "        if (form.getAttribute('data-submitting') === 'true') {\n" +
+            "            e.preventDefault();\n" +
+            "            e.stopPropagation();\n" +
+            "            return false;\n" +
+            "        }\n" +
+            "        form.setAttribute('data-submitting', 'true');\n" +
+            "        var btns = form.querySelectorAll('input[type=\"submit\"], button[type=\"submit\"]');\n" +
+            "        for (var i = 0; i < btns.length; i++) {\n" +
+            "            btns[i].style.pointerEvents = 'none';\n" +
+            "            btns[i].style.opacity = '0.6';\n" +
+            "            btns[i].style.cursor = 'not-allowed';\n" +
+            "        }\n" +
+            "        setTimeout(function() { resetFormState(form); }, 1500);\n" +
+            "        setTimeout(function() { resetFormState(form); }, 5000);\n" +
+            "    }, true);\n" +
+            "    window.addEventListener('pageshow', function() {\n" +
+            "        var forms = document.querySelectorAll('form[data-submitting=\"true\"]');\n" +
+            "        for (var i = 0; i < forms.length; i++) {\n" +
+            "            resetFormState(forms[i]);\n" +
+            "        }\n" +
+            "    });\n" +
+            "})();";
+        response.render(org.apache.wicket.markup.head.JavaScriptHeaderItem.forScript(doubleSubmitScript, "jtrac-double-submit-guard"));
     }
 }
