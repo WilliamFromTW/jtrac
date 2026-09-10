@@ -124,9 +124,24 @@ public class ItemListPanel extends BasePanel {
             }
             pagination.add(prevOn);
             pagination.add(prevOff);
+
+            WebMarkupContainer pageInfo = new WebMarkupContainer("pageInfo");
+            pageInfo.add(new Label("pageInfoText", (currentPage + 1) + " / " + pageCount));
+            pagination.add(pageInfo);
             
-            List<Integer> pageNumbers = new ArrayList<Integer>(pageCount);
-            for(int i = 0; i < pageCount; i++) {
+            int windowSize = 10;
+            int startPage = 0;
+            int endPage = pageCount - 1;
+            if (pageCount > windowSize) {
+                startPage = Math.max(0, currentPage - (windowSize / 2));
+                endPage = startPage + windowSize - 1;
+                if (endPage >= pageCount) {
+                    endPage = pageCount - 1;
+                    startPage = Math.max(0, endPage - windowSize + 1);
+                }
+            }
+            List<Integer> pageNumbers = new ArrayList<Integer>(endPage - startPage + 1);
+            for(int i = startPage; i <= endPage; i++) {
                 pageNumbers.add(Integer.valueOf(i));
             }
             

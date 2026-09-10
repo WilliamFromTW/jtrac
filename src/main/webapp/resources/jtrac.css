@@ -183,6 +183,131 @@ code {
 .diff { text-align:center }
 .lineno { text-align:center }
 
+/* --- Issue List Toolbar & Pagination (Desktop Defaults) --- */
+.item-list-toolbar .page-info-mobile {
+	display: none !important;
+}
+.item-list-toolbar .page-links .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+.item-list-toolbar .page-links a,
+.item-list-toolbar .page-links span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 28px;
+	min-height: 28px;
+	padding: 2px 6px;
+	text-align: center;
+	border-radius: 4px;
+	text-decoration: none;
+	box-sizing: border-box;
+	font-size: 0.95em;
+}
+.item-list-toolbar .page-links a {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	color: var(--darkblue);
+	transition: background-color 0.15s ease;
+}
+.item-list-toolbar .page-links a:hover {
+	background: var(--mediumblue);
+	text-decoration: none;
+}
+.item-list-toolbar .page-links span[wicket\:id="pageOff"],
+.item-list-toolbar .page-links span.pageOff {
+	background: var(--darkblue);
+	color: #FFFFFF !important;
+	font-weight: bold;
+	border: 1px solid var(--darkblue);
+}
+.item-list-toolbar .page-links span[wicket\:id="prevOff"],
+.item-list-toolbar .page-links span[wicket\:id="nextOff"] {
+	color: var(--text-muted);
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* --- Login Page Modern Card Layout (Desktop) --- */
+.login-form {
+	max-width: 450px;
+	margin: 40px auto;
+	padding: 0 12px;
+	box-sizing: border-box;
+}
+.login-form .login-spacer {
+	display: none;
+}
+.login-table {
+	width: 100% !important;
+	background: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: 8px;
+	padding: 24px 28px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+	border-collapse: separate;
+	border-spacing: 0 14px;
+	box-sizing: border-box;
+}
+.login-table td.col-login-label {
+	white-space: nowrap !important;
+	min-width: 140px;
+	font-size: 0.95em;
+	font-weight: bold;
+	color: var(--text-color);
+	background: transparent !important;
+	text-align: right;
+	padding-right: 12px;
+}
+.login-table td.col-login-input input {
+	width: 100% !important;
+	box-sizing: border-box;
+	padding: 8px 12px;
+	font-size: 1em;
+	border: 1px solid var(--border-color);
+	border-radius: 5px;
+	background: var(--card-bg);
+	color: var(--text-color);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.login-table td.col-login-input input:focus {
+	outline: none;
+	border-color: var(--darkblue);
+	box-shadow: 0 0 0 3px rgba(0, 0, 217, 0.15);
+}
+[data-theme="dark"] .login-table td.col-login-input input:focus {
+	box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+}
+.login-table td.col-login-submit {
+	padding-left: 10px;
+}
+.login-table input[type="submit"] {
+	padding: 8px 18px;
+	font-size: 0.95em;
+	font-weight: bold;
+	background: var(--darkblue);
+	color: #FFFFFF !important;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	min-height: 36px;
+	transition: opacity 0.15s ease;
+}
+.login-table input[type="submit"]:hover {
+	opacity: 0.9;
+}
+.login-table .login-remember-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	font-size: 0.9em;
+	color: var(--text-muted);
+	user-select: none;
+}
+
 /* ==========================================================================
    Responsive Web Design (RWD) & Mobile Layout (max-width: 768px)
    ========================================================================== */
@@ -312,7 +437,7 @@ code {
 		display: none !important;
 	}
 
-	/* --- Issue List Toolbar Mobile Focus --- */
+	/* --- Issue List Toolbar Mobile Focus (Minimal Pagination) --- */
 	.item-list-toolbar {
 		display: block !important;
 		width: 100% !important;
@@ -325,25 +450,198 @@ code {
 	}
 
 	.item-list-toolbar td {
-		display: block !important;
+		display: flex !important;
+		flex-direction: column !important;
+		align-items: center !important;
+		justify-content: center !important;
 		width: 100% !important;
 		box-sizing: border-box !important;
-		padding: 6px 2px !important;
+		padding: 10px 4px !important;
+		gap: 10px !important;
 	}
 
-	.item-list-toolbar td:last-child {
-		display: none !important; /* Hide Excel / XML export on mobile */
+	.item-list-toolbar span[wicket\:id="count"] {
+		font-weight: bold;
+		font-size: 1em;
+		color: var(--text-color);
 	}
 
-	.item-list-toolbar .page-links a, .item-list-toolbar .page-links span {
-		display: inline-block;
-		min-width: 32px;
-		min-height: 32px;
-		line-height: 32px;
-		text-align: center;
-		margin: 2px;
-		border-radius: 4px;
-		font-size: 1.05em;
+	/* Minimal Mobile Pagination: hide number buttons, show <<  X / Y  >> */
+	.item-list-toolbar .page-links {
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		gap: 14px !important;
+		width: 100% !important;
+		margin: 4px 0 !important;
+	}
+
+	.item-list-toolbar .page-links .page-numbers {
+		display: none !important;
+	}
+
+	.item-list-toolbar .page-info-mobile {
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		font-weight: bold !important;
+		font-size: 1.05em !important;
+		color: var(--text-color) !important;
+		padding: 6px 14px !important;
+		background: var(--header) !important;
+		border-radius: 20px !important;
+		border: 1px solid var(--border-color) !important;
+		min-width: 80px !important;
+	}
+
+	.item-list-toolbar .page-links a,
+	.item-list-toolbar .page-links span[wicket\:id="prevOff"],
+	.item-list-toolbar .page-links span[wicket\:id="nextOff"] {
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		min-width: 44px !important;
+		min-height: 40px !important;
+		padding: 4px 12px !important;
+		border-radius: 6px !important;
+		font-size: 1.15em !important;
+		font-weight: bold !important;
+		text-align: center !important;
+		box-sizing: border-box !important;
+		touch-action: manipulation;
+	}
+
+	.item-list-toolbar .page-links a {
+		background: var(--card-bg) !important;
+		border: 1px solid var(--border-color) !important;
+		color: var(--darkblue) !important;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+	}
+
+	.item-list-toolbar .page-links a:active {
+		background: var(--mediumblue) !important;
+		transform: scale(0.96);
+	}
+
+	.item-list-toolbar .page-links span[wicket\:id="prevOff"],
+	.item-list-toolbar .page-links span[wicket\:id="nextOff"] {
+		background: var(--card-border) !important;
+		color: var(--text-muted) !important;
+		opacity: 0.4 !important;
+		border: 1px solid transparent !important;
+		cursor: not-allowed !important;
+	}
+
+	/* --- Login Page Mobile Responsive Stack --- */
+	.login-form {
+		width: 100% !important;
+		max-width: 100% !important;
+		margin: 16px 0 !important;
+		padding: 0 !important;
+	}
+
+	.login-table {
+		display: block !important;
+		width: 100% !important;
+		background: var(--card-bg) !important;
+		border: 1px solid var(--card-border) !important;
+		border-radius: 8px !important;
+		box-shadow: var(--card-shadow) !important;
+		padding: 20px 16px !important;
+		box-sizing: border-box !important;
+		border-spacing: 0 !important;
+	}
+
+	.login-table tbody,
+	.login-table tr {
+		display: block !important;
+		width: 100% !important;
+	}
+
+	.login-table tr.row-login-name,
+	.login-table tr.row-login-password {
+		margin-bottom: 16px !important;
+	}
+
+	.login-table td.col-login-label {
+		display: block !important;
+		width: 100% !important;
+		text-align: left !important;
+		margin-bottom: 6px !important;
+		padding: 0 !important;
+		font-size: 0.95em !important;
+		font-weight: bold !important;
+		color: var(--text-color) !important;
+	}
+
+	.login-table td.col-login-input {
+		display: block !important;
+		width: 100% !important;
+		padding: 0 !important;
+	}
+
+	.login-table td.col-login-input input {
+		display: block !important;
+		width: 100% !important;
+		min-height: 44px !important;
+		padding: 10px 12px !important;
+		font-size: 16px !important; /* 16px prevents iOS Safari auto-zoom */
+		border-radius: 6px !important;
+		box-sizing: border-box !important;
+	}
+
+	.login-table td.col-login-submit {
+		display: block !important;
+		width: 100% !important;
+		padding: 12px 0 0 0 !important;
+	}
+
+	.login-table td.col-login-submit input[type="submit"] {
+		display: block !important;
+		width: 100% !important;
+		min-height: 46px !important;
+		font-size: 1.1em !important;
+		font-weight: bold !important;
+		background: var(--darkblue) !important;
+		color: #FFFFFF !important;
+		border-radius: 6px !important;
+		border: none !important;
+		cursor: pointer !important;
+		text-align: center !important;
+	}
+
+	.login-table tr.row-login-remember {
+		display: block !important;
+		width: 100% !important;
+		margin-top: 8px !important;
+	}
+
+	.login-table td.col-login-empty {
+		display: none !important;
+	}
+
+	.login-table td.col-login-remember {
+		display: block !important;
+		width: 100% !important;
+		text-align: right !important;
+		padding: 0 !important;
+	}
+
+	.login-table .login-remember-label {
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: flex-end !important;
+		gap: 6px !important;
+		font-size: 0.95em !important;
+		min-height: 36px !important;
+		cursor: pointer !important;
+	}
+
+	.login-table .login-remember-label input[type="checkbox"] {
+		width: 18px !important;
+		height: 18px !important;
+		margin: 0 !important;
+		cursor: pointer !important;
 	}
 
 	/* --- Issue List Table to Card Conversion --- */

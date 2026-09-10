@@ -34,26 +34,28 @@
                 </td>
             </tr>
         </table>             
-        <form wicket:id="form" class="content">
-            <div wicket:id="hide" style="margin-top:3.2em"></div>
+        <form wicket:id="form" class="content login-form">
+            <div wicket:id="hide" class="login-spacer"></div>
             <div wicket:id="feedback"></div>
-            <table class="jtrac">
-                <tr>
-                    <td class="label"><wicket:message key="login.loginName"/></td>
-                    <td colspan="2"><input wicket:id="loginName" size="35"/></td>
+            <table class="jtrac login-table">
+                <tr class="row-login-name">
+                    <td class="label col-login-label"><wicket:message key="login.loginName"/></td>
+                    <td colspan="2" class="col-login-input"><input wicket:id="loginName" size="35"/></td>
                 </tr>
-                <tr>
-                    <td class="label"><wicket:message key="login.password"/></td>
-                    <td><input type="password" wicket:id="password" size="20"/></td>
-                    <td align="right">
+                <tr class="row-login-password">
+                    <td class="label col-login-label"><wicket:message key="login.password"/></td>
+                    <td class="col-login-input"><input type="password" wicket:id="password" size="20"/></td>
+                    <td align="right" class="col-login-submit">
                         <input type="submit" wicket:message="value:login.submit"/>                        
                     </td>
                 </tr> 
-                <tr>
-                    <td/>
-                    <td colspan="2" align="right">
-                        <wicket:message key="login.rememberMe"/>
-                        <input type="checkbox" wicket:id="rememberMe"/>
+                <tr class="row-login-remember">
+                    <td class="col-login-empty"/>
+                    <td colspan="2" align="right" class="col-login-remember">
+                        <label class="login-remember-label">
+                            <wicket:message key="login.rememberMe"/>
+                            <input type="checkbox" wicket:id="rememberMe"/>
+                        </label>
                     </td>
                 </tr>                                              
             </table>
