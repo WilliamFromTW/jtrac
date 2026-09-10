@@ -1,4 +1,4 @@
-# JTrac リリースノート (Release Notes) - 2.3.3-2.0.0
+﻿# JTrac リリースノート (Release Notes) - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 
@@ -39,7 +39,7 @@
 7. **ファイルアップロードコンポーネントのモデルバインディング修正**：
    - `ItemFormPage` および `ItemViewFormPanel` の `FileUploadField` に独立した Model を割り当て、実行時のプロパティ解決例外を根絶。
 8. **データベースの移行と SQL ガイド**：
-   - 専用アップグレードスクリプト [`etc/sql/upgrade-to-2.0.0.sql`](../etc/sql/upgrade-to-2.0.0.sql) を提供（MySQL、PostgreSQL、SQL Server、Oracle 対応）。
+   - 専用アップグレードスクリプト [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) を提供（MySQL、PostgreSQL、SQL Server、Oracle 対応）。
    - 内蔵 `HsqldbDatabaseMigrator` により、起動時に HSQLDB 1.8 を自動バックアップおよび 2.x へ無停止移行。
 9. **Excel モジュールの完全削除と WAR 軽量化 (Excel Module Removal & POI Deprecation)**：
    - レガシーな Excel インポート・エクスポート機能および Apache POI 依存関係を完全に削除し、WAR パッケージサイズを 3 MB 以上軽量化。
@@ -79,4 +79,4 @@
 
 ## ライセンス (License)
 
-JTrac はオープンソースソフトウェアであり、[Apache Software License, Version 2.0](../license.txt) に基づいて公開されています。
+JTrac はオープンソースソフトウェアであり、[Apache Software License, Version 2.0](../../license.txt) に基づいて公開されています。

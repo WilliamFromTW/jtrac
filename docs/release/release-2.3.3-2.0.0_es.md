@@ -1,4 +1,4 @@
-# Notas de la Versión de JTrac (Release Notes) - 2.3.3-2.0.0
+﻿# Notas de la Versión de JTrac (Release Notes) - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 
@@ -39,7 +39,7 @@ Este proyecto se deriva de la versión [JTrac 2.3.3 (https://jtrac.info)](https:
 7. **Corrección de Enlace de Modelo en Carga de Archivos**:
    - Asignación explícita de `ListModel` independiente en `FileUploadField` en `ItemFormPage` y `ItemViewFormPanel`.
 8. **Actualización de Base de Datos y Guía SQL**:
-   - Script oficial de actualización [`etc/sql/upgrade-to-2.0.0.sql`](../etc/sql/upgrade-to-2.0.0.sql) para MySQL, PostgreSQL, SQL Server y Oracle.
+   - Script oficial de actualización [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) para MySQL, PostgreSQL, SQL Server y Oracle.
    - Herramienta integrada `HsqldbDatabaseMigrator` para migración automática de HSQLDB 1.8 a 2.x con respaldo preventivo.
 9. **Eliminación del Módulo Excel y Reducción del Paquete WAR (Excel Module Removal & POI Deprecation)**:
    - Eliminación total de la importación y exportación de Excel y de la biblioteca Apache POI, reduciendo el tamaño del archivo WAR en más de 3 MB.
@@ -79,4 +79,4 @@ Este proyecto se deriva de la versión [JTrac 2.3.3 (https://jtrac.info)](https:
 
 ## Licencia
 
-JTrac es software de código abierto bajo la [Apache Software License, Version 2.0](../license.txt).
+JTrac es software de código abierto bajo la [Apache Software License, Version 2.0](../../license.txt).

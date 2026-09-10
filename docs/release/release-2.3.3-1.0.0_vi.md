@@ -1,4 +1,4 @@
-# Ghi chú Phát hành JTrac (Release Notes) - 2.3.3-1.0.0
+﻿# Ghi chú Phát hành JTrac (Release Notes) - 2.3.3-1.0.0
 
 [English](release-2.3.3-1.0.0_en.md) | [繁體中文](release-2.3.3-1.0.0_zh-TW.md) | [简体中文](release-2.3.3-1.0.0_zh-CN.md) | [日本語](release-2.3.3-1.0.0_ja.md) | [Tiếng Việt](release-2.3.3-1.0.0_vi.md) | [Deutsch](release-2.3.3-1.0.0_de.md) | [Español](release-2.3.3-1.0.0_es.md) | [Français](release-2.3.3-1.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-8%20%7C%2011-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.8+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--1.0.0-blue.svg)](../../pom.xml)
 
 Bản phát hành này đánh dấu phiên bản fork hiện đại hóa và nâng cao tính năng đầu tiên từ [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.info). Phiên bản tập trung vào việc dọn dẹp mã nguồn, thắt chặt phân quyền, hỗ trợ đa ngôn ngữ UTF-8 toàn diện và khả năng lưu trữ tĩnh HTML ngoại tuyến.
 
@@ -37,4 +37,4 @@ Bản phát hành này đánh dấu phiên bản fork hiện đại hóa và nâ
 
 ## Giấy phép (License)
 
-JTrac là phần mềm mã nguồn mở theo giấy phép [Apache Software License, Version 2.0](../license.txt).
+JTrac là phần mềm mã nguồn mở theo giấy phép [Apache Software License, Version 2.0](../../license.txt).

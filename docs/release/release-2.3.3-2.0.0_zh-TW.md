@@ -1,4 +1,4 @@
-# JTrac 發布說明 (Release Notes) - 2.3.3-2.0.0
+﻿# JTrac 發布說明 (Release Notes) - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 
@@ -39,7 +39,7 @@
 7. **表單附件上傳模型綁定修復 (FileUpload Model Binding)**：
    - 為 `ItemFormPage` 與 `ItemViewFormPanel` 的 `FileUploadField` 顯式綁定獨立 Model，根除向實體類別反射查無 `file` 屬性的 Wicket 執行期例外。
 8. **資料庫平滑升級與 SQL 指南**：
-   - 提供專屬升級腳本 [`etc/sql/upgrade-to-2.0.0.sql`](../etc/sql/upgrade-to-2.0.0.sql)，支援 MySQL、PostgreSQL、SQL Server、Oracle。
+   - 提供專屬升級腳本 [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)，支援 MySQL、PostgreSQL、SQL Server、Oracle。
    - 內建 `HsqldbDatabaseMigrator`，於啟動時自動備份並無痛升級 HSQLDB 1.8 至 2.x。
 9. **Excel 模組清理與 WAR 產物瘦身 (Excel Module Removal & POI Deprecation)**：
    - 徹底移除過時的 Excel 匯入與匯出模組，並完全刪除 Apache POI 相關依賴，使 WAR 封裝檔大小大幅縮減超過 3 MB。
@@ -79,4 +79,4 @@
 
 ## 授權條款 (License)
 
-JTrac 為開源軟體，遵循 [Apache Software License, Version 2.0](../license.txt)。
+JTrac 為開源軟體，遵循 [Apache Software License, Version 2.0](../../license.txt)。

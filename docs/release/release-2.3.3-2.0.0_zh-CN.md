@@ -1,4 +1,4 @@
-# JTrac 发布说明 (Release Notes) - 2.3.3-2.0.0
+﻿# JTrac 发布说明 (Release Notes) - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 
@@ -39,7 +39,7 @@
 7. **表单附件上传模型绑定修复 (FileUpload Model Binding)**：
    - 为 `ItemFormPage` 与 `ItemViewFormPanel` 的 `FileUploadField` 显式绑定独立 Model，消除向实体类反射查找 `file` 属性的运行时异常。
 8. **数据库平滑升级与 SQL 指南**：
-   - 提供专用升级脚本 [`etc/sql/upgrade-to-2.0.0.sql`](../etc/sql/upgrade-to-2.0.0.sql)，支持 MySQL、PostgreSQL、SQL Server、Oracle。
+   - 提供专用升级脚本 [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)，支持 MySQL、PostgreSQL、SQL Server、Oracle。
    - 内置 `HsqldbDatabaseMigrator`，启动时自动备份并平滑升级 HSQLDB 1.8 至 2.x。
 9. **Excel 模块清理与 WAR 产物体积瘦身 (Excel Module Removal & POI Deprecation)**：
    - 彻底移除过时的 Excel 导入与导出模块，并完全删除 Apache POI 相关依赖，使 WAR 打包体积显著缩减超过 3 MB。
@@ -79,4 +79,4 @@
 
 ## 授权条款 (License)
 
-JTrac 为开源软件，遵循 [Apache Software License, Version 2.0](../license.txt)。
+JTrac 为开源软件，遵循 [Apache Software License, Version 2.0](../../license.txt)。

@@ -1,4 +1,4 @@
-# JTrac Release Notes - 2.3.3-2.0.0
+﻿# JTrac Release Notes - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -6,9 +6,9 @@
 
 [![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../license.txt)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
 [![Fork From](https://img.shields.io/badge/Fork%20From-JTrac%202.3.3-blue)](https://jtrac.info)
-[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../pom.xml)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.0.0-blue.svg)](../../pom.xml)
 [![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
 [![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
 
@@ -39,7 +39,7 @@ This project is derived from [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.in
 7. **Form FileUpload Model Binding Fix**:
    - Explicitly bound `FileUploadField` to a dedicated `ListModel` in `ItemFormPage` and `ItemViewFormPanel`, eliminating runtime property resolution exceptions.
 8. **Smooth Database Upgrade & SQL Guide**:
-   - Provided [`etc/sql/upgrade-to-2.0.0.sql`](../etc/sql/upgrade-to-2.0.0.sql) for MySQL, PostgreSQL, SQL Server, and Oracle.
+   - Provided [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) for MySQL, PostgreSQL, SQL Server, and Oracle.
    - Integrated `HsqldbDatabaseMigrator` to automatically backup and migrate legacy HSQLDB 1.8 databases to 2.x on startup.
 9. **Excel Module Removal & WAR Footprint Reduction**:
    - Completely removed legacy Excel import/export functionality and eliminated Apache POI dependencies, reducing the WAR package size by >3 MB.
@@ -79,4 +79,4 @@ This project is derived from [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.in
 
 ## License
 
-JTrac is open-source software licensed under the [Apache Software License, Version 2.0](../license.txt).
+JTrac is open-source software licensed under the [Apache Software License, Version 2.0](../../license.txt).
