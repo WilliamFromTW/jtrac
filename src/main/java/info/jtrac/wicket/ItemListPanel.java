@@ -56,6 +56,9 @@ public class ItemListPanel extends BasePanel {
     private ItemSearch itemSearch;
     
     private void doSort(String sortFieldName) {
+        if ("lastChanged".equals(sortFieldName)) {
+            return;
+        }
         itemSearch.setCurrentPage(0);
         if (itemSearch.getSortFieldName().equals(sortFieldName)) {
             itemSearch.toggleSortDirection();
@@ -201,13 +204,14 @@ public class ItemListPanel extends BasePanel {
                 final ColumnHeading ch = (ColumnHeading) listItem.getModelObject();
                 Link headingLink = new Link("heading") {
                     public void onClick() {
-						doSort(ch.getNameText());
-					}
+                        if (!"lastChanged".equals(ch.getNameText())) {
+                            doSort(ch.getNameText());
+                        }
+                    }
                 };
-				if (ch.getNameText().equals("lastChanged")) {
-					// TODO: we can't sort by that column, so don't make it look like a link
-					headingLink.add(new SimpleAttributeModifier("onclick", ""));
-				}
+                if (ch.getNameText().equals("lastChanged")) {
+                    headingLink.setEnabled(false);
+                }
                 listItem.add(headingLink); 
                 String label = ch.isField() ? ch.getLabel() : localize("item_list." + ch.getName());
                 headingLink.add(new Label("heading", label));

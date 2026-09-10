@@ -154,7 +154,7 @@ public class ItemSearch implements Serializable {
     // so the DAO has to use getCriteriaForCount() separately
     public DetachedCriteria getCriteria() {
         DetachedCriteria criteria = getCriteriaForCount();
-        if (sortFieldName == null) { // can happen only for multi-space search
+        if (sortFieldName == null || "lastChanged".equals(sortFieldName)) { // lastChanged is a computed column
             sortFieldName = "id"; // effectively is a sort on created date
         }
         if(sortFieldName.equals("id") || sortFieldName.equals("space")) {
