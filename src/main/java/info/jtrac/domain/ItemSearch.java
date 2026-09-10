@@ -83,7 +83,20 @@ public class ItemSearch implements Serializable {
                 ColumnHeading ch = getColumnHeading(name);
                 ch.loadFromQueryString(params.get(name).toString(), user, jtrac);
             }
-        }        
+        }
+        if (!params.get("searchText").isNull()) {
+            setSearchText(params.get("searchText").toString());
+        }
+        // Backward compatibility: if searchText was not provided, but legacy summary was passed
+        ColumnHeading summaryCh = getColumnHeading(SUMMARY);
+        if (getSearchText() == null && summaryCh != null && summaryCh.getFilterCriteria().getValue() != null) {
+            String summaryVal = (String) summaryCh.getFilterCriteria().getValue();
+            if (summaryVal != null && summaryVal.trim().length() > 0) {
+                setSearchText(summaryVal.trim());
+                summaryCh.getFilterCriteria().setExpression(null);
+                summaryCh.getFilterCriteria().setValue(null);
+            }
+        }
         relatingItemRefId = params.get("relatingItemRefId").toOptionalString();
         String visibleFlags = params.get("cols").toOptionalString();
         if(visibleFlags != null) {
@@ -125,6 +138,9 @@ public class ItemSearch implements Serializable {
             if(s != null) {
                 params.set(ch.getNameText(), s);
             }           
+        }   
+        if(getSearchText() != null) {
+            params.set("searchText", getSearchText());
         }   
         String visibleFlags = getVisibleFlags();
         if(!visibleFlags.equals(defaultVisibleFlags)) {
@@ -282,6 +298,19 @@ public class ItemSearch implements Serializable {
         ColumnHeading ch = getColumnHeading(DETAIL);
         return getStringValue(ch);
     }
+
+    public void setSearchText(String text) {
+        ColumnHeading ch = getColumnHeading(DETAIL);
+        if (ch != null) {
+            if (text != null && text.trim().length() > 0) {
+                ch.getFilterCriteria().setExpression(FilterCriteria.Expression.CONTAINS);
+                ch.getFilterCriteria().setValue(text.trim());
+            } else {
+                ch.getFilterCriteria().setExpression(null);
+                ch.getFilterCriteria().setValue(null);
+            }
+        }
+    }
     
     public Collection<Space> getSelectedSpaces() {
         ColumnHeading ch = getColumnHeading(SPACE);
@@ -334,7 +363,9 @@ public class ItemSearch implements Serializable {
     public List<ColumnHeading> getColumnHeadingsToSearch() {
         List<ColumnHeading> list = new ArrayList<ColumnHeading>(columnHeadings.size());
         for (ColumnHeading ch : columnHeadings) {
-			if (! ch.getNameText().equals("lastChanged")) {
+			if (!ch.getNameText().equals("lastChanged")
+                    && !ch.getNameText().equals("summary")
+                    && !ch.getNameText().equals("detail")) {
                 list.add(ch);
             }
         }

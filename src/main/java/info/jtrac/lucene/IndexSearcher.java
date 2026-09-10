@@ -52,23 +52,38 @@ public class IndexSearcher {
     }
 
     public boolean validateQuery(String text) {
+        if (text == null || text.trim().length() == 0) {
+            return true;
+        }
         QueryParser parser = new QueryParser(Version.LUCENE_29, "text", analyzer);
+        parser.setDefaultOperator(QueryParser.Operator.OR);
         try {
             parser.parse(text);
             return true;
         } catch (ParseException e) {
-            return false;
+            try {
+                parser.parse(QueryParser.escape(text));
+                return true;
+            } catch (ParseException pe) {
+                return false;
+            }
         }
     }
 
     public List<Long> findItemIdsContainingText(String text) {
         QueryParser parser = new QueryParser(Version.LUCENE_29, "text", analyzer);
+        parser.setDefaultOperator(QueryParser.Operator.OR);
         Query query;
         try {
             query = parser.parse(text);
         } catch (ParseException e) {
-            logger.warn("Query parsing failed for '{}': {}", text, e.getMessage());
-            throw new SearchQueryParseException(e.getMessage(), e);
+            logger.debug("Query parsing failed for raw text '{}', attempting escaped fallback: {}", text, e.getMessage());
+            try {
+                query = parser.parse(QueryParser.escape(text));
+            } catch (ParseException pe) {
+                logger.warn("Query parsing failed for escaped '{}': {}", text, pe.getMessage());
+                throw new SearchQueryParseException(pe.getMessage(), pe);
+            }
         }
 
         try {
@@ -86,6 +101,19 @@ public class IndexSearcher {
             reader = IndexReader.open(indexDirectory, true);
             searcher = new org.apache.lucene.search.IndexSearcher(reader);
             TopDocs topDocs = searcher.search(query, 1000);
+
+            // If no hits found and query text contains special characters (e.g. Service:Auth), attempt escaped query fallback
+            if (topDocs.scoreDocs.length == 0 && containsLuceneSpecialChars(text)) {
+                try {
+                    Query escapedQuery = parser.parse(QueryParser.escape(text));
+                    TopDocs escapedDocs = searcher.search(escapedQuery, 1000);
+                    if (escapedDocs.scoreDocs.length > 0) {
+                        topDocs = escapedDocs;
+                    }
+                } catch (Exception e) {
+                    logger.debug("Escaped fallback search failed for '{}': {}", text, e.getMessage());
+                }
+            }
 
             // If no hits found for a simple single word, attempt automatic prefix wildcard fallback (e.g. win -> win*)
             if (topDocs.scoreDocs.length == 0 && isEligibleForPrefixFallback(text)) {
@@ -146,4 +174,20 @@ public class IndexSearcher {
         }
         return true;
     }
+
+    private boolean containsLuceneSpecialChars(String text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == ':' || c == '+' || c == '-' || c == '!' || c == '(' || c == ')'
+                    || c == '{' || c == '}' || c == '[' || c == ']' || c == '^'
+                    || c == '"' || c == '~' || c == '*' || c == '?' || c == '\\' || c == '/') {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

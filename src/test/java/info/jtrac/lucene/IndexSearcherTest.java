@@ -117,4 +117,58 @@ public class IndexSearcherTest {
         Assert.assertEquals(1, list2.size());
     }
 
+	@Test
+    public void testMultiKeywordOrMode() {
+        Item item1 = new Item();
+        item1.setId(5);
+        item1.setSummary("Database connection failure");
+        item1.setDetail("Network socket timeout on port 3306");
+
+        Item item2 = new Item();
+        item2.setId(6);
+        item2.setSummary("UI styling glitch");
+        item2.setDetail("Navbar alignment issue on mobile");
+
+        Indexer indexer = (Indexer) context.getBean("indexer");
+        indexer.index(item1);
+        indexer.index(item2);
+        IndexSearcher searcher = (IndexSearcher) context.getBean("indexSearcher");
+
+        // "timeout styling" matches item1 (has timeout) AND item2 (has styling) in OR mode
+        List list = searcher.findItemIdsContainingText("timeout styling");
+        Assert.assertEquals(2, list.size());
+    }
+
+	@Test
+    public void testSpecialCharactersEscapedFallback() {
+        Item item = new Item();
+        item.setId(7);
+        item.setSummary("[CRITICAL] NullPointerException in Service:Auth");
+        item.setDetail("Error code (500) during c++ module invocation");
+
+        Indexer indexer = (Indexer) context.getBean("indexer");
+        indexer.index(item);
+        IndexSearcher searcher = (IndexSearcher) context.getBean("indexSearcher");
+
+        // Query with brackets and colons: parser will catch ParseException and fallback to escaped query
+        List list1 = searcher.findItemIdsContainingText("[CRITICAL]");
+        Assert.assertFalse(list1.isEmpty());
+
+        List list2 = searcher.findItemIdsContainingText("Service:Auth");
+        Assert.assertFalse(list2.isEmpty());
+
+        List list3 = searcher.findItemIdsContainingText("(500)");
+        Assert.assertFalse(list3.isEmpty());
+    }
+
+	@Test
+    public void testValidateQueryWithSpecialCharacters() {
+        IndexSearcher searcher = (IndexSearcher) context.getBean("indexSearcher");
+        Assert.assertTrue(searcher.validateQuery("[CRITICAL]"));
+        Assert.assertTrue(searcher.validateQuery("foo:bar"));
+        Assert.assertTrue(searcher.validateQuery("(500)"));
+        Assert.assertTrue(searcher.validateQuery(""));
+        Assert.assertTrue(searcher.validateQuery(null));
+    }
+
 }

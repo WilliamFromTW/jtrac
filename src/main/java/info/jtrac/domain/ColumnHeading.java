@@ -705,11 +705,21 @@ public class ColumnHeading implements Serializable {
 
     private List<String> setExpressionAndGetRemainingTokens(String s) {
         String [] tokens = s.split("_");
-        filterCriteria.setExpression(FilterCriteria.convertToExpression(tokens[0]));
+        FilterCriteria.Expression expr = null;
+        try {
+            expr = FilterCriteria.convertToExpression(tokens[0]);
+        } catch (RuntimeException e) {
+            // Raw value without expression prefix
+        }
         List<String> remainingTokens = new ArrayList<String>();
-        // ignore first token, this has been parsed as Expression above
-        for(int i = 1; i < tokens.length; i++ ) {
-            remainingTokens.add(tokens[i]);
+        if (expr != null) {
+            filterCriteria.setExpression(expr);
+            for(int i = 1; i < tokens.length; i++ ) {
+                remainingTokens.add(tokens[i]);
+            }
+        } else {
+            filterCriteria.setExpression(FilterCriteria.Expression.CONTAINS);
+            remainingTokens.add(s);
         }
         return remainingTokens;
     }
