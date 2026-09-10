@@ -153,4 +153,14 @@ public class HeaderPanel extends BasePanel {
             add(new Label("user", user.getName()));
         }             
     }
+
+    @Override
+    public void renderHead(org.apache.wicket.markup.head.IHeaderResponse response) {
+        super.renderHead(response);
+        String cp = getRequest().getContextPath();
+        String version = getJtrac() != null ? getJtrac().getReleaseVersion() : "2.3.3";
+        String timestamp = (getJtrac() != null && getJtrac().getReleaseTimestamp() != null) ? getJtrac().getReleaseTimestamp().replaceAll("[^0-9]", "") : "";
+        String versionParam = timestamp.isEmpty() ? version : (version + "&b=" + timestamp);
+        response.render(org.apache.wicket.markup.head.JavaScriptHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/theme.js?v=" + versionParam));
+    }
 }

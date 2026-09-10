@@ -620,27 +620,12 @@ code {
    Theme Switcher Component (☀️ / 🌙 / 🖥️)
    ========================================================================== */
 
-.theme-icon-light,
-.theme-icon-dark,
-.theme-icon-system {
-	display: none;
+.theme-icon {
+	pointer-events: none !important;
+	user-select: none;
+	-webkit-user-select: none;
 	font-style: normal;
 	line-height: 1;
-}
-
-/* Light mode icon display: when mode is light, show sun */
-html[data-theme-mode="light"] .theme-icon-light {
-	display: inline-block;
-}
-
-/* Dark mode icon display: when mode is dark, show moon */
-html[data-theme-mode="dark"] .theme-icon-dark {
-	display: inline-block;
-}
-
-/* System mode icon display: when mode is system or default, show computer */
-html[data-theme-mode="system"] .theme-icon-system,
-html:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) .theme-icon-system {
 	display: inline-block;
 }
 
@@ -651,6 +636,7 @@ html:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) .theme-icon-sy
 	font-size: 1.1em;
 	user-select: none;
 	-webkit-user-select: none;
+	touch-action: manipulation;
 }
 .nav-header td.nav-tab-theme:hover {
 	background-color: var(--mediumblue);
@@ -675,6 +661,7 @@ html:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) .theme-icon-sy
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -699,6 +686,7 @@ html:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) .theme-icon-sy
 	cursor: pointer;
 	user-select: none;
 	-webkit-user-select: none;
+	touch-action: manipulation;
 	color: var(--text-color);
 	transition: background-color 0.15s ease;
 }

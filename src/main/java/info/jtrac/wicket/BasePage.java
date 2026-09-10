@@ -88,7 +88,10 @@ public abstract class BasePage extends WebPage {
         super.renderHead(response);
         String cp = getRequest().getContextPath();
         String version = getJtrac() != null ? getJtrac().getReleaseVersion() : "2.3.3";
-        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + version));
+        String timestamp = (getJtrac() != null && getJtrac().getReleaseTimestamp() != null) ? getJtrac().getReleaseTimestamp().replaceAll("[^0-9]", "") : "";
+        String versionParam = timestamp.isEmpty() ? version : (version + "&b=" + timestamp);
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + versionParam));
+        response.render(org.apache.wicket.markup.head.JavaScriptHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/theme.js?v=" + versionParam));
         
         String doubleSubmitScript = 
             "(function() {\n" +

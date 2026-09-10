@@ -50,6 +50,9 @@ public class LogoutPage extends WebPage {
         super.renderHead(response);
         String cp = getRequest().getContextPath();
         String version = JtracApplication.get().getJtrac().getReleaseVersion();
-        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + version));
+        String timestamp = (JtracApplication.get().getJtrac().getReleaseTimestamp() != null) ? JtracApplication.get().getJtrac().getReleaseTimestamp().replaceAll("[^0-9]", "") : "";
+        String versionParam = timestamp.isEmpty() ? version : (version + "&b=" + timestamp);
+        response.render(org.apache.wicket.markup.head.CssHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/jtrac.css?v=" + versionParam));
+        response.render(org.apache.wicket.markup.head.JavaScriptHeaderItem.forUrl((cp != null && !cp.isEmpty() ? cp : "") + "/resources/theme.js?v=" + versionParam));
     }
 }
