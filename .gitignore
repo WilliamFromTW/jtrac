@@ -25,3 +25,7 @@ tools/*.jar
 data/
 /export*/
 /jtrac-html-export*/
+
+# Development specifications & agent configurations
+.agents/
+openspec/
