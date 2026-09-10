@@ -2,177 +2,159 @@
 
 [English](BUILD_en.md) | [繁體中文](BUILD_zh-TW.md) | [简体中文](BUILD_zh-CN.md) | [日本語](BUILD_ja.md) | [Tiếng Việt](BUILD_vi.md) | [Deutsch](BUILD_de.md) | [Español](BUILD_es.md) | [Français](BUILD_fr.md)
 
-本指南详细说明如何构建、编译与打包 JTrac 2.3.3-2.0.0 项目，并解析 Maven 依赖管理、WAR 封装结构以及跨世代 Web 容器（Jetty 10/12、Tomcat 9/10/11）的部署方案。
+本指南详细说明如何使用 Apache Maven 编译与打包 JTrac 2.3.3-2.0.0 项目，深入解析 Maven 生命周期、依赖缓存管理、WAR 与 CLI 封装结构、Web 容器验证矩阵，以及常见编译问题之排查指引。
 
 ---
 
 ## 1. 前置环境需求
 
-在开始编译之前，请确认您的本地开发环境符合以下条件：
+在开始编译之前，请确认您的开发环境符合以下条件：
 
 - **操作系统**：Windows / Linux / macOS
 - **Java 开发套件 (JDK)**：**JDK 11 或 JDK 17**（推荐使用 JDK 17，例如 `W:\developer\jdk-17.0.9` 或 JDK 11 `W:\developer\jdk-11.0.28`）
   > [!IMPORTANT]
-  > 本现代化版本已升级至 Spring 5.3、Hibernate 5.6 与 Wicket 9，编译目标为 Java 11。**JDK 8 已不再支持**，请勿使用 JDK 8 进行编译。
+  > 本现代化版本核心已升级至 Spring 5.3、Hibernate 5.6 与 Apache Wicket 9，编译目标字节码为 **Java 11**。**JDK 8 已不再支持**，请勿使用 JDK 8 进行编译。
 - **Apache Maven**：Maven 3.9.x 以上版本（例如 `W:\developer\apache-maven-3.9.9`）
 
-### Windows 本地环境配置示例
-在 CMD 或 PowerShell 中加载环境变量：
-```powershell
-$env:JAVA_HOME = "W:\developer\jdk-17.0.9"
-$env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
-```
+### 本机环境变量配置示例
 
-验证环境命令：
+- **Windows (PowerShell)**：
+  ```powershell
+  $env:JAVA_HOME = "W:\developer\jdk-17.0.9"
+  $env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
+  ```
+- **Windows (CMD)**：
+  ```cmd
+  set "JAVA_HOME=W:\developer\jdk-17.0.9"
+  set "PATH=W:\developer\apache-maven-3.9.9\bin;%PATH%"
+  ```
+- **Linux / macOS (Bash/Zsh)**：
+  ```bash
+  export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+
+验证环境指令：
 ```bash
 mvn -version
 ```
+输出应正确显示 Maven 3.9+ 以及对应的 Java 11 或 17 版本信息。
 
 ---
 
-## 2. 常用编译与构建命令
+## 2. Maven 编译与构建指令矩阵
 
-请在 JTrac 根目录下执行以下命令：
+请在 JTrac 项目根目录（包含 `pom.xml` 的目录）下执行以下指令：
 
-| 命令 | 说明 |
-|---|---|
-| `mvn clean compile` | 清理旧缓存并重新编译 `src/main/java`，处理 resources 资源过滤 |
-| `mvn test-compile` | 编译 `src/test/java` 下的单体测试类 |
-| `mvn test` | 执行所有单元测试（使用 JUnit 5 与内置 HSQLDB，免外部数据库） |
-| `mvn package` | 执行测试并打包为正式 Web 应用程序包（产出 `target/jtrac.war`） |
-| `mvn package -DskipTests` | 跳过单元测试，快速打包生成 `target/jtrac.war` |
-| `mvn clean` | 清理 `target/` 目录下的编译缓存与产物 |
-
----
-
-## 3. Maven 依赖套件自动下载机制 (`~/.m2/repository`)
-
-JTrac 基于标准 Maven 架构开发，所有第三方依赖已在 [`pom.xml`](../../pom.xml) 中声明。
-首次执行构建时，Maven 会自动从中央仓库下载依赖并缓存在本地（Windows: `%USERPROFILE%\.m2\repository\`，Linux/macOS: `~/.m2/repository/`）。开发者无需手动拷贝 JAR 文件。
+| 指令 | 阶段 / 作用 | 说明 |
+|---|---|---|
+| `mvn clean compile` | 编译主程序 | 清理旧产物并编译 `src/main/java`，自动处理资源过滤（UTF-8 `messages*.properties`） |
+| `mvn test-compile` | 编译测试码 | 编译 `src/test/java` 下的所有单元测试类 |
+| `mvn test` | 执行测试 | 执行 JUnit 5 单元测试（整合内置内存模式 HSQLDB，无需安装任何外部数据库） |
+| `mvn package` | 正式打包 | 完整执行测试并打包为正式 Web 应用包（产出 `target/jtrac.war`） |
+| `mvn package -DskipTests` | 快速打包 | 跳过单元测试快速打包生成 `target/jtrac.war` |
+| `mvn clean` | 清理产物 | 清除 `target/` 目录下所有先前构建的缓存与编译暂存文件 |
+| `mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests` | 打包独立工具 | 编译并组装独立命令行工单导出工具（Fat JAR），产出 `tools/jtrac-exporter.jar` |
 
 ---
 
-## 4. 第三方库封装于 WAR 文件机制 (`WEB-INF/lib/`)
+## 3. Maven 依赖包自动下载机制 (`~/.m2/repository`)
 
-打包生成的 [`target/jtrac.war`](../../target/jtrac.war) 结构如下：
+JTrac 是基于标准 Maven 架构开发，其所有的第三方依赖库（包括 Spring 5.3、Apache Wicket 9、Hibernate 5.6、Spring Security 5.8 等）皆已声明于根目录 [`pom.xml`](../../pom.xml) 中。
 
+### 自动下载与缓存流程：
+1. 当您首次执行 `mvn compile` 或 `mvn package` 时，Maven 会自动连线至远程中央仓库（Maven Central）解析依赖树。
+2. 下载的所有依赖包皆存放于用户本机缓存目录：
+   - **Windows**：`%USERPROFILE%\.m2\repository\`
+   - **Linux / macOS**：`~/.m2/repository/`
+3. 后续无论进行多少次编译或离线打包，Maven 都会直接从本机 `.m2` 缓存读取包，**开发者完全不需要手动搜索、下载或配置任何第三方 JAR 文件**。
+
+---
+
+## 4. WAR 封装结构解析 (`WEB-INF/lib/`)
+
+当您执行 `mvn package` 打包完成后，Maven 会在 `target/` 目录生成标准的 Java Web 应用封装包：[`target/jtrac.war`](../../target/jtrac.war)。
+
+### WAR 内部层级结构：
 ```text
 jtrac.war
 ├── META-INF/
 │   └── MANIFEST.MF
 ├── WEB-INF/
-│   ├── classes/                 <-- 编译后的 class 与 UTF-8 资源文件
+│   ├── classes/                 <-- JTrac 编译后的 class 类与 UTF-8 资源文件
 │   │   ├── info/jtrac/...
 │   │   └── messages*.properties
-│   ├── lib/                     <-- 现代第三方依赖库
+│   ├── lib/                     <-- 【核心所在：所有现代化第三方 JAR 依赖库】
 │   │   ├── spring-core-5.3.37.jar
 │   │   ├── wicket-core-9.16.0.jar
 │   │   ├── hibernate-core-5.6.15.Final.jar
 │   │   ├── spring-security-core-5.8.14.jar
 │   │   ├── hsqldb-2.7.2.jar
-│   │   └── ...
-│   └── web.xml                  <-- Servlet 4.0 规范配置
-└── resources/
+│   │   └── ... (其余所有依赖库)
+│   └── web.xml                  <-- Servlet 4.0 规范配置文件
+└── resources/                   <-- 静态资源（CSS、图标、样式表）
 ```
 
-- Servlet 容器会自动隔离每个 WAR 包的 `WEB-INF/lib/`。
-- 宿主容器本身的 `lib/` 目录应保持干净，无需放入任何第三方 JAR。
+- **独立隔离性**：Servlet 容器（如 Jetty、Tomcat）启动时会自动读取并隔离每个 WAR 内部的 `WEB-INF/lib/`。
+- **极简部署**：服务器本身无需手动放置任何第三方 JAR，只需部署单个 `jtrac.war` 即可开箱运行。
 
 ---
 
 ## 5. Web 容器兼容性与部署矩阵 (Web Container Matrix)
 
-JTrac 2.3.3-2.0.0 采用 Servlet 4.0 规范（`javax.servlet`），兼容主流现代 Web 容器：
+JTrac 2.3.3-2.0.0 核心采用 Servlet 4.0 规范（`javax.servlet`），编译完成后的 WAR 包可直接部署至主流现代 Web 容器：
 
 | Web 容器 | 版本支持 | 部署方式 |
 |---|---|---|
 | **Jetty 10.x** | 10.0.x（推荐首选） | **开箱即用**：直接将 `target/jtrac.war` 复制至 `webapps/ROOT.war` 即可启动。 |
 | **Jetty 12.x** | 12.0.x（最新版） | **原生支持**：启用内置 `ee8` 模块：<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp`，即可直接部署 `jtrac.war`。 |
 | **Tomcat 9.x** | 9.0.x（推荐首选） | **开箱即用**：直接将 `target/jtrac.war` 复制至 `webapps/ROOT.war` 即可启动。 |
-| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自动转换支持**：<br/>1. **方式 A**：将 `jtrac.war` 放入 Tomcat 的 `webapps-javaee/` 目录，容器启动时自动转换运行。<br/>2. **方式 B**：使用官方 `jakartaee-migration` 工具转换为 `jtrac-jakarta.war` 后部署至 `webapps/`。 |
+| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自动转换支持**：<br/>1. **方式 A**：将 `jtrac.war` 放入 Tomcat 的 `webapps-javaee/` 目录，容器启动时会自动转换运行。<br/>2. **方式 B**：使用 Tomcat 官方 `jakartaee-migration` 工具转换为 `jtrac-jakarta.war` 后直接部署至 `webapps/`。 |
 
-### 5.1 核心数据目录 (`jtrac.home`) 判定机制与容器配置指南
-
-JTrac 的核心数据与附件存储根目录由系统变量 `jtrac.home` 控制，在 [`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java) 中严格遵循 4 级判定顺序：
-
-1. **第一优先级**：`WEB-INF/classes/jtrac-init.properties` 配置文件中设置的 `jtrac.home`。
-2. **第二优先级 (生产环境推荐首选)**：JVM 系统参数 `-Djtrac.home=...`。
-3. **第三优先级**：Servlet Context Init 参数（`web.xml` 或 Tomcat Context XML 中的 `jtrac.home`）。
-4. **第四优先级 (默认兜底 Default Fallback)**：`System.getProperty("user.home") + "/.jtrac"`。
-   - **Tomcat 常见疑问解答**：在 Linux 环境下若以 `root` 账户启动 Tomcat 且未指定前 1~3 级参数，JTrac 将自动兜底使用 `/root/.jtrac` 隐藏目录；若以普通用户 `jtrac` 启动则为 `/home/jtrac/.jtrac`。
-   - **本地 Jetty 开发环境**：`start-jtrac.bat` 中配置了 `-Djtrac.home=data`，数据存放于本地 `W:\developer\jetty-10.0.26\data\`。
-
-#### 数据目录标准内部结构 (`jtrac.home`)：
-- `jtrac.properties`：数据库连接配置、URL、账号密码与 Hibernate 方言。
-- `db/`：内置 HSQLDB 数据库文件（`jtrac.script`、`jtrac.data` 等）。
-- `attachments/`：上传附件物理存储，依项目 ID 分区存储（`attachments/{spaceId}/`）。
-- `indexes/`：Lucene 全文检索索引库。
-- `backups/`：全系统还原前自动生成的紧急安全快照（Safety Snapshot）。
-- `logs/`：系统运行日志（`jtrac.log`）。
-
-#### 容器自定义指定 `jtrac.home` 方法：
-- **Linux Tomcat (`bin/setenv.sh`)**：
-  ```bash
-  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
-  ```
-- **Windows Tomcat (`bin/setenv.bat`)**：
-  ```cmd
-  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
-  ```
-- **Jetty / 命令行启动**：
-  ```bash
-  java -Djtrac.home=/var/jtrac-data -jar start.jar
-  ```
+### 本地 Jetty 10 快速启动验证示例：
+1. 将 `target/jtrac.war` 复制为 `W:\developer\jetty-10.0.26\webapps\ROOT.war`。
+2. 启动 Jetty：
+   ```powershell
+   & "W:\developer\jdk-17.0.9\bin\java.exe" -jar W:\developer\jetty-10.0.26\start.jar
+   ```
+3. 打开浏览器访问：`http://localhost:8888/`（默认管理员账号：`admin` / 密码：`admin`）。
 
 ---
 
-## 6. 数据库升级与迁移指引
+## 6. 构建产物验证与常见问题排查 (Build Troubleshooting)
 
-若从 2.3.3-1.0.0 升级：
-1. **外部数据库 (MySQL / PostgreSQL / SQL Server / Oracle)**：
-   - 执行升级脚本：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql)，注入默认分页大小参数。
-2. **内置 HSQLDB**：
-   - 系统启动时由 `HsqldbDatabaseMigrator` 自动备份并无缝迁移至 HSQLDB 2.x，无需手动干预。
-3. **附件存储目录自动迁移**：
-   - 服务器启动时由 `AttachmentStorageMigrator` 自动将平铺历史附件迁移至纯项目 ID 目录（`${jtrac.home}/attachments/{spaceId}/`），无关联孤儿文件隔离至 `attachments/0_ORPHAN/`。
-4. **Lucene 附件全文检索**：
-   - 支持 `.xlsx`、`.docx`（纯 JDK 流式 OpenXML 解析器）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log`，整合 `SmartCharsetDetector` 防止中文乱码，并内置 10MB 与 50,000 字符防护限制。
+### 6.1 构建成功检查清单
+编译完成后，请确认以下产物是否已正确生成：
+- [ ] `target/jtrac.war`（文件大小约 18~22 MB，已去除过时 POI 库显著瘦身）
+- [ ] 若打包 CLI 工具，确认 `tools/jtrac-exporter.jar` 是否存在
+
+### 6.2 常见构建问题排查
+
+1. **编译时出现文字编码错误 (`unmappable character for encoding`)**：
+   - 原因：Windows 环境下默认非 UTF-8 代码页可能导致注释或资源文件解析失败。
+   - 解决方法：在执行 Maven 前设置全局编码参数：
+     ```powershell
+     $env:MAVEN_OPTS = "-Dfile.encoding=UTF-8"
+     ```
+2. **编译器报错版本不支持 (`Fatal error compiling: invalid target release: 11`)**：
+   - 原因：本机使用了 JDK 8 或更低版本进行编译。
+   - 解决方法：确认 `java -version` 与 `mvn -version` 显示的 JDK 为 11 或 17。
+3. **Maven 依赖下载损坏或中断**：
+   - 原因：网络不稳定导致本机缓存了不完整的 `.jar.lastUpdated` 文件。
+   - 解决方法：强制 Maven 更新远程依赖缓存：
+     ```bash
+     mvn clean compile -U
+     ```
+4. **内存不足 (`java.lang.OutOfMemoryError`)**：
+   - 解决方法：提高 Maven 可用内存上限：
+     ```bash
+     export MAVEN_OPTS="-Xmx1024m -XX:MaxMetaspaceSize=256m"
+     ```
 
 ---
 
-## 7. 独立 CLI HTML 导出工具 (`jtrac-exporter`)
+## 7. 免安装环境：Docker 多阶段自动构建
 
-```cmd
-# 构建 Fat JAR
-mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-# 产出: tools/jtrac-exporter.jar
+若您偏好在干净、隔离的容器环境中进行自动化编译与打包，项目提供了标准的 Docker 多阶段构建方案（无需在本机安装 JDK 或 Maven）：
 
-# 执行导出
-java -jar tools/jtrac-exporter.jar ^
-  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
-  --attachments-dir="./data/attachments" ^
-  --out="./export-output" ^
-  --lang=zh-CN
-```
-
----
-
-## 8. 原生 Docker 容器化构建与运行 (Eclipse Temurin 17 + Jetty 12)
-
-项目提供基于 Docker 的多阶段自动构建环境，无需在本机安装 JDK 或 Maven：
-
-### 8.1 原生 Docker 指令 (推荐)
-进入 `docker/` 目录，以项目根目录 (`..`) 作为构建上下文进行构建与启动：
-```bash
-cd docker
-docker build -f Dockerfile -t jtrac:latest ..
-docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
-```
-
-### 8.2 跨平台辅助脚本与 Docker Compose
-- **Windows**：进入 `docker/` 执行 `build.bat` 与 `run.bat`
-- **Linux / macOS**：进入 `docker/` 执行 `./build.sh` 与 `./run.sh`
-- **Docker Compose**：进入 `docker/` 执行 `docker compose up -d`
-
-系统启动后，使用浏览器访问 `http://localhost:8888/`（默认管理员账号密码：`admin` / `admin`）。更多环境变量与数据库配置请参阅 [`docker/README.md`](../../docker/README.md)。
-
+👉 **详细构建与运行指引请参阅：[`docker/README.md`](../../docker/README.md)**

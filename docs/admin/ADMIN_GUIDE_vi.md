@@ -11,7 +11,7 @@
 4. [Các Chức năng Quản trị Chính](#4-các-chức-năng-quản-trị-chính)
 5. [Sao lưu & Phục hồi Toàn bộ Hệ thống (Chống Khóa Tài khoản)](#5-sao-lưu--phục-hồi-toàn-bộ-hệ-thống-chống-khóa-tài-khoản)
 6. [Bảo mật, Nâng cấp Cơ sở Dữ liệu & Bảo trì](#6-bảo-mật-nâng-cấp-cơ-sở-dữ-liệu--bảo-trì)
-7. [Vận hành Docker và Quản lý Phân vùng Dữ liệu (Docker Operations & Volume Management)](#7-vận-hành-docker-và-quản-lý-phân-vùng-dữ-liệu-docker-operations--volume-management)
+7. [Vận hành và Triển khai Docker Container (Docker Operations)](#7-vận-hành-và-triển-khai-docker-container-docker-operations)
 
 ---
 
@@ -143,37 +143,10 @@ JTrac cung cấp cơ chế khôi phục sau thảm họa và di chuyển dữ li
 
 ---
 
-## 7. Vận hành Docker và Quản lý Phân vùng Dữ liệu (Docker Operations & Volume Management)
+## 7. Vận hành và Triển khai Docker Container (Docker Operations)
 
-Khi vận hành JTrac trong môi trường Docker, người quản trị hệ thống nên tuân thủ các hướng dẫn sau:
+Khi chạy JTrac trong môi trường container Docker, toàn bộ cơ sở dữ liệu, tệp đính kèm và cấu hình hệ thống được lưu trữ bền vững tại thư mục `/jtrac-data` bên trong container.
 
-### 7.1 Thư mục Dữ liệu và Ánh xạ Volume
-Toàn bộ cơ sở dữ liệu, tệp đính kèm và cấu hình được lưu trữ cố định tại thư mục `/jtrac-data`:
-- **Chế độ Volume Có Tên (Khuyến nghị)**: Sử dụng `-v jtrac_data:/jtrac-data`.
-- **Chế độ Ánh xạ Thư mục Máy chủ**: Sử dụng `-v /opt/jtrac/data:/jtrac-data`. Tệp Entrypoint sẽ tự động kiểm tra và hiệu chỉnh quyền sở hữu thư mục về `jetty:jetty` (UID 999) khi khởi động trước khi hạ quyền, không cần chạy `chown` thủ công trên máy chủ.
+Để xem tài liệu toàn diện về việc xây dựng Docker image, triển khai từ Docker Hub, tùy chọn khởi động container, kịch bản hỗ trợ đa nền tảng và bảo trì, vui lòng tham khảo trực tiếp hướng dẫn chuyên biệt:
+👉 **[`docker/README.md`](../../docker/README.md)**
 
-### 7.2 Sao lưu và Khôi phục Phân vùng Volume Định kỳ
-Người quản trị có thể dễ dàng sao lưu phân vùng Docker Volume bằng các lệnh tiêu chuẩn:
-```bash
-# Sao lưu phân vùng jtrac_data thành tệp nén tar.gz
-docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine tar czvf /backup/jtrac_data_backup.tar.gz -C /data .
-
-# Khôi phục phân vùng
-docker run --rm -v jtrac_data:/data -v $(pwd):/backup alpine sh -c "rm -rf /data/* && tar xzvf /backup/jtrac_data_backup.tar.gz -C /data"
-```
-
-### 7.3 Kết nối Cơ sở Dữ liệu Ngoài (MySQL / PostgreSQL / Oracle)
-Nếu không dùng HSQLDB nhúng, có thể truyền các biến môi trường khi khởi động container:
-```bash
-docker run -d \
-  -p 8888:8080 \
-  -v jtrac_data:/jtrac-data \
-  -e DATABASE_URL="jdbc:mysql://db-server:3306/jtrac?useUnicode=true&characterEncoding=UTF-8" \
-  -e DATABASE_DRIVER="com.mysql.cj.jdbc.Driver" \
-  -e DATABASE_USERNAME="jtrac" \
-  -e DATABASE_PASSWORD="your_password" \
-  -e HIBERNATE_DIALECT="org.hibernate.dialect.MySQL8Dialect" \
-  --name jtrac \
-  jtrac:latest
-```
-Container sẽ tự động tạo tệp cấu hình `/jtrac-data/jtrac.properties` khi khởi động.

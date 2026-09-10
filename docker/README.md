@@ -12,7 +12,6 @@ This directory provides native multi-stage Docker packaging and containerized ru
 - **Multi-stage Build**: Automatically compiles `jtrac.war` from source using `maven:3.9-eclipse-temurin-17` with `-DskipTests`, requiring no local JDK or Maven installation.
 - **Full Multilingual Font Support**: Pre-installed `fontconfig`, `fonts-noto-cjk` (CJK characters), `fonts-noto-core` (Vietnamese and diacritics), and `fonts-dejavu-core` (European accents), preventing missing glyphs (tofu) and garbled characters during PDF/Office full-text indexing and report generation.
 - **Dynamic Volume Permission Fix & Secure Step-down**: The entrypoint runs as root on boot to automatically repair `/jtrac-data` ownership to `jetty:jetty` (UID 999), and then steps down using `gosu` to run Jetty securely without manual host `chown`.
-- **Dynamic Database Configuration**: Supports environment variables (`DATABASE_URL`, `DATABASE_DRIVER`, etc.) to automatically configure `/jtrac-data/jtrac.properties`. Defaults to embedded HSQLDB 2.x when unset.
 
 ---
 
@@ -53,7 +52,7 @@ Convenient helper scripts are provided in this directory:
 
 ---
 
-### Method 4: Run Pre-built Image from Docker Hub
+### Method 3: Run Pre-built Image from Docker Hub
 
 You can also run the official pre-built image directly from Docker Hub:
 **[https://hub.docker.com/r/inmethod/jtrac](https://hub.docker.com/r/inmethod/jtrac)**

@@ -2,129 +2,158 @@
 
 [English](BUILD_en.md) | [繁體中文](BUILD_zh-TW.md) | [简体中文](BUILD_zh-CN.md) | [日本語](BUILD_ja.md) | [Tiếng Việt](BUILD_vi.md) | [Deutsch](BUILD_de.md) | [Español](BUILD_es.md) | [Français](BUILD_fr.md)
 
-Ce guide fournit des instructions complètes sur la compilation, l'empaquetage de JTrac 2.3.3-2.0.0, la structure du fichier WAR et le déploiement sur les conteneurs web modernes (Jetty 10/12, Tomcat 9/10/11).
+Ce guide détaille la compilation et le packaging du projet JTrac 2.3.3-2.0.0 avec Apache Maven, en couvrant le cycle de vie Maven, la mise en cache des dépendances, la structure interne des archives WAR et CLI, la matrice de validation des conteneurs Web et le dépannage de compilation.
 
 ---
 
-## 1. Prérequis
+## 1. Prérequis Environnementaux
+
+Avant de commencer la compilation, assurez-vous que votre environnement respecte les conditions suivantes :
 
 - **Système d'exploitation** : Windows / Linux / macOS
-- **Kit de Développement Java (JDK)** : **JDK 11 ou JDK 17** (recommandé JDK 17, ex: `W:\developer\jdk-17.0.9` ou JDK 11 `W:\developer\jdk-11.0.28`)
+- **Kit de développement Java (JDK)** : **JDK 11 ou JDK 17** (JDK 17 recommandé, ex: `W:\developer\jdk-17.0.9` ou JDK 11 `W:\developer\jdk-11.0.28`)
   > [!IMPORTANT]
-  > Suite à la modernisation vers Spring 5.3, Hibernate 5.6 et Wicket 9, la cible de compilation est Java 11. **JDK 8 n'est plus pris en charge**.
-- **Apache Maven** : Version 3.9.x ou supérieure
+  > L'architecture a été modernisée vers Spring 5.3, Hibernate 5.6 et Apache Wicket 9 avec pour cible de bytecode **Java 11**. **JDK 8 n'est plus supporté** ; ne tentez pas de compiler avec JDK 8.
+- **Apache Maven** : Version 3.9.x ou supérieure (ex: `W:\developer\apache-maven-3.9.9`)
 
-### Variables d'Environnement Windows
-```powershell
-$env:JAVA_HOME = "W:\developer\jdk-17.0.9"
-$env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
-```
+### Configuration des Variables d'Environnement
 
-Vérification :
+- **Windows (PowerShell)** :
+  ```powershell
+  $env:JAVA_HOME = "W:\developer\jdk-17.0.9"
+  $env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
+  ```
+- **Windows (CMD)** :
+  ```cmd
+  set "JAVA_HOME=W:\developer\jdk-17.0.9"
+  set "PATH=W:\developer\apache-maven-3.9.9\bin;%PATH%"
+  ```
+- **Linux / macOS (Bash/Zsh)** :
+  ```bash
+  export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+
+Vérification de l'environnement :
 ```bash
 mvn -version
 ```
+La sortie doit afficher correctement Maven 3.9+ ainsi que Java 11 ou 17.
 
 ---
 
-## 2. Commandes de Construction Courantes
+## 2. Matrice des Commandes de Construction Maven
 
-| Commande | Description |
-|---|---|
-| `mvn clean compile` | Nettoie le cache et recompile `src/main/java` |
-| `mvn test-compile` | Compile les tests unitaires |
-| `mvn test` | Exécute les tests unitaires (JUnit 5 + HSQLDB intégrée) |
-| `mvn package` | Empaquette l'archive WAR de production (`target/jtrac.war`) |
-| `mvn package -DskipTests` | Empaquetage rapide (ignore les tests) |
-| `mvn clean` | Supprime le répertoire `target/` |
+Exécutez les commandes suivantes depuis le répertoire racine du projet (contenant `pom.xml`) :
 
----
-
-## 3. Matrice des Conteneurs Web et Déploiement
-
-JTrac 2.3.3-2.0.0 respecte la spécification Servlet 4.0 (`javax.servlet`) :
-
-| Conteneur Web | Version | Méthode de Déploiement |
+| Commande | Phase / Action | Description |
 |---|---|---|
-| **Jetty 10.x** | 10.0.x (Recommandé) | **Direct** : Copiez `target/jtrac.war` vers `webapps/ROOT.war`. |
-| **Jetty 12.x** | 12.0.x (Actuel) | **Natif** : Activez le module `ee8` :<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp` |
-| **Tomcat 9.x** | 9.0.x (Recommandé) | **Direct** : Copiez `target/jtrac.war` vers `webapps/ROOT.war`. |
-| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Migration Automatique** : Placez le WAR dans `webapps-javaee/` ou convertissez avec `jakartaee-migration`. |
-
-### 3.1 Répertoire de Données (`jtrac.home`) : Priorité de Résolution et Configuration
-
-Le répertoire racine de stockage des données et pièces jointes est régi par la variable `jtrac.home` ([`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java)), selon un ordre strict de 4 niveaux de priorité :
-
-1. **Priorité 1** : `jtrac.home` défini dans `WEB-INF/classes/jtrac-init.properties`.
-2. **Priorité 2 (Recommandé en production)** : Propriété système JVM `-Djtrac.home=...`.
-3. **Priorité 3** : Paramètre d'initialisation de Servlet Context (`web.xml` ou contexte Tomcat).
-4. **Priorité 4 (Repli par Défaut Default Fallback)** : `System.getProperty("user.home") + "/.jtrac"`.
-   - **Remarque Tomcat** : Si Tomcat s'exécute sous Linux en tant qu'utilisateur `root` sans définir les priorités 1 à 3, JTrac enregistrera automatiquement ses données dans `/root/.jtrac`.
-   - **Jetty Local** : `start-jtrac.bat` configure `-Djtrac.home=data`, stockant les données dans `W:\developer\jetty-10.0.26\data\`.
-
-#### Structure Standard de `jtrac.home` :
-- `jtrac.properties` : Configuration de connexion à la base, URL, identifiants et dialecte Hibernate.
-- `db/` : Fichiers de la base HSQLDB intégrée (`jtrac.script`, `jtrac.data`, etc.).
-- `attachments/` : Pièces jointes partitionnées par ID de projet (`attachments/{spaceId}/`).
-- `indexes/` : Index de recherche plein texte Lucene.
-- `backups/` : Instantanés de sécurité d'urgence créés avant chaque restauration.
-- `logs/` : Journaux d'exécution de l'application (`jtrac.log`).
-
-#### Configuration dans les Conteneurs :
-- **Linux Tomcat (`bin/setenv.sh`)** :
-  ```bash
-  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
-  ```
-- **Windows Tomcat (`bin/setenv.bat`)** :
-  ```cmd
-  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
-  ```
-- **Jetty / Ligne de Commande** :
-  ```bash
-  java -Djtrac.home=/var/jtrac-data -jar start.jar
-  ```
+| `mvn clean compile` | Compiler le Code Source | Nettoie les artefacts précédents et compile `src/main/java` avec filtrage des ressources UTF-8 |
+| `mvn test-compile` | Compiler les Tests | Compile les classes de test situées sous `src/test/java` |
+| `mvn test` | Exécuter les Tests | Exécute les tests unitaires JUnit 5 (avec HSQLDB en mémoire intégrée, sans base de données externe) |
+| `mvn package` | Packaging de Production | Exécute les tests et génère l'archive Web officielle (`target/jtrac.war`) |
+| `mvn package -DskipTests` | Packaging Rapide | Ignore les tests unitaires et génère rapidement `target/jtrac.war` |
+| `mvn clean` | Nettoyage | Supprime tous les fichiers temporaires et caches sous `target/` |
+| `mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests` | Packager l'Outil CLI | Compile et assemble l'outil d'exportation de tickets autonome en `tools/jtrac-exporter.jar` |
 
 ---
 
-## 4. Mise à Niveau de la Base de Données et du Stockage
- 
-Lors de la mise à niveau depuis 2.3.3-1.0.0 :
-- Bases externes (MySQL, PostgreSQL, etc.) : Exécutez [`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql).
-- HSQLDB intégrée : La sauvegarde et la migration s'exécutent automatiquement au démarrage du serveur.
-- Migration des pièces jointes : `AttachmentStorageMigrator` organise automatiquement les anciens fichiers dans des dossiers par ID de projet (`attachments/{spaceId}/`), isolant les orphelins dans `attachments/0_ORPHAN/`.
-- Recherche plein texte : Extraction intégrée pour `.xlsx`, `.docx` (parseur streaming OpenXML JDK natif), `.pdf` (Apache PDFBox 2.0.31), `.txt`, `.csv`, `.md`, `.log` avec `SmartCharsetDetector`.
+## 3. Gestion Automatique et Cache des Dépendances (`~/.m2/repository`)
+
+JTrac repose sur l'architecture standard Apache Maven. Toutes les bibliothèques tierces (Spring 5.3, Wicket 9, Hibernate 5.6, Spring Security 5.8...) sont déclarées dans le fichier racine [`pom.xml`](../../pom.xml).
+
+### Processus de Téléchargement et de Mise en Cache :
+1. Lors de la première exécution de `mvn compile` ou `mvn package`, Maven se connecte au dépôt central (Maven Central) pour résoudre l'arbre des dépendances.
+2. Tous les fichiers JAR téléchargés sont conservés dans le cache local de l'utilisateur :
+   - **Windows** : `%USERPROFILE%\.m2\repository\`
+   - **Linux / macOS** : `~/.m2/repository/`
+3. Les compilations ultérieures s'exécutent entièrement hors ligne à partir de ce cache. **Les développeurs n'ont jamais besoin de télécharger ou configurer manuellement des fichiers JAR**.
 
 ---
 
-## 5. Outil Indépendant d'Exportation HTML (`jtrac-exporter`)
+## 4. Structure de l'Archive WAR (`WEB-INF/lib/`)
 
-```cmd
-mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-java -jar tools/jtrac-exporter.jar ^
-  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
-  --attachments-dir="./data/attachments" ^
-  --out="./export-output" ^
-  --lang=fr
+L'exécution de `mvn package` génère l'archive Java Web standard dans le dossier `target/` : [`target/jtrac.war`](../../target/jtrac.war).
+
+### Organisation Interne des Dossiers :
+```text
+jtrac.war
+├── META-INF/
+│   └── MANIFEST.MF
+├── WEB-INF/
+│   ├── classes/                 <-- Classes compilées de JTrac et bundles de ressources UTF-8
+│   │   ├── info/jtrac/...
+│   │   └── messages*.properties
+│   ├── lib/                     <-- [Cœur : Toutes les dépendances JAR tierces modernes]
+│   │   ├── spring-core-5.3.37.jar
+│   │   ├── wicket-core-9.16.0.jar
+│   │   ├── hibernate-core-5.6.15.Final.jar
+│   │   ├── spring-security-core-5.8.14.jar
+│   │   ├── hsqldb-2.7.2.jar
+│   │   └── ... (toutes les autres bibliothèques)
+│   └── web.xml                  <-- Descripteur de déploiement Servlet 4.0
+└── resources/                   <-- Ressources statiques (CSS, icônes, feuilles de style)
 ```
 
+- **Isolation Classloader** : Les conteneurs de servlets isolent automatiquement le répertoire `WEB-INF/lib/` de chaque application.
+- **Déploiement Autonome** : Aucun fichier JAR n'a besoin d'être installé sur le serveur hôte ; il suffit de déployer `jtrac.war`.
+
 ---
 
-## 6. Construction et Déploiement avec Conteneur Docker Natif (Eclipse Temurin 17 + Jetty 12)
+## 5. Matrice de Compatibilité des Conteneurs Web
 
-Le projet propose un environnement de compilation multi-étapes (multi-stage) Docker ne nécessitant aucune installation préalable de JDK ou Maven en local :
+JTrac 2.3.3-2.0.0 est conforme à la spécification Servlet 4.0 (`javax.servlet`). Le fichier WAR peut être directement déployé sur les conteneurs modernes :
 
-### 6.1 Commandes Docker Natives (Recommandé)
-Accédez au répertoire `docker/` et lancez la construction en utilisant la racine du projet (`..`) comme contexte :
-```bash
-cd docker
-docker build -f Dockerfile -t jtrac:latest ..
-docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
-```
+| Conteneur Web | Versions Supportées | Méthode de Déploiement |
+|---|---|---|
+| **Jetty 10.x** | 10.0.x (Recommandé) | **Prêt à l'emploi** : Copiez `target/jtrac.war` en `webapps/ROOT.war` et démarrez. |
+| **Jetty 12.x** | 12.0.x (Dernière) | **Support natif** : Activez le module `ee8` :<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp`. |
+| **Tomcat 9.x** | 9.0.x (Recommandé) | **Prêt à l'emploi** : Copiez `target/jtrac.war` en `webapps/ROOT.war` et démarrez. |
+| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **Migration automatique** :<br/>1. **Méthode A** : Placer dans `webapps-javaee/` pour conversion automatique au démarrage.<br/>2. **Méthode B** : Convertir avec l'outil officiel `jakartaee-migration` et placer dans `webapps/`. |
 
-### 6.2 Scripts Auxiliaires Multiplateformes et Docker Compose
-- **Windows** : Exécutez `build.bat` et `run.bat` dans `docker/`
-- **Linux / macOS** : Exécutez `./build.sh` et `./run.sh` dans `docker/`
-- **Docker Compose** : Exécutez `docker compose up -d` dans `docker/`
+### Exemple de Vérification Locale avec Jetty 10 :
+1. Copiez `target/jtrac.war` vers `W:\developer\jetty-10.0.26\webapps\ROOT.war`.
+2. Démarrez Jetty :
+   ```powershell
+   & "W:\developer\jdk-17.0.9\bin\java.exe" -jar W:\developer\jetty-10.0.26\start.jar
+   ```
+3. Ouvrez `http://localhost:8888/` dans votre navigateur (identifiants : `admin` / `admin`).
 
-Une fois le conteneur démarré, ouvrez votre navigateur à l'adresse : `http://localhost:8888/` (Identifiants par défaut : `admin` / `admin`). Pour la configuration des bases de données externes et des options JVM, consultez [`docker/README.md`](../../docker/README.md).
+---
 
+## 6. Vérification des Artefacts et Dépannage (Build Troubleshooting)
+
+### 6.1 Liste de Contrôle Post-Compilation
+À la fin de la compilation, vérifiez la présence des fichiers suivants :
+- [ ] `target/jtrac.war` (taille d'environ 18~22 Mo, allégé après suppression des bibliothèques POI obsolètes)
+- [ ] `tools/jtrac-exporter.jar` (si l'outil CLI a été généré)
+
+### 6.2 Problèmes Courants et Solutions
+
+1. **Erreur d'Encodage de Caractères (`unmappable character for encoding`)** :
+   - Cause : La page de code par défaut de Windows console ne lit pas les commentaires UTF-8.
+   - Solution : Définissez l'encodage Maven avant de lancer la compilation :
+     ```powershell
+     $env:MAVEN_OPTS = "-Dfile.encoding=UTF-8"
+     ```
+2. **Version Cible Invalide (`Fatal error compiling: invalid target release: 11`)** :
+   - Cause : La version active dans le terminal est JDK 8 ou antérieure.
+   - Solution : Basculez `JAVA_HOME` vers JDK 11 ou JDK 17.
+3. **Téléchargement de Dépendances Interrompu** :
+   - Solution : Forcez Maven à actualiser le cache :
+     ```bash
+     mvn clean compile -U
+     ```
+4. **Mémoire Insuffisante (`java.lang.OutOfMemoryError`)** :
+   - Solution : Augmentez la mémoire allouée à Maven :
+     ```bash
+     export MAVEN_OPTS="-Xmx1024m -XX:MaxMetaspaceSize=256m"
+     ```
+
+---
+
+## 7. Alternative sans Installation Locale : Build Multi-Étapes Docker
+
+Si vous préférez compiler dans un environnement conteneurisé propre et isolé sans installer JDK ni Maven localement, utilisez le build multi-étapes officiel :
+
+👉 **Consultez le guide dédié : [`docker/README.md`](../../docker/README.md)**

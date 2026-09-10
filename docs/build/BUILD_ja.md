@@ -2,154 +2,159 @@
 
 [English](BUILD_en.md) | [繁體中文](BUILD_zh-TW.md) | [简体中文](BUILD_zh-CN.md) | [日本語](BUILD_ja.md) | [Tiếng Việt](BUILD_vi.md) | [Deutsch](BUILD_de.md) | [Español](BUILD_es.md) | [Français](BUILD_fr.md)
 
-本ガイドでは、JTrac 2.3.3-2.0.0 プロジェクトのビルド、コンパイル、パッケージング手順、Maven 依存関係、WAR 構造、および各種 Web コンテナ（Jetty 10/12、Tomcat 9/10/11）へのデプロイ方法を解説します。
+本ガイドでは、Apache Maven を使用した JTrac 2.3.3-2.0.0 のコンパイルおよびパッケージング手順、Maven ライフサイクル、依存関係キャッシュ機構、WAR および CLI の内部構造、Web コンテナ適合マトリクス、トラブルシューティングについて詳細に解説します。
 
 ---
 
-## 1. 事前準備環境
+## 1. 前提環境要件
+
+コンパイルを開始する前に、ローカル環境が以下の要件を満たしていることを確認してください：
 
 - **OS**：Windows / Linux / macOS
-- **JDK**：**JDK 11 または JDK 17**（JDK 17 推奨、例: `W:\developer\jdk-17.0.9` または JDK 11 `W:\developer\jdk-11.0.28`）
+- **JDK (Java Development Kit)**：**JDK 11 または JDK 17**（JDK 17 推奨。例: `W:\developer\jdk-17.0.9` または JDK 11 `W:\developer\jdk-11.0.28`）
   > [!IMPORTANT]
-  > Spring 5.3、Hibernate 5.6、Wicket 9 へのアップグレードに伴い、コンパイル対象は Java 11 です。**JDK 8 はサポートされていません**。
-- **Apache Maven**：Maven 3.9.x 以上
+  > 本バージョンは Spring 5.3、Hibernate 5.6、Apache Wicket 9 へ刷新され、ターゲットバイトコードは **Java 11** です。**JDK 8 はサポート対象外**となりましたのでご注意ください。
+- **Apache Maven**：Maven 3.9.x 以上（例: `W:\developer\apache-maven-3.9.9`）
 
-### Windows 環境変数設定例
-```powershell
-$env:JAVA_HOME = "W:\developer\jdk-17.0.9"
-$env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
-```
+### 環境変数の設定例
 
-確認コマンド：
+- **Windows (PowerShell)**：
+  ```powershell
+  $env:JAVA_HOME = "W:\developer\jdk-17.0.9"
+  $env:PATH = "W:\developer\apache-maven-3.9.9\bin;$env:PATH"
+  ```
+- **Windows (CMD)**：
+  ```cmd
+  set "JAVA_HOME=W:\developer\jdk-17.0.9"
+  set "PATH=W:\developer\apache-maven-3.9.9\bin;%PATH%"
+  ```
+- **Linux / macOS (Bash/Zsh)**：
+  ```bash
+  export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  ```
+
+環境の検証：
 ```bash
 mvn -version
 ```
+Maven 3.9+ および Java 11 または 17 のバージョン情報が正しく出力されることを確認します。
 
 ---
 
-## 2. 主なビルドコマンド
+## 2. Maven ビルドコマンド一覧
 
-| コマンド | 説明 |
-|---|---|
-| `mvn clean compile` | キャッシュを消去し `src/main/java` を再コンパイル |
-| `mvn test-compile` | `src/test/java` の単体テストをコンパイル |
-| `mvn test` | 全テストを実行（JUnit 5 + 内蔵 HSQLDB、外部 DB 不要） |
-| `mvn package` | テスト実行および本番 WAR パッケージング (`target/jtrac.war`) |
-| `mvn package -DskipTests` | テストをスキップして高速パッケージング |
-| `mvn clean` | `target/` のビルド成果物を消去 |
+プロジェクトのルートディレクトリ（`pom.xml` が存在する場所）で実行します：
+
+| コマンド | フェーズ / 目的 | 説明 |
+|---|---|---|
+| `mvn clean compile` | ソースコードのコンパイル | 過去の生成物を削除し `src/main/java` をコンパイル。UTF-8 リソース処理を自動実行 |
+| `mvn test-compile` | テストコードのコンパイル | `src/test/java` 配下のテストクラスをコンパイル |
+| `mvn test` | テスト実行 | JUnit 5 単体テストを実行（インメモリ HSQLDB 連携、外部 DB 不要） |
+| `mvn package` | 本番パッケージング | テストを実行し、本番用 Web アーカイブ（`target/jtrac.war`）を生成 |
+| `mvn package -DskipTests` | 高速パッケージング | テストをスキップして高速に `target/jtrac.war` を生成 |
+| `mvn clean` | 生成物のクリーンアップ | `target/` 配下のすべてのビルドキャッシュおよび中間ファイルを削除 |
+| `mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests` | CLI ツールのビルド | スタンドアロン型 HTML エクスポートツール（Fat JAR）を `tools/jtrac-exporter.jar` に出力 |
 
 ---
 
-## 3. WAR パッケージの構造 (`WEB-INF/lib/`)
+## 3. 依存関係の自動解決とキャッシュ機構 (`~/.m2/repository`)
 
-`mvn package` で生成される [`target/jtrac.war`](../../target/jtrac.war) の内部構成：
+JTrac は標準的な Maven 構成を採用しており、すべてのライブラリ（Spring 5.3、Wicket 9、Hibernate 5.6、Spring Security 5.8 など）はルート [`pom.xml`](../../pom.xml) に定義されています。
 
+### ダウンロードとキャッシュの流れ：
+1. 初回ビルド時（`mvn compile` または `mvn package`）、Maven は Maven Central リポジトリから自動的に依存ライブラリを取得します。
+2. 取得した JAR ファイルはローカルキャッシュに保存されます：
+   - **Windows**：`%USERPROFILE%\.m2\repository\`
+   - **Linux / macOS**：`~/.m2/repository/`
+3. 以降のビルドはローカルキャッシュから直接読み込まれるため、**開発者が手動で JAR をダウンロード・配置する必要は一切ありません**。
+
+---
+
+## 4. WAR パッケージ構造の解析 (`WEB-INF/lib/`)
+
+`mvn package` を実行すると、`target/` 配下に自己完結型の Web アーカイブ [`target/jtrac.war`](../../target/jtrac.war) が生成されます。
+
+### 内部ディレクトリレイアウト：
 ```text
 jtrac.war
 ├── META-INF/
 │   └── MANIFEST.MF
 ├── WEB-INF/
-│   ├── classes/                 <-- コンパイル済みクラスおよび UTF-8 プロパティ
+│   ├── classes/                 <-- JTrac のコンパイル済クラスおよび UTF-8 リソースファイル
 │   │   ├── info/jtrac/...
 │   │   └── messages*.properties
-│   ├── lib/                     <-- 現代の依存ライブラリ一式
+│   ├── lib/                     <-- 【中核：最新のサードパーティ依存 JAR 群】
 │   │   ├── spring-core-5.3.37.jar
 │   │   ├── wicket-core-9.16.0.jar
 │   │   ├── hibernate-core-5.6.15.Final.jar
 │   │   ├── spring-security-core-5.8.14.jar
 │   │   ├── hsqldb-2.7.2.jar
-│   │   └── ...
-│   └── web.xml                  <-- Servlet 4.0 仕様設定
-└── resources/
+│   │   └── ... (その他すべての依存ライブラリ)
+│   └── web.xml                  <-- Servlet 4.0 準拠のデプロイ記述子
+└── resources/                   <-- 静的アセット（CSS、アイコン、スタイルシート）
 ```
+
+- **クラスローダー分離**：Servlet コンテナ（Jetty、Tomcat など）は WAR 内部の `WEB-INF/lib/` を自動的に独立した環境として読み込みます。
+- **ゼロ依存デプロイ**：サーバー側にライブラリを追加導入する必要はなく、`jtrac.war` を配置するだけで直ちに動作します。
 
 ---
 
-## 4. Web コンテナ対応表とデプロイ方法
+## 5. Web コンテナ適合マトリクス (Web Container Matrix)
 
-JTrac 2.3.3-2.0.0 は Servlet 4.0 仕様（`javax.servlet`）に準拠しています：
+JTrac 2.3.3-2.0.0 は Servlet 4.0 仕様（`javax.servlet`）に準拠しており、生成された WAR ファイルは主要なコンテナへそのままデプロイ可能です：
 
-| Web コンテナ | 対応バージョン | デプロイ手順 |
+| Web コンテナ | 対応バージョン | デプロイ方式 |
 |---|---|---|
-| **Jetty 10.x** | 10.0.x（推奨） | **即時動作**：`target/jtrac.war` を `webapps/ROOT.war` に配置。 |
-| **Jetty 12.x** | 12.0.x（最新） | **ネイティブ**：内蔵 `ee8` モジュールを有効化：<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp` |
-| **Tomcat 9.x** | 9.0.x（推奨） | **即時動作**：`target/jtrac.war` を `webapps/ROOT.war` に配置。 |
-| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自動変換**：`webapps-javaee/` ディレクトリに配置、または `jakartaee-migration` で変換後配置。 |
+| **Jetty 10.x** | 10.0.x（推奨） | **即時稼働**：`target/jtrac.war` を `webapps/ROOT.war` にコピーして起動。 |
+| **Jetty 12.x** | 12.0.x（最新） | **ネイティブ対応**：`ee8` モジュールを有効化して起動：<br/>`java -jar start.jar --add-modules=server,http,ee8-deploy,ee8-webapp`。 |
+| **Tomcat 9.x** | 9.0.x（推奨） | **即時稼働**：`target/jtrac.war` を `webapps/ROOT.war` にコピーして起動。 |
+| **Tomcat 10.x / 11.x** | 10.1.x / 11.0.x | **自動移行対応**：<br/>1. **方式 A**：`webapps-javaee/` フォルダへ配置して自動変換。<br/>2. **方式 B**：公式 `jakartaee-migration` ツールで変換後、`webapps/` に配置。 |
 
-### 4.1 データディレクトリ (`jtrac.home`) の判定優先順位とコンテナ設定
-
-JTrac のデータおよび添付ファイル保存ディレクトリは、システム変数 `jtrac.home` によって制御されます。[`JtracConfigurer`](../../src/main/java/info/jtrac/config/JtracConfigurer.java) により以下の厳格な 4 段階の優先順位で決定されます：
-
-1. **第 1 優先**：`WEB-INF/classes/jtrac-init.properties` 内の `jtrac.home`。
-2. **第 2 優先 (本番環境推奨)**：JVM システムプロパティ `-Djtrac.home=...`。
-3. **第 3 優先**：Servlet Context 初期化パラメータ（`web.xml` または Tomcat Context XML 内の `jtrac.home`）。
-4. **第 4 優先 (デフォルト・フォールバック)**：`System.getProperty("user.home") + "/.jtrac"`。
-   - **Tomcat での注意点**：Linux 環境で `root` ユーザーとして Tomcat を起動し、第 1〜3 優先の設定を行っていない場合、JTrac は自動的に `/root/.jtrac` をデータディレクトリとして使用します。
-   - **ローカル Jetty 開発環境**：`start-jtrac.bat` で `-Djtrac.home=data` が指定されているため、`W:\developer\jetty-10.0.26\data\` にデータが保存されます。
-
-#### データディレクトリの標準構造 (`jtrac.home`)：
-- `jtrac.properties`：データベース接続設定、URL、アカウントおよび Hibernate 方言。
-- `db/`：内蔵 HSQLDB データベースファイル（`jtrac.script`、`jtrac.data` 等）。
-- `attachments/`：添付ファイル格納場所（プロジェクト ID ごとに `attachments/{spaceId}/` で分割）。
-- `indexes/`：Lucene 全文検索インデックス。
-- `backups/`：リストア実行前に自動生成される安全スナップショット（Safety Snapshot）。
-- `logs/`：アプリケーション実行ログ（`jtrac.log`）。
-
-#### コンテナ別 `jtrac.home` 設定方法：
-- **Linux Tomcat (`bin/setenv.sh`)**：
-  ```bash
-  export CATALINA_OPTS="$CATALINA_OPTS -Djtrac.home=/var/jtrac-data"
-  ```
-- **Windows Tomcat (`bin/setenv.bat`)**：
-  ```cmd
-  set "CATALINA_OPTS=%CATALINA_OPTS% -Djtrac.home=D:/jtrac-data"
-  ```
-- **Jetty / コマンドライン起動**：
-  ```bash
-  java -Djtrac.home=/var/jtrac-data -jar start.jar
-  ```
+### ローカル Jetty 10 での動作検証手順：
+1. `target/jtrac.war` を `W:\developer\jetty-10.0.26\webapps\ROOT.war` にコピー。
+2. Jetty を起動：
+   ```powershell
+   & "W:\developer\jdk-17.0.9\bin\java.exe" -jar W:\developer\jetty-10.0.26\start.jar
+   ```
+3. ブラウザでアクセス：`http://localhost:8888/`（初期アカウント：`admin` / パスワード：`admin`）。
 
 ---
 
-## 5. データベースおよびストレージのアップグレード
- 
-2.3.3-1.0.0 からアップグレードする場合：
-- **外部 DB（MySQL、PostgreSQL など）**：[`etc/sql/upgrade-to-2.0.0.sql`](../../etc/sql/upgrade-to-2.0.0.sql) を実行。
-- **内蔵 HSQLDB**：サーバー起動時に自動バックアップおよび 2.x への移行が自動実行されます。
-- **添付ファイル保存移行**：`AttachmentStorageMigrator` により起動時に旧添付ファイルをプロジェクト ID 別フォルダ（`${jtrac.home}/attachments/{spaceId}/`）へ自動再配置、孤児ファイルは `attachments/0_ORPHAN/` に隔離。
-- **Lucene 全文検索**：`.xlsx`、`.docx`（純 JDK ストリーミング OpenXML）、`.pdf`（Apache PDFBox 2.0.31）、`.txt`、`.csv`、`.md`、`.log` のテキスト抽出と `SmartCharsetDetector` による文字化け防止を標準搭載。
+## 6. ビルド検証とトラブルシューティング (Build Troubleshooting)
+
+### 6.1 ビルド成功チェックリスト
+ビルド完了後、以下のファイルが正しく生成されていることを確認してください：
+- [ ] `target/jtrac.war`（サイズ約 18〜22 MB、不要な POI ライブラリを削除して軽量化済）
+- [ ] `tools/jtrac-exporter.jar`（CLI ツールをビルドした場合）
+
+### 6.2 よくあるビルドエラーと対処法
+
+1. **文字エンコーディングエラー (`unmappable character for encoding`)**：
+   - 原因：Windows コンソールのデフォルト文字コードによって UTF-8 のコメントが正しく読み取れない場合があります。
+   - 対策：Maven 実行前に環境変数を設定してください：
+     ```powershell
+     $env:MAVEN_OPTS = "-Dfile.encoding=UTF-8"
+     ```
+2. **コンパイラのターゲットバージョンエラー (`invalid target release: 11`)**：
+   - 原因：端末環境で JDK 8 などの古いバージョンが有効になっています。
+   - 対策：`JAVA_HOME` を JDK 11 または 17 に切り替えてください。
+3. **依存関係のダウンロード破損・中断**：
+   - 原因：ネットワーク切断等により `.jar.lastUpdated` ファイルが残っている場合があります。
+   - 対策：強制更新オプションを付けてビルドを実行します：
+     ```bash
+     mvn clean compile -U
+     ```
+4. **メモリ不足 (`java.lang.OutOfMemoryError`)**：
+   - 対策：Maven JVM の最大ヒープサイズを拡大します：
+     ```bash
+     export MAVEN_OPTS="-Xmx1024m -XX:MaxMetaspaceSize=256m"
+     ```
 
 ---
 
-## 6. スタンドアロン HTML エクスポートツール (`jtrac-exporter`)
+## 7. 環境構築不要：Docker マルチステージ自動ビルド
 
-```cmd
-mvn clean package -f tools/jtrac-exporter/pom.xml -DskipTests
-java -jar tools/jtrac-exporter.jar ^
-  --db-url="jdbc:hsqldb:file:./data/db/jtrac;shutdown=true;readonly=true" ^
-  --attachments-dir="./data/attachments" ^
-  --out="./export-output" ^
-  --lang=ja
-```
+ローカルに JDK や Maven をインストールせず、クリーンで隔離されたコンテナ内で自動ビルドしたい場合は、Docker マルチステージビルドをご利用ください：
 
----
-
-## 7. ネイティブ Docker コンテナ構築と実行 (Eclipse Temurin 17 + Jetty 12)
-
-Docker を利用したマルチステージビルド環境を提供しており、ローカルに JDK や Maven をインストールすることなく実行可能です：
-
-### 7.1 ネイティブ Docker コマンド (推奨)
-`docker/` ディレクトリに移動し、プロジェクトルート (`..`) をビルドコンテキストとして指定して構築・起動します：
-```bash
-cd docker
-docker build -f Dockerfile -t jtrac:latest ..
-docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
-```
-
-### 7.2 クロスプラットフォーム補助スクリプト & Docker Compose
-- **Windows**：`docker/` で `build.bat` と `run.bat` を実行
-- **Linux / macOS**：`docker/` で `./build.sh` と `./run.sh` を実行
-- **Docker Compose**：`docker/` で `docker compose up -d` を実行
-
-起動完了後、ブラウザで `http://localhost:8888/` にアクセスします（初期管理者アカウント：`admin` / `admin`）。外部 DB 接続および環境変数の詳細は [`docker/README.md`](../../docker/README.md) を参照してください。
-
+👉 **詳細は専用ガイドを参照：[`docker/README.md`](../../docker/README.md)**

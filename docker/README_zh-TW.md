@@ -12,7 +12,6 @@
 - **多階段建置 (Multi-stage Build)**：使用 `maven:3.9-eclipse-temurin-17` 自動自原始碼編譯 `jtrac.war`，無需在本機預先安裝 JDK 或 Maven。
 - **完整多國語系字型支援**：內建 `fontconfig`、`fonts-noto-cjk`（中日韓）、`fonts-noto-core`（越南語等音標字元）、`fonts-dejavu-core`（歐系重音字元），確保全文檢索字元抽取與報表繪圖 0% 缺字或亂碼。
 - **權限自動校正與安全降權**：Entrypoint 啟動時自動檢查並修復掛載 Volume `/jtrac-data` 為 `jetty:jetty`，並透過 `gosu` 降權至非 root 帳號（UID 999）執行，安全且免手動 chown。
-- **資料庫動態注入**：支援透過環境變數注入外部 MySQL / PostgreSQL / Oracle 連線設定，自動渲染至 `/jtrac-data/jtrac.properties`；未指定時預設使用內建升級版 HSQLDB 2.x。
 
 ---
 
@@ -54,7 +53,7 @@ docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
 
 ---
 
-### 方式四：直接運行 Docker Hub 官方映像檔
+### 方式三：直接運行 Docker Hub 官方映像檔
 
 亦可直接拉取並執行已發佈於 Docker Hub 之官方映像檔：
 **[https://hub.docker.com/r/inmethod/jtrac](https://hub.docker.com/r/inmethod/jtrac)**
