@@ -173,7 +173,20 @@ public class DataSourceFactoryBean implements FactoryBean, DisposableBean {
                 logger.error("HSQLDB pre-migration check encountered error: {}", e.getMessage(), e);
             }
 
+            String driver = StringUtils.hasText(driverClassName) ? driverClassName : "org.hsqldb.jdbcDriver";
+            try {
+                Class.forName(driver);
+            } catch (ClassNotFoundException e) {
+                try {
+                    Class.forName("org.hsqldb.jdbc.JDBCDriver");
+                    driver = "org.hsqldb.jdbc.JDBCDriver";
+                } catch (ClassNotFoundException ex) {
+                    logger.error("Could not load JDBC driver: {}", driver, ex);
+                }
+            }
+
             SingleConnectionDataSource ds = new SingleConnectionDataSource();
+            ds.setDriverClassName(driver);
             ds.setUrl(url);
             ds.setUsername(username);
             ds.setPassword(password);
@@ -184,6 +197,9 @@ public class DataSourceFactoryBean implements FactoryBean, DisposableBean {
             logger.info("Not using embedded HSQLDB or JNDI datasource, using HikariCP connection pool");
 
 			HikariConfig config = new HikariConfig();
+            if (StringUtils.hasText(driverClassName)) {
+                config.setDriverClassName(driverClassName);
+            }
 			config.setJdbcUrl(url);
             config.setUsername(username);
             config.setPassword(password);
