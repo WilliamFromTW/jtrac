@@ -11,10 +11,10 @@
 コンパイルを開始する前に、ローカル環境が以下の要件を満たしていることを確認してください：
 
 - **OS**：Windows / Linux / macOS
-- **JDK (Java Development Kit)**：**JDK 11 または JDK 17**（JDK 17 推奨。例: `W:\developer\jdk-17.0.9` または JDK 11 `W:\developer\jdk-11.0.28`）
+- **JDK (Java Development Kit)**：**Java 11+ / 17+**（JDK 17 LTS 推奨。例: `W:\developer\jdk-17.0.9`、最低要件は Java 11+）
   > [!IMPORTANT]
-  > 本バージョンは Spring 5.3、Hibernate 5.6、Apache Wicket 9 へ刷新され、ターゲットバイトコードは **Java 11** です。**JDK 8 はサポート対象外**となりましたのでご注意ください。
-- **Apache Maven**：Maven 3.9.x 以上（例: `W:\developer\apache-maven-3.9.9`）
+  > 本バージョンは Spring 5.3.x、Hibernate 5.6.x、Apache Wicket 9.x へ刷新され、ターゲットバイトコードは **Java 11** です。**JDK 8 はサポート対象外**となりましたのでご注意ください。
+- **Apache Maven**：**Maven 3.9+**（例: `W:\developer\apache-maven-3.9.9`）
 
 ### 環境変数の設定例
 
@@ -60,7 +60,7 @@ Maven 3.9+ および Java 11 または 17 のバージョン情報が正しく�
 
 ## 3. 依存関係の自動解決とキャッシュ機構 (`~/.m2/repository`)
 
-JTrac は標準的な Maven 構成を採用しており、すべてのライブラリ（Spring 5.3、Wicket 9、Hibernate 5.6、Spring Security 5.8 など）はルート [`pom.xml`](../../pom.xml) に定義されています。
+JTrac は標準的な Maven 構成を採用しており、すべてのライブラリ（Spring 5.3.x、Wicket 9.x、Hibernate 5.6.x、Spring Security 5.8.x など）はルート [`pom.xml`](../../pom.xml) に定義されています。
 
 ### ダウンロードとキャッシュの流れ：
 1. 初回ビルド時（`mvn compile` または `mvn package`）、Maven は Maven Central リポジトリから自動的に依存ライブラリを取得します。

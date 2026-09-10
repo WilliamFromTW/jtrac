@@ -11,10 +11,10 @@
 在开始编译之前，请确认您的开发环境符合以下条件：
 
 - **操作系统**：Windows / Linux / macOS
-- **Java 开发套件 (JDK)**：**JDK 11 或 JDK 17**（推荐使用 JDK 17，例如 `W:\developer\jdk-17.0.9` 或 JDK 11 `W:\developer\jdk-11.0.28`）
+- **Java 开发套件 (JDK)**：**Java 11+ / 17+**（推荐使用 JDK 17 LTS，例如 `W:\developer\jdk-17.0.9`，最低门槛为 Java 11+）
   > [!IMPORTANT]
-  > 本现代化版本核心已升级至 Spring 5.3、Hibernate 5.6 与 Apache Wicket 9，编译目标字节码为 **Java 11**。**JDK 8 已不再支持**，请勿使用 JDK 8 进行编译。
-- **Apache Maven**：Maven 3.9.x 以上版本（例如 `W:\developer\apache-maven-3.9.9`）
+  > 本现代化版本核心已升级至 Spring 5.3.x、Hibernate 5.6.x 与 Apache Wicket 9.x，编译目标字节码为 **Java 11**。**JDK 8 已不再支持**，请勿使用 JDK 8 进行编译。
+- **Apache Maven**：**Maven 3.9+**（例如 `W:\developer\apache-maven-3.9.9`）
 
 ### 本机环境变量配置示例
 
@@ -60,7 +60,7 @@ mvn -version
 
 ## 3. Maven 依赖包自动下载机制 (`~/.m2/repository`)
 
-JTrac 是基于标准 Maven 架构开发，其所有的第三方依赖库（包括 Spring 5.3、Apache Wicket 9、Hibernate 5.6、Spring Security 5.8 等）皆已声明于根目录 [`pom.xml`](../../pom.xml) 中。
+JTrac 是基于标准 Maven 架构开发，其所有的第三方依赖库（包括 Spring 5.3.x、Apache Wicket 9.x、Hibernate 5.6.x、Spring Security 5.8.x 等）皆已声明于根目录 [`pom.xml`](../../pom.xml) 中。
 
 ### 自动下载与缓存流程：
 1. 当您首次执行 `mvn compile` 或 `mvn package` 时，Maven 会自动连线至远程中央仓库（Maven Central）解析依赖树。

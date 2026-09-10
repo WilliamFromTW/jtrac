@@ -8,7 +8,7 @@ This project is derived from JTrac 2.3.3 (https://jtrac.info). It is dedicated t
 
 ### Option 1: Pre-packaged Standalone Bundle (GitHub Releases)
 
-Pre-built standalone distributions bundling Jetty 10 and JTrac are available on GitHub Releases:
+Pre-built standalone distributions bundling Jetty 10.x and JTrac are available on GitHub Releases:
 
 1. Download the latest `jtrac-2.3.3-x.x.x.zip` from GitHub Releases.
 2. Unzip the downloaded archive to your preferred directory.
@@ -27,7 +27,7 @@ Pre-built standalone distributions bundling Jetty 10 and JTrac are available on 
 
 ### Option 2: Run with Docker Hub Image (`inmethod/jtrac`)
 
-A ready-to-run container image based on Eclipse Temurin 17, Jetty 12, and full multilingual fonts is published on Docker Hub:
+A ready-to-run container image based on Eclipse Temurin 17+, Jetty 12.x, and full multilingual fonts is published on Docker Hub:
 **[https://hub.docker.com/r/inmethod/jtrac](https://hub.docker.com/r/inmethod/jtrac)**
 
 Run directly with Docker:

@@ -1,4 +1,4 @@
-# JTrac Docker Packaging & Deployment (Jetty 12 + Eclipse Temurin 17)
+# JTrac Docker Packaging & Deployment (Jetty 12.x + Eclipse Temurin 17+)
 
 [English](README.md) | [繁體中文](README_zh-TW.md)
 

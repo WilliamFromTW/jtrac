@@ -11,10 +11,10 @@ Tài liệu này hướng dẫn chi tiết cách sử dụng Apache Maven để 
 Trước khi bắt đầu biên dịch, hãy đảm bảo môi trường phát triển của bạn đáp ứng các yêu cầu sau:
 
 - **Hệ điều hành**: Windows / Linux / macOS
-- **Bộ công cụ Java (JDK)**: **JDK 11 hoặc JDK 17** (Khuyến nghị JDK 17, ví dụ: `W:\developer\jdk-17.0.9` hoặc JDK 11 `W:\developer\jdk-11.0.28`)
+- **Bộ công cụ Java (JDK)**: **Java 11+ / 17+** (Khuyến nghị JDK 17 LTS, ví dụ: `W:\developer\jdk-17.0.9`, yêu cầu tối thiểu Java 11+)
   > [!IMPORTANT]
-  > Phiên bản hiện đại hóa đã nâng cấp lên Spring 5.3, Hibernate 5.6 và Apache Wicket 9 với bytecode mục tiêu là **Java 11**. **JDK 8 không còn được hỗ trợ**, vui lòng không sử dụng JDK 8 để biên dịch.
-- **Apache Maven**: Phiên bản Maven 3.9.x trở lên (ví dụ: `W:\developer\apache-maven-3.9.9`)
+  > Phiên bản hiện đại hóa đã nâng cấp lên Spring 5.3.x, Hibernate 5.6.x và Apache Wicket 9.x với bytecode mục tiêu là **Java 11**. **JDK 8 không còn được hỗ trợ**, vui lòng không sử dụng JDK 8 để biên dịch.
+- **Apache Maven**: **Maven 3.9+** (ví dụ: `W:\developer\apache-maven-3.9.9`)
 
 ### Ví dụ Cấu hình Biến Môi trường
 
@@ -60,7 +60,7 @@ Chạy các lệnh sau tại thư mục gốc của dự án JTrac (nơi chứa 
 
 ## 3. Cơ chế Lưu Bộ nhớ đệm Thư viện (`~/.m2/repository`)
 
-JTrac được xây dựng trên chuẩn Apache Maven. Toàn bộ thư viện phụ thuộc của bên thứ ba (Spring 5.3, Wicket 9, Hibernate 5.6, Spring Security 5.8...) đều được khai báo trong [`pom.xml`](../../pom.xml).
+JTrac được xây dựng trên chuẩn Apache Maven. Toàn bộ thư viện phụ thuộc của bên thứ ba (Spring 5.3.x, Wicket 9.x, Hibernate 5.6.x, Spring Security 5.8.x...) đều được khai báo trong [`pom.xml`](../../pom.xml).
 
 ### Quy trình Tải và Lưu đệm:
 1. Khi chạy `mvn compile` hoặc `mvn package` lần đầu, Maven kết nối đến kho trung tâm (Maven Central) để tải thư viện.

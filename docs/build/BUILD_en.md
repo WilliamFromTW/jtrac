@@ -11,10 +11,10 @@ This guide provides comprehensive instructions on compiling and packaging the JT
 Before building, verify that your local environment satisfies the following requirements:
 
 - **Operating System**: Windows / Linux / macOS
-- **Java Development Kit (JDK)**: **JDK 11 or JDK 17** (JDK 17 recommended, e.g., `W:\developer\jdk-17.0.9` or JDK 11 `W:\developer\jdk-11.0.28`)
+- **Java Development Kit (JDK)**: **Java 11+ / 17+** (JDK 17 LTS recommended, e.g., `W:\developer\jdk-17.0.9`, minimum requirement Java 11+)
   > [!IMPORTANT]
-  > The core architecture has been modernized to Spring 5.3, Hibernate 5.6, and Apache Wicket 9, targeting bytecode **Java 11**. **JDK 8 is no longer supported**; do not attempt to compile with JDK 8.
-- **Apache Maven**: Maven 3.9.x or later (e.g., `W:\developer\apache-maven-3.9.9`)
+  > The core architecture has been modernized to Spring 5.3.x, Hibernate 5.6.x, and Apache Wicket 9.x, targeting bytecode **Java 11**. **JDK 8 is no longer supported**; do not attempt to compile with JDK 8.
+- **Apache Maven**: **Maven 3.9+** (e.g., `W:\developer\apache-maven-3.9.9`)
 
 ### Environment Variable Setup Examples
 
@@ -60,7 +60,7 @@ Run the following commands from the project root directory (where `pom.xml` resi
 
 ## 3. Dependency Caching Mechanics (`~/.m2/repository`)
 
-JTrac is built upon standard Apache Maven. All third-party libraries (Spring 5.3, Wicket 9, Hibernate 5.6, Spring Security 5.8, etc.) are declared in the root [`pom.xml`](../../pom.xml).
+JTrac is built upon standard Apache Maven. All third-party libraries (Spring 5.3.x, Wicket 9.x, Hibernate 5.6.x, Spring Security 5.8.x, etc.) are declared in the root [`pom.xml`](../../pom.xml).
 
 ### Resolution & Caching Workflow:
 1. On your first `mvn compile` or `mvn package`, Maven connects to Maven Central to resolve the complete dependency tree.

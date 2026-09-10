@@ -11,10 +11,10 @@ Dieser Leitfaden beschreibt ausführlich die Kompilierung und das Packaging des 
 Stellen Sie vor Beginn der Kompilierung sicher, dass Ihre lokale Umgebung die folgenden Anforderungen erfüllt:
 
 - **Betriebssystem**: Windows / Linux / macOS
-- **Java Development Kit (JDK)**: **JDK 11 oder JDK 17** (JDK 17 empfohlen, z. B. `W:\developer\jdk-17.0.9` oder JDK 11 `W:\developer\jdk-11.0.28`)
+- **Java Development Kit (JDK)**: **Java 11+ / 17+** (JDK 17 LTS empfohlen, z. B. `W:\developer\jdk-17.0.9`, Mindestanforderung Java 11+)
   > [!IMPORTANT]
-  > Die Kernarchitektur wurde auf Spring 5.3, Hibernate 5.6 und Apache Wicket 9 aktualisiert, mit dem Bytecode-Ziel **Java 11**. **JDK 8 wird nicht mehr unterstützt**.
-- **Apache Maven**: Version 3.9.x oder höher (z. B. `W:\developer\apache-maven-3.9.9`)
+  > Die Kernarchitektur wurde auf Spring 5.3.x, Hibernate 5.6.x und Apache Wicket 9.x aktualisiert, mit dem Bytecode-Ziel **Java 11**. **JDK 8 wird nicht mehr unterstützt**.
+- **Apache Maven**: **Maven 3.9+** (z. B. `W:\developer\apache-maven-3.9.9`)
 
 ### Umgebungsvariablen einrichten
 
@@ -60,7 +60,7 @@ Führen Sie die folgenden Befehle im Projektstammverzeichnis aus (in dem sich di
 
 ## 3. Automatische Abhängigkeitsverwaltung (`~/.m2/repository`)
 
-JTrac basiert auf standardmäßigem Apache Maven. Alle Bibliotheken von Drittanbietern (Spring 5.3, Wicket 9, Hibernate 5.6, Spring Security 5.8) sind in der Stammdatei [`pom.xml`](../../pom.xml) deklariert.
+JTrac basiert auf standardmäßigem Apache Maven. Alle Bibliotheken von Drittanbietern (Spring 5.3.x, Wicket 9.x, Hibernate 5.6.x, Spring Security 5.8.x) sind in der Stammdatei [`pom.xml`](../../pom.xml) deklariert.
 
 ### Auflösungs- und Caching-Ablauf:
 1. Beim ersten `mvn compile` oder `mvn package` lädt Maven alle Abhängigkeiten automatisch aus dem Maven Central Repository herunter.

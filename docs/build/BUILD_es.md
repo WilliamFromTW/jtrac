@@ -11,10 +11,10 @@ Esta guía detalla cómo compilar y empaquetar el proyecto JTrac 2.3.3-2.0.0 uti
 Antes de comenzar la compilación, asegúrese de que su entorno cumpla con las siguientes condiciones:
 
 - **Sistema Operativo**: Windows / Linux / macOS
-- **Kit de Desarrollo de Java (JDK)**: **JDK 11 o JDK 17** (se recomienda JDK 17, p. ej. `W:\developer\jdk-17.0.9` o JDK 11 `W:\developer\jdk-11.0.28`)
+- **Kit de Desarrollo de Java (JDK)**: **Java 11+ / 17+** (se recomienda JDK 17 LTS, p. ej. `W:\developer\jdk-17.0.9`, requisito mínimo Java 11+)
   > [!IMPORTANT]
-  > La arquitectura central se ha modernizado a Spring 5.3, Hibernate 5.6 y Apache Wicket 9, con bytecode orientado a **Java 11**. **JDK 8 ya no es compatible**; no intente compilar con JDK 8.
-- **Apache Maven**: Versión 3.9.x o superior (p. ej. `W:\developer\apache-maven-3.9.9`)
+  > La arquitectura central se ha modernizado a Spring 5.3.x, Hibernate 5.6.x y Apache Wicket 9.x, con bytecode orientado a **Java 11**. **JDK 8 ya no es compatible**; no intente compilar con JDK 8.
+- **Apache Maven**: **Maven 3.9+** (p. ej. `W:\developer\apache-maven-3.9.9`)
 
 ### Configuración de Variables de Entorno
 
@@ -60,7 +60,7 @@ Ejecute los siguientes comandos en el directorio raíz del proyecto (donde se en
 
 ## 3. Caché y Resolución Automática de Dependencias (`~/.m2/repository`)
 
-JTrac se basa en la arquitectura estándar de Apache Maven. Todas las bibliotecas externas (Spring 5.3, Wicket 9, Hibernate 5.6, Spring Security 5.8, etc.) están declaradas en [`pom.xml`](../../pom.xml).
+JTrac se basa en la arquitectura estándar de Apache Maven. Todas las bibliotecas externas (Spring 5.3.x, Wicket 9.x, Hibernate 5.6.x, Spring Security 5.8.x, etc.) están declaradas en [`pom.xml`](../../pom.xml).
 
 ### Flujo de Descarga y Almacenamiento en Caché:
 1. En la primera ejecución de `mvn compile` o `mvn package`, Maven se conecta al repositorio central (Maven Central) para resolver el árbol de dependencias.
