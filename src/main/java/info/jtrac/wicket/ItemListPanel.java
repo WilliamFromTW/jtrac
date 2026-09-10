@@ -92,6 +92,7 @@ public class ItemListPanel extends BasePanel {
             pageCount = (int) Math.ceil((double) resultCount / pageSize);
         }
         final int currentPage = itemSearch.getCurrentPage();
+        final int totalPages = pageCount;
         
         Link link = new Link("count") {
             public void onClick() {
@@ -108,6 +109,22 @@ public class ItemListPanel extends BasePanel {
         WebMarkupContainer pagination = new WebMarkupContainer("pagination");
         
         if(pageCount > 1) {
+            Link firstOn = new Link("firstOn") {
+                public void onClick() {
+                    itemSearch.setCurrentPage(0);
+                    setResponsePage(new ItemListPage(itemSearch));
+                }
+            };
+            firstOn.add(new Label("firstOn", "|<<"));
+            Label firstOff = new Label("firstOff", "|<<");
+            if(currentPage == 0) {
+                firstOn.setVisible(false);
+            } else {
+                firstOff.setVisible(false);
+            }
+            pagination.add(firstOn);
+            pagination.add(firstOff);
+
             Link prevOn = new Link("prevOn") {
                 public void onClick() {
                     itemSearch.setCurrentPage(currentPage - 1);                    
@@ -115,8 +132,8 @@ public class ItemListPanel extends BasePanel {
                     setResponsePage(new ItemListPage(itemSearch));                    
                 }
             };
-            prevOn.add(new Label("prevOn", "<<"));
-            Label prevOff = new Label("prevOff", "<<");
+            prevOn.add(new Label("prevOn", "<"));
+            Label prevOff = new Label("prevOff", "<");
             if(currentPage == 0) {
                 prevOn.setVisible(false);
             } else {
@@ -124,10 +141,6 @@ public class ItemListPanel extends BasePanel {
             }
             pagination.add(prevOn);
             pagination.add(prevOff);
-
-            WebMarkupContainer pageInfo = new WebMarkupContainer("pageInfo");
-            pageInfo.add(new Label("pageInfoText", (currentPage + 1) + " / " + pageCount));
-            pagination.add(pageInfo);
             
             int windowSize = 10;
             int startPage = 0;
@@ -176,8 +189,8 @@ public class ItemListPanel extends BasePanel {
                     setResponsePage(new ItemListPage(itemSearch));                    
                 }
             };
-            nextOn.add(new Label("nextOn", ">>"));
-            Label nextOff = new Label("nextOff", ">>");
+            nextOn.add(new Label("nextOn", ">"));
+            Label nextOff = new Label("nextOff", ">");
             if(currentPage == pageCount - 1) {
                 nextOn.setVisible(false);
             } else {
@@ -185,6 +198,26 @@ public class ItemListPanel extends BasePanel {
             }
             pagination.add(nextOn);
             pagination.add(nextOff);
+
+            Link lastOn = new Link("lastOn") {
+                public void onClick() {
+                    itemSearch.setCurrentPage(totalPages - 1);
+                    setResponsePage(new ItemListPage(itemSearch));
+                }
+            };
+            lastOn.add(new Label("lastOn", ">>|"));
+            Label lastOff = new Label("lastOff", ">>|");
+            if(currentPage == totalPages - 1) {
+                lastOn.setVisible(false);
+            } else {
+                lastOff.setVisible(false);
+            }
+            pagination.add(lastOn);
+            pagination.add(lastOff);
+
+            WebMarkupContainer pageInfo = new WebMarkupContainer("pageInfo");
+            pageInfo.add(new Label("pageInfoText", (currentPage + 1) + " / " + totalPages));
+            pagination.add(pageInfo);
         } else { // if pageCount == 1
             pagination.setVisible(false);
         }
