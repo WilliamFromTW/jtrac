@@ -311,9 +311,6 @@ code {
 	background: var(--darkblue);
 	color: #FFFFFF !important;
 	font-weight: bold;
-	font-size: 1.15em !important;
-	min-width: 34px !important;
-	min-height: 34px !important;
 	border: 1px solid var(--darkblue);
 }
 [data-theme="dark"] .item-list-toolbar .page-links span[wicket\:id="pageOff"],
@@ -342,7 +339,6 @@ code {
 	white-space: nowrap;
 }
 .item-list-toolbar .page-info .page-current {
-	font-size: 1.15em;
 	font-weight: bold;
 	color: var(--darkblue);
 }
@@ -669,7 +665,6 @@ code {
 	}
 
 	.item-list-toolbar .page-info .page-current {
-		font-size: 1.15em !important;
 		font-weight: bold !important;
 		color: var(--darkblue) !important;
 	}

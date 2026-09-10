@@ -117,10 +117,9 @@ public class ItemListPanel extends BasePanel {
             };
             firstOn.add(new Label("firstOn", "|<<"));
             Label firstOff = new Label("firstOff", "|<<");
+            firstOff.setVisible(false);
             if(currentPage == 0) {
                 firstOn.setVisible(false);
-            } else {
-                firstOff.setVisible(false);
             }
             pagination.add(firstOn);
             pagination.add(firstOff);
@@ -134,10 +133,9 @@ public class ItemListPanel extends BasePanel {
             };
             prevOn.add(new Label("prevOn", "<"));
             Label prevOff = new Label("prevOff", "<");
+            prevOff.setVisible(false);
             if(currentPage == 0) {
                 prevOn.setVisible(false);
-            } else {
-                prevOff.setVisible(false);
             }
             pagination.add(prevOn);
             pagination.add(prevOff);
@@ -191,10 +189,9 @@ public class ItemListPanel extends BasePanel {
             };
             nextOn.add(new Label("nextOn", ">"));
             Label nextOff = new Label("nextOff", ">");
+            nextOff.setVisible(false);
             if(currentPage == pageCount - 1) {
                 nextOn.setVisible(false);
-            } else {
-                nextOff.setVisible(false);
             }
             pagination.add(nextOn);
             pagination.add(nextOff);
@@ -207,10 +204,9 @@ public class ItemListPanel extends BasePanel {
             };
             lastOn.add(new Label("lastOn", ">>|"));
             Label lastOff = new Label("lastOff", ">>|");
+            lastOff.setVisible(false);
             if(currentPage == totalPages - 1) {
                 lastOn.setVisible(false);
-            } else {
-                lastOff.setVisible(false);
             }
             pagination.add(lastOn);
             pagination.add(lastOff);
