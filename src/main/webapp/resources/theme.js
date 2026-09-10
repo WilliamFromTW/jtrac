@@ -98,6 +98,112 @@
         }
     }
 
+    // 5. Mobile History Detail Bottom Sheet Modal
+    window.jtracOpenHistoryModal = function(row) {
+        var overlay = document.getElementById('history-modal-overlay');
+        if (!overlay || !row) return;
+
+        // TimeStamp
+        var timeEl = row.querySelector('.col-hist-timeStamp');
+        var timeText = timeEl ? timeEl.textContent.trim() : '';
+        var modalTime = document.getElementById('modal-time');
+        if (modalTime) modalTime.textContent = timeText;
+
+        // Status
+        var statusEl = row.querySelector('.col-hist-status');
+        var statusVal = statusEl ? statusEl.textContent.trim() : '';
+        var modalStatus = document.getElementById('modal-status');
+        if (modalStatus) modalStatus.textContent = statusVal || '-';
+
+        // Logged By
+        var loggedByEl = row.querySelector('.col-hist-loggedBy');
+        var loggedByVal = loggedByEl ? loggedByEl.textContent.trim() : '';
+        var modalLoggedBy = document.getElementById('modal-loggedBy');
+        if (modalLoggedBy) modalLoggedBy.textContent = loggedByVal || '-';
+
+        // Assigned To
+        var assignedToEl = row.querySelector('.col-hist-assignedTo');
+        var assignedToVal = assignedToEl ? assignedToEl.textContent.trim() : '';
+        var modalAssignedTo = document.getElementById('modal-assignedTo');
+        if (modalAssignedTo) modalAssignedTo.textContent = assignedToVal || '-';
+
+        // Custom Fields
+        var fieldCells = row.querySelectorAll('.col-hist-fields');
+        var customContainer = document.getElementById('modal-custom-fields');
+        var customSection = document.getElementById('modal-custom-fields-section');
+        if (customContainer) {
+            customContainer.innerHTML = '';
+            var hasCustom = false;
+            for (var i = 0; i < fieldCells.length; i++) {
+                var cell = fieldCells[i];
+                var label = cell.getAttribute('data-label') || '';
+                var val = cell.textContent ? cell.textContent.trim() : '';
+                if (val && val !== '' && val !== '-') {
+                    hasCustom = true;
+                    var itemDiv = document.createElement('div');
+                    itemDiv.className = 'history-modal-item';
+                    var lblSpan = document.createElement('span');
+                    lblSpan.className = 'history-modal-label';
+                    lblSpan.textContent = label;
+                    var valSpan = document.createElement('span');
+                    valSpan.className = 'history-modal-val';
+                    valSpan.textContent = val;
+                    itemDiv.appendChild(lblSpan);
+                    itemDiv.appendChild(valSpan);
+                    customContainer.appendChild(itemDiv);
+                }
+            }
+            if (customSection) {
+                customSection.style.display = hasCustom ? 'block' : 'none';
+            }
+        }
+
+        // Comment & Attachments
+        var commentCell = row.querySelector('.col-hist-comment');
+        var modalComment = document.getElementById('modal-comment');
+        if (modalComment && commentCell) {
+            var clone = commentCell.cloneNode(true);
+            var btn = clone.querySelector('.history-detail-btn');
+            if (btn && btn.parentNode) {
+                btn.parentNode.removeChild(btn);
+            }
+            var textContent = clone.textContent ? clone.textContent.trim() : '';
+            var hasLinksOrImages = clone.querySelector('a, img');
+            if (!textContent && !hasLinksOrImages) {
+                modalComment.innerHTML = '<span style="color:var(--text-muted);font-style:italic;">-</span>';
+            } else {
+                modalComment.innerHTML = clone.innerHTML;
+            }
+        }
+
+        // Show Modal
+        overlay.style.display = 'flex';
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.jtracCloseHistoryModal = function(e) {
+        if (e && e.target && e.target !== document.getElementById('history-modal-overlay') && !e.target.classList.contains('history-modal-close')) {
+            return;
+        }
+        var overlay = document.getElementById('history-modal-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.classList.remove('open');
+        }
+        document.body.style.overflow = '';
+    };
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            var overlay = document.getElementById('history-modal-overlay');
+            if (overlay && (overlay.classList.contains('open') || overlay.style.display !== 'none')) {
+                jtracCloseHistoryModal();
+            }
+        }
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', syncOnReady);
     } else {

@@ -189,6 +189,7 @@ public class ItemViewPanel extends BasePanel {
         add(new Label("status", new PropertyModel(item, "statusValue")));
         add(new Label("loggedBy", new PropertyModel(item, "loggedBy.name")));
         add(new Label("assignedTo", new PropertyModel(item, "assignedTo.name")));
+        add(new Label("mobileRefId", "[" + item.getRefId() + "] "));
         add(new Label("summary", new PropertyModel(item, "summary")));
         String text = item.getDetail();
 		if (renderMarkdown())
@@ -265,6 +266,7 @@ public class ItemViewPanel extends BasePanel {
                          */
                         protected void populateItem(ListItem listItem) {
                             Field field = (Field) listItem.getModelObject();
+                            listItem.add(new SimpleAttributeModifier("data-label", field.getLabel()));
                             listItem.add(new Label("field", h.getCustomValue(field.getName())));
                         }
                     });

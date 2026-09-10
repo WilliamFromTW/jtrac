@@ -32,7 +32,7 @@
         </tr>
         <tr class="alt row-field-summary">
             <td class="label"><wicket:message key="item_view.summary"/></td>
-            <td wicket:id="summary" colspan="5"></td>
+            <td colspan="5"><span class="mobile-summary-ref-id" wicket:id="mobileRefId"></span><span wicket:id="summary"></span></td>
         </tr>
         <tr class="row-field-detail">
             <td class="label" valign="top"><wicket:message key="item_view.detail"/></td>
@@ -59,9 +59,50 @@
             <td wicket:id="loggedBy" class="col-hist-loggedBy" style="white-space: nowrap;"></td>
             <td wicket:id="status" class="col-hist-status" style="white-space: nowrap;"></td>
             <td wicket:id="assignedTo" class="col-hist-assignedTo" style="white-space: nowrap;"></td>
-            <td wicket:id="comment" class="col-hist-comment"><span wicket:id="attachment" style="padding-right:0.5em"></span><span wicket:id="comment"></span></td>
+            <td wicket:id="comment" class="col-hist-comment">
+                <span wicket:id="attachment" style="padding-right:0.5em"></span>
+                <span wicket:id="comment"></span>
+                <button type="button" class="history-detail-btn" onclick="jtracOpenHistoryModal(this.closest('.history-row'))">🔍 <wicket:message key="item_view.detail"/></button>
+            </td>
             <td wicket:id="timeStamp" class="col-hist-timeStamp" style="white-space: nowrap;"></td>
             <td wicket:id="fields" class="col-hist-fields"><span wicket:id="field"></span></td>
         </tr>
     </table>
+
+    <!-- Mobile History Detail Bottom Sheet Modal -->
+    <div id="history-modal-overlay" class="history-modal-overlay" style="display:none;" onclick="jtracCloseHistoryModal(event)">
+        <div class="history-modal-sheet" onclick="event.stopPropagation()">
+            <div class="history-modal-header">
+                <div class="history-modal-title-group">
+                    <div class="history-modal-title"><wicket:message key="item_view.history"/></div>
+                    <div class="history-modal-time" id="modal-time"></div>
+                </div>
+                <button type="button" class="history-modal-close" aria-label="Close" onclick="jtracCloseHistoryModal()">&times;</button>
+            </div>
+            <div class="history-modal-body">
+                <div class="history-modal-grid">
+                    <div class="history-modal-item">
+                        <span class="history-modal-label"><wicket:message key="item_view.status"/></span>
+                        <span class="history-modal-val" id="modal-status"></span>
+                    </div>
+                    <div class="history-modal-item">
+                        <span class="history-modal-label"><wicket:message key="item_view.loggedBy"/></span>
+                        <span class="history-modal-val" id="modal-loggedBy"></span>
+                    </div>
+                    <div class="history-modal-item">
+                        <span class="history-modal-label"><wicket:message key="item_view.assignedTo"/></span>
+                        <span class="history-modal-val" id="modal-assignedTo"></span>
+                    </div>
+                </div>
+                <div class="history-modal-section" id="modal-custom-fields-section" style="display:none;">
+                    <div class="history-modal-section-title"><wicket:message key="space_fields.customFields"/></div>
+                    <div class="history-modal-custom-list" id="modal-custom-fields"></div>
+                </div>
+                <div class="history-modal-section">
+                    <div class="history-modal-section-title"><wicket:message key="item_view.comment"/></div>
+                    <div class="history-modal-comment" id="modal-comment"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
