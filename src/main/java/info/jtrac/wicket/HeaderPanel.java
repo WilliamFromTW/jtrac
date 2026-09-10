@@ -30,10 +30,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import info.jtrac.domain.ItemSearch;
 
 /**
  * header navigation
@@ -151,7 +155,49 @@ public class HeaderPanel extends BasePanel {
             });
             add(new WebMarkupContainer("login").setVisible(false));
             add(new Label("user", user.getName()));
-        }             
+        }
+
+        final Model<String> desktopSearchModel = new Model<String>();
+        Form<Void> desktopSearchForm = new Form<Void>("desktopSearchForm") {
+            @Override
+            protected void onSubmit() {
+                handleQuickSearch(desktopSearchModel.getObject(), space, spaces);
+            }
+        };
+        desktopSearchForm.add(new TextField<String>("desktopSearchInput", desktopSearchModel));
+        desktopSearchForm.setVisible(spaces.size() > 0);
+        add(desktopSearchForm);
+
+        final Model<String> mobileSearchModel = new Model<String>();
+        Form<Void> mobileSearchForm = new Form<Void>("mobileSearchForm") {
+            @Override
+            protected void onSubmit() {
+                handleQuickSearch(mobileSearchModel.getObject(), space, spaces);
+            }
+        };
+        mobileSearchForm.add(new TextField<String>("mobileSearchInput", mobileSearchModel));
+        mobileSearchForm.setVisible(spaces.size() > 0);
+        add(mobileSearchForm);
+    }
+
+    private void handleQuickSearch(String searchText, Space space, List<Space> spaces) {
+        if (searchText == null || searchText.trim().length() == 0) {
+            return;
+        }
+        ItemSearch itemSearch;
+        if (space != null) {
+            itemSearch = new ItemSearch(space);
+        } else if (spaces != null && spaces.size() == 1) {
+            Space single = spaces.get(0);
+            setCurrentSpace(single);
+            itemSearch = new ItemSearch(single);
+        } else {
+            setCurrentSpace(null);
+            itemSearch = new ItemSearch(getPrincipal());
+        }
+        itemSearch.setSearchText(searchText.trim());
+        JtracSession.get().setItemSearch(itemSearch);
+        setResponsePage(ItemListPage.class, itemSearch.getAsQueryString());
     }
 
     @Override

@@ -4,6 +4,9 @@
         <div class="nav-mobile-bar">
             <span class="nav-brand-title">JTrac</span>
             <div class="nav-mobile-actions">
+                <button type="button" class="mobile-search-btn" aria-label="Toggle search" title="Search" onclick="jtracToggleMobileSearch(event)">
+                    <span class="search-icon">🔍</span>
+                </button>
                 <button type="button" class="mobile-font-btn" aria-label="Toggle font scale" title="Toggle font scale (A / A+ / A++)" onclick="jtracToggleFontScale(event)">
                     <span class="font-scale-icon">A</span>
                 </button>
@@ -17,12 +20,29 @@
                 </label>
             </div>
         </div>
+        <div id="mobile-search-drawer" class="mobile-search-drawer">
+            <form wicket:id="mobileSearchForm" class="mobile-search-form">
+                <div class="mobile-search-input-wrap">
+                    <span class="mobile-search-prefix-icon">🔍</span>
+                    <input type="text" wicket:id="mobileSearchInput" class="mobile-search-input" wicket:message="placeholder:item_search_form.searchPlaceholder"/>
+                    <button type="button" class="mobile-search-close-btn" onclick="jtracToggleMobileSearch(event)" title="Close">✕</button>
+                </div>
+            </form>
+        </div>
         <div class="nav-menu-wrapper">
             <table class="nav-table-left" style="float:left">
                 <tr>
                     <td class="action-tab nav-tab-dashboard"><a href="#" wicket:id="dashboard"><img src="resources/dashboard.gif"/><wicket:message key="header.dashboard"/></a></td>
                     <wicket:enclosure child="spaceName"><td class="info-tab nav-tab-space"><span class="nav-item-content"><img src="resources/space.gif"/><span wicket:id="spaceName"></span>&nbsp;<font size="1">[<span wicket:id="prefixCode"></span>]</font></span></td></wicket:enclosure>
                     <wicket:enclosure><td class="action-tab nav-tab-new"><a href="#" wicket:id="new"><img src="resources/new.gif"/><wicket:message key="header.new"/></a></td></wicket:enclosure>
+                    <td class="action-tab nav-tab-quicksearch">
+                        <form wicket:id="desktopSearchForm" class="desktop-search-form">
+                            <span class="desktop-search-wrap">
+                                <span class="desktop-search-icon">🔍</span>
+                                <input type="text" wicket:id="desktopSearchInput" class="desktop-search-input" wicket:message="placeholder:item_search_form.searchPlaceholder"/>
+                            </span>
+                        </form>
+                    </td>
                     <wicket:enclosure><td class="action-tab nav-tab-search"><a href="#" wicket:id="search"><img src="resources/search.gif"/><wicket:message key="header.search"/></a></td></wicket:enclosure>
                 </tr>
             </table>         

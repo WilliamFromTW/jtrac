@@ -37,6 +37,8 @@ import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -220,6 +222,40 @@ public class ItemListPanel extends BasePanel {
         }
         
         add(pagination);
+
+        final Model<String> filterModel = new Model<String>(itemSearch.getSearchText());
+        Form<Void> filterForm = new Form<Void>("filterForm") {
+            @Override
+            protected void onSubmit() {
+                String val = filterModel.getObject();
+                itemSearch.setCurrentPage(0);
+                itemSearch.setSearchText(val);
+                JtracSession.get().setItemSearch(itemSearch);
+                setResponsePage(new ItemListPage(itemSearch));
+            }
+        };
+        filterForm.add(new TextField<String>("filterInput", filterModel));
+        add(filterForm);
+
+        WebMarkupContainer searchKeywordAlert = new WebMarkupContainer("searchKeywordAlert");
+        final String currentSearchText = itemSearch.getSearchText();
+        if (currentSearchText != null && currentSearchText.trim().length() > 0) {
+            searchKeywordAlert.add(new Label("searchKeywordValue", currentSearchText));
+            searchKeywordAlert.add(new Link("clearSearchLink") {
+                @Override
+                public void onClick() {
+                    itemSearch.setCurrentPage(0);
+                    itemSearch.setSearchText(null);
+                    JtracSession.get().setItemSearch(itemSearch);
+                    setResponsePage(new ItemListPage(itemSearch));
+                }
+            });
+        } else {
+            searchKeywordAlert.setVisible(false);
+            searchKeywordAlert.add(new WebMarkupContainer("searchKeywordValue"));
+            searchKeywordAlert.add(new WebMarkupContainer("clearSearchLink"));
+        }
+        add(searchKeywordAlert);
         
         //====================== HEADER ========================================        
 

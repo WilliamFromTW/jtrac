@@ -264,8 +264,34 @@
             if (overlay && (overlay.classList.contains('open') || overlay.style.display !== 'none')) {
                 jtracCloseHistoryModal();
             }
+            var searchDrawer = document.getElementById('mobile-search-drawer');
+            if (searchDrawer && searchDrawer.classList.contains('open')) {
+                searchDrawer.classList.remove('open');
+            }
         }
     });
+
+    window.jtracToggleMobileSearch = function(e) {
+        if (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        }
+        var drawer = document.getElementById('mobile-search-drawer');
+        if (!drawer) return false;
+        var isOpen = drawer.classList.contains('open');
+        if (isOpen) {
+            drawer.classList.remove('open');
+        } else {
+            drawer.classList.add('open');
+            var input = drawer.querySelector('input[type="text"]');
+            if (input) {
+                setTimeout(function() {
+                    input.focus();
+                }, 100);
+            }
+        }
+        return false;
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', syncOnReady);

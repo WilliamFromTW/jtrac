@@ -16,7 +16,24 @@
                             <input type="submit" wicket:message="value:search" wicket:id="search"/>
                         </td>
                     </tr>
-                </table>                                               
+                </table>
+                <table class="jtrac item-search-unified-bar">
+                    <tr>
+                        <th class="search-title-cell">
+                            <wicket:message key="item_search_form.searchText"/>
+                            <div class="search-title-hint"><wicket:message key="item_search_form.searchTextHint"/></div>
+                        </th>
+                        <td class="search-input-cell">
+                            <input type="text" wicket:id="searchText" class="item-search-main-input" wicket:message="placeholder:item_search_form.searchPlaceholder"/>
+                        </td>
+                        <td class="search-summary-toggle-cell">
+                            <label class="search-summary-checkbox-label">
+                                <input type="checkbox" wicket:id="summaryVisible"/>
+                                <span class="summary-toggle-text"><wicket:message key="item_search_form.showSummaryColumn"/></span>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
                 <table class="jtrac">
                     <tr class="alt">
                         <td align="center"><wicket:message key="item_filter.showColumn"/></td>

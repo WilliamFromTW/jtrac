@@ -38,6 +38,7 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -92,6 +93,13 @@ public class ItemSearchFormPanel extends BasePanel {
         });
         form.add(pageSizeChoice);
         form.add(new CheckBox("showHistory"));
+        form.add(new TextField<String>("searchText", new PropertyModel<String>(itemSearch, "searchText")));
+        ColumnHeading summaryHeading = itemSearch.getColumnHeading(ColumnHeading.Name.SUMMARY);
+        if (summaryHeading != null) {
+            form.add(new CheckBox("summaryVisible", new PropertyModel<Boolean>(summaryHeading, "visible")));
+        } else {
+            form.add(new WebMarkupContainer("summaryVisible").setVisible(false));
+        }
         form.add(new Button("search") {
             @Override
             public void onSubmit() {

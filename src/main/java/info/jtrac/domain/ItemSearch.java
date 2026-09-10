@@ -262,7 +262,7 @@ public class ItemSearch implements Serializable {
         }        
     }    
     
-    private ColumnHeading getColumnHeading(ColumnHeading.Name name) {
+    public ColumnHeading getColumnHeading(ColumnHeading.Name name) {
         for(ColumnHeading ch : columnHeadings) {
             if(ch.getName() == name) {
                 return ch;                
