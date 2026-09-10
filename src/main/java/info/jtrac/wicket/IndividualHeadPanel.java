@@ -48,16 +48,15 @@ public class IndividualHeadPanel extends BasePanel {
 		WebMarkupContainer img = new WebMarkupContainer("icon");
 		img.add(AttributeModifier.replace("src", (IModel<String>) () -> {
 			String url = configMap.get("jtrac.header.picture");
+			String cp = getRequest().getContextPath();
+			String base = (cp == null || cp.isEmpty() || "/".equals(cp)) ? "" : cp;
 			if (StringUtils.hasText(url)) {
-				return url;
-			} else {
-				String urlbase = configMap.get("jtrac.url.base");
-				if (urlbase == null) {
-					urlbase = "/";
-				} else if (!urlbase.endsWith("/")) {
-					urlbase = urlbase + "/";
+				if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//")) {
+					return url;
 				}
-				return urlbase + "resources/jtrac-logo.gif";
+				return base + (url.startsWith("/") ? url : "/" + url);
+			} else {
+				return base + "/resources/jtrac-logo.gif";
 			}
 		}));
 		add(img);
