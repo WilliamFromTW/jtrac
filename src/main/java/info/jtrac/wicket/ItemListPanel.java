@@ -216,7 +216,8 @@ public class ItemListPanel extends BasePanel {
             pagination.add(lastOff);
 
             WebMarkupContainer pageInfo = new WebMarkupContainer("pageInfo");
-            pageInfo.add(new Label("pageInfoText", (currentPage + 1) + " / " + totalPages));
+            pageInfo.add(new Label("pageCurrent", String.valueOf(currentPage + 1)));
+            pageInfo.add(new Label("pageTotal", String.valueOf(totalPages)));
             pagination.add(pageInfo);
         } else { // if pageCount == 1
             pagination.setVisible(false);

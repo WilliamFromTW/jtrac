@@ -311,6 +311,15 @@ code {
 	background: var(--darkblue);
 	color: #FFFFFF !important;
 	font-weight: bold;
+	font-size: 1.15em !important;
+	min-width: 34px !important;
+	min-height: 34px !important;
+	border: 1px solid var(--darkblue);
+}
+[data-theme="dark"] .item-list-toolbar .page-links span[wicket\:id="pageOff"],
+[data-theme="dark"] .item-list-toolbar .page-links span.pageOff {
+	background: var(--darkblue);
+	color: #0F172A !important;
 	border: 1px solid var(--darkblue);
 }
 .item-list-toolbar .page-links span[wicket\:id="firstOff"],
@@ -318,10 +327,35 @@ code {
 .item-list-toolbar .page-links span[wicket\:id="nextOff"],
 .item-list-toolbar .page-links span[wicket\:id="lastOff"] {
 	color: var(--text-muted);
-	opacity: 0.4;
+	opacity: 0.35;
 	cursor: not-allowed;
 	background: transparent;
 	border: 1px solid transparent;
+}
+.item-list-toolbar .page-info {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 8px;
+	font-size: 0.95em;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+.item-list-toolbar .page-info .page-current {
+	font-size: 1.15em;
+	font-weight: bold;
+	color: var(--darkblue);
+}
+[data-theme="dark"] .item-list-toolbar .page-info .page-current {
+	color: #60A5FA;
+}
+.item-list-toolbar .page-info .page-separator {
+	margin: 0 3px;
+	color: var(--text-muted);
+}
+.item-list-toolbar .page-info .page-total {
+	font-size: 0.95em;
+	color: var(--text-muted);
 }
 
 /* --- Login Page Modern Card Layout (Desktop) --- */
@@ -607,21 +641,64 @@ code {
 		display: none !important;
 	}
 
+	.item-list-toolbar .page-links span[wicket\:id="firstOn"],
+	.item-list-toolbar .page-links span[wicket\:id="firstOff"] {
+		order: 1 !important;
+	}
+
+	.item-list-toolbar .page-links span[wicket\:id="prevOn"],
+	.item-list-toolbar .page-links span[wicket\:id="prevOff"] {
+		order: 2 !important;
+	}
+
 	.item-list-toolbar .page-info,
 	.item-list-toolbar .page-info-mobile {
+		order: 3 !important;
 		display: inline-flex !important;
 		align-items: center !important;
 		justify-content: center !important;
-		font-weight: bold !important;
 		font-size: 0.95em !important;
 		color: var(--text-color) !important;
-		padding: 6px 10px !important;
+		padding: 6px 12px !important;
 		background: var(--header) !important;
 		border-radius: 20px !important;
 		border: 1px solid var(--border-color) !important;
-		min-width: 68px !important;
+		min-width: 72px !important;
 		margin: 0 4px !important;
 		white-space: nowrap !important;
+	}
+
+	.item-list-toolbar .page-info .page-current {
+		font-size: 1.15em !important;
+		font-weight: bold !important;
+		color: var(--darkblue) !important;
+	}
+
+	[data-theme="dark"] .item-list-toolbar .page-info .page-current {
+		color: #60A5FA !important;
+	}
+
+	.item-list-toolbar .page-info .page-separator {
+		margin: 0 3px !important;
+		font-size: 0.95em !important;
+		font-weight: normal !important;
+		color: var(--text-muted) !important;
+	}
+
+	.item-list-toolbar .page-info .page-total {
+		font-size: 0.95em !important;
+		font-weight: normal !important;
+		color: var(--text-muted) !important;
+	}
+
+	.item-list-toolbar .page-links span[wicket\:id="nextOn"],
+	.item-list-toolbar .page-links span[wicket\:id="nextOff"] {
+		order: 4 !important;
+	}
+
+	.item-list-toolbar .page-links span[wicket\:id="lastOn"],
+	.item-list-toolbar .page-links span[wicket\:id="lastOff"] {
+		order: 5 !important;
 	}
 
 	.item-list-toolbar .page-links a,
@@ -661,7 +738,7 @@ code {
 	.item-list-toolbar .page-links span[wicket\:id="lastOff"] {
 		background: var(--card-border) !important;
 		color: var(--text-muted) !important;
-		opacity: 0.4 !important;
+		opacity: 0.35 !important;
 		border: 1px solid transparent !important;
 		cursor: not-allowed !important;
 	}
