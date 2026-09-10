@@ -18,6 +18,8 @@
                     }
                     d.setAttribute('data-theme', effectiveTheme);
                     d.setAttribute('data-theme-mode', t);
+                    var fs = localStorage.getItem('jtrac-font-scale') || 'normal';
+                    d.setAttribute('data-font-scale', fs);
                 } catch(e) {}
             })();
             //]]>

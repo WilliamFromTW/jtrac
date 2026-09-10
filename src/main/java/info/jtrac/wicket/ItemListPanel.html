@@ -15,14 +15,16 @@
                     </td>
                 </tr>
             </table>
-            <table class="jtrac jtrac-list" width="100%">
-                <tr class="sortable">
-                    <th wicket:id="headings"><span wicket:id="heading"><a href="#" wicket:id="heading"></a></span></th>                    
-                </tr>
-                <tr wicket:id="itemList">
-                    <td wicket:id="columns" valign="top"><span wicket:id="column"></span></td>
-                </tr>
-            </table>
+            <div class="table-responsive item-list-table-container">
+                <table class="jtrac jtrac-list" width="100%">
+                    <tr class="sortable">
+                        <th wicket:id="headings"><span wicket:id="heading"><a href="#" wicket:id="heading"></a></span></th>                    
+                    </tr>
+                    <tr wicket:id="itemList">
+                        <td wicket:id="columns" valign="top"><span wicket:id="column"></span></td>
+                    </tr>
+                </table>
+            </div>
         </wicket:panel>
         <wicket:fragment wicket:id="refId"><a href="#" wicket:id="refId"><span wicket:id="refId"></span></a><span wicket:id="index"></span></wicket:fragment>
         <wicket:fragment wicket:id="detail"><span wicket:id="attachment"></span><span wicket:id="detail"></span></wicket:fragment>

@@ -17,6 +17,8 @@
                     }
                     d.setAttribute('data-theme', effectiveTheme);
                     d.setAttribute('data-theme-mode', t);
+                    var fs = localStorage.getItem('jtrac-font-scale') || 'normal';
+                    d.setAttribute('data-font-scale', fs);
                 } catch(e) {}
             })();
             //]]>
@@ -28,6 +30,9 @@
             <tr>
                 <td><a href="app"><wicket:message key="login.home"/></a></td>
                 <td align="right">
+                    <button type="button" class="login-font-btn" aria-label="Toggle font scale" title="Toggle font scale (A / A+ / A++)" onclick="jtracToggleFontScale(event)" style="margin-right:6px;">
+                        <span class="font-scale-icon">A</span>
+                    </button>
                     <button type="button" class="login-theme-btn" aria-label="Toggle theme" title="Toggle theme (Light / Dark / System)" onclick="jtracToggleTheme(event)">
                         <span class="theme-icon">🖥️</span>
                     </button>

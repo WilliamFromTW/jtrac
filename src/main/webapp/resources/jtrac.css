@@ -32,12 +32,85 @@
 	--card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
 	--border-color: #334155;
 }
+:root {
+	--font-scale: 1;
+}
+
+html[data-font-scale="medium"] {
+	--font-scale: 1.15;
+}
+
+html[data-font-scale="large"] {
+	--font-scale: 1.25;
+}
+
 body {
 	font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	background: var(--bg-body);
 	color: var(--text-color);
-	font-size: 85%;
+	font-size: calc(85% * var(--font-scale, 1));
+	line-height: 1.35;
 }
+
+/* Medium Font Scale (A+ 115%) - Minimum font floor >= 13px */
+html[data-font-scale="medium"] body {
+	line-height: 1.5;
+}
+
+html[data-font-scale="medium"] .col-hist-timeStamp,
+html[data-font-scale="medium"] .history-modal-time,
+html[data-font-scale="medium"] .history-modal-label,
+html[data-font-scale="medium"] .history-detail-btn,
+html[data-font-scale="medium"] .mobile-summary-ref-id,
+html[data-font-scale="medium"] table.jtrac-list td.col-lastChanged,
+html[data-font-scale="medium"] table.item-view-table tr td.label,
+html[data-font-scale="medium"] .login-remember-label {
+	font-size: max(0.85em, 13px) !important;
+}
+
+/* Large Font Scale (A++ 130% / Desktop max 120%) - Minimum font floor >= 15px */
+html[data-font-scale="large"] body {
+	line-height: 1.6;
+}
+
+html[data-font-scale="large"] .col-hist-timeStamp,
+html[data-font-scale="large"] .history-modal-time,
+html[data-font-scale="large"] .history-modal-label,
+html[data-font-scale="large"] .history-detail-btn,
+html[data-font-scale="large"] .mobile-summary-ref-id,
+html[data-font-scale="large"] table.jtrac-list td.col-lastChanged,
+html[data-font-scale="large"] table.item-view-table tr td.label,
+html[data-font-scale="large"] .login-remember-label {
+	font-size: max(0.92em, 15px) !important;
+}
+
+/* Desktop Anti-Break Safeguard for Wide Tables */
+@media (min-width: 769px) {
+	html[data-font-scale="large"] {
+		--font-scale: 1.2;
+	}
+
+	html[data-font-scale="large"] .item-list-table-container,
+	html[data-font-scale="large"] .table-responsive {
+		width: 100%;
+		overflow-x: auto !important;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	html[data-font-scale="large"] table.jtrac-list {
+		min-width: 850px;
+	}
+
+	html[data-font-scale="large"] table.jtrac-list tr.sortable th.col-id,
+	html[data-font-scale="large"] table.jtrac-list tr td.col-id {
+		position: sticky;
+		left: 0;
+		background: var(--bg-body) !important;
+		z-index: 2;
+		box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+	}
+}
+
 .table-responsive {
 	width: 100%;
 	overflow-x: auto;
@@ -322,7 +395,32 @@ code {
 @media (max-width: 768px), ((pointer: coarse) and (max-width: 1024px)) {
 	body {
 		padding: 6px;
-		font-size: 90%;
+		font-size: calc(90% * var(--font-scale, 1));
+	}
+
+	html[data-font-scale="medium"] body {
+		font-size: calc(90% * 1.15) !important;
+		line-height: 1.5 !important;
+	}
+
+	html[data-font-scale="large"] body {
+		font-size: calc(90% * 1.3) !important;
+		line-height: 1.6 !important;
+	}
+
+	html[data-font-scale="medium"] .item-list-toolbar .page-links a,
+	html[data-font-scale="medium"] .item-list-toolbar .page-links span,
+	html[data-font-scale="medium"] .history-detail-btn,
+	html[data-font-scale="medium"] .mobile-theme-btn,
+	html[data-font-scale="medium"] .mobile-font-btn,
+	html[data-font-scale="large"] .item-list-toolbar .page-links a,
+	html[data-font-scale="large"] .item-list-toolbar .page-links span,
+	html[data-font-scale="large"] .history-detail-btn,
+	html[data-font-scale="large"] .mobile-theme-btn,
+	html[data-font-scale="large"] .mobile-font-btn {
+		min-height: 44px !important;
+		min-width: 44px !important;
+		box-sizing: border-box;
 	}
 
 	/* --- Pure CSS Hamburger Navigation --- */
@@ -1198,9 +1296,83 @@ code {
 	background-color: var(--mediumblue);
 }
 
-/* In mobile RWD, hide the desktop theme tab inside drawer menu */
+/* Font Scale Switcher Component (A / A+ / A++) */
+.font-scale-icon {
+	pointer-events: none !important;
+	user-select: none;
+	-webkit-user-select: none;
+	font-style: normal;
+	font-family: inherit;
+	font-weight: bold;
+	line-height: 1;
+	display: inline-block;
+}
+
+/* Header desktop tab for font scale */
+.nav-header td.nav-tab-font {
+	padding: 4px 8px;
+	cursor: pointer;
+	font-size: 1.05em;
+	font-weight: bold;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+}
+.nav-header td.nav-tab-font:hover {
+	background-color: var(--mediumblue);
+}
+
+/* Mobile font button */
+.mobile-font-btn {
+	background: transparent;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+	padding: 4px 8px;
+	font-size: 1.1em;
+	font-weight: bold;
+	line-height: 1;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	touch-action: manipulation;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	min-height: 32px;
+	color: var(--text-color);
+	transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.mobile-font-btn:active {
+	transform: scale(0.95);
+	background-color: var(--mediumblue);
+}
+
+/* Login page font button */
+.login-font-btn {
+	background: transparent;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	padding: 2px 8px;
+	font-size: 1.05em;
+	font-weight: bold;
+	line-height: 1.3;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+	color: var(--text-color);
+	transition: background-color 0.15s ease;
+}
+.login-font-btn:hover {
+	background-color: var(--mediumblue);
+}
+
+/* In mobile RWD, hide the desktop theme and font tabs inside drawer menu */
 @media (max-width: 768px), ((pointer: coarse) and (max-width: 1024px)) {
-	.nav-tab-theme {
+	.nav-tab-theme,
+	.nav-tab-font {
 		display: none !important;
 	}
 }

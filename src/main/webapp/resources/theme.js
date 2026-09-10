@@ -86,15 +86,78 @@
         } catch(e) {}
     }
 
-    // 4. Ensure icons are synced when DOM is ready
+    // 4. Font Scale Switcher (A -> A+ -> A++)
+    function getStoredFontScale() {
+        try {
+            return localStorage.getItem('jtrac-font-scale') || 'normal';
+        } catch(e) {
+            return 'normal';
+        }
+    }
+
+    function getFontScaleIcon(scale) {
+        if (scale === 'large') return 'A++';
+        if (scale === 'medium') return 'A+';
+        return 'A';
+    }
+
+    function updateFontScaleUI(scale) {
+        var label = getFontScaleIcon(scale);
+        var els = document.querySelectorAll('.font-scale-icon');
+        for (var i = 0; i < els.length; i++) {
+            els[i].textContent = label;
+        }
+    }
+
+    function applyFontScale(scale) {
+        document.documentElement.setAttribute('data-font-scale', scale);
+        updateFontScaleUI(scale);
+    }
+
+    var initialFontScale = getStoredFontScale();
+    applyFontScale(initialFontScale);
+
+    window.jtracToggleFontScale = function(e) {
+        if (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        }
+        var d = document.documentElement;
+        var current = d.getAttribute('data-font-scale') || 'normal';
+        var next;
+        if (current === 'normal') {
+            next = 'medium';
+        } else if (current === 'medium') {
+            next = 'large';
+        } else {
+            next = 'normal';
+        }
+
+        try {
+            localStorage.setItem('jtrac-font-scale', next);
+        } catch(err) {}
+
+        applyFontScale(next);
+        return false;
+    };
+
+    // 5. Ensure icons are synced when DOM is ready
     function syncOnReady() {
         var currentMode = document.documentElement.getAttribute('data-theme-mode') || getStoredTheme();
         updateThemeUI(currentMode);
+
+        var currentScale = document.documentElement.getAttribute('data-font-scale') || getStoredFontScale();
+        updateFontScaleUI(currentScale);
 
         // Bind touch/click listeners to buttons as fallback
         var btns = document.querySelectorAll('.mobile-theme-btn, .desktop-theme-btn, .login-theme-btn, .nav-tab-theme');
         for (var i = 0; i < btns.length; i++) {
             btns[i].onclick = window.jtracToggleTheme;
+        }
+
+        var fontBtns = document.querySelectorAll('.mobile-font-btn, .desktop-font-btn, .login-font-btn, .nav-tab-font');
+        for (var j = 0; j < fontBtns.length; j++) {
+            fontBtns[j].onclick = window.jtracToggleFontScale;
         }
     }
 
