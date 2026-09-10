@@ -96,6 +96,7 @@
     }
 
     function getFontScaleIcon(scale) {
+        if (scale === 'xlarge') return 'A+++';
         if (scale === 'large') return 'A++';
         if (scale === 'medium') return 'A+';
         return 'A';
@@ -129,6 +130,8 @@
             next = 'medium';
         } else if (current === 'medium') {
             next = 'large';
+        } else if (current === 'large') {
+            next = 'xlarge';
         } else {
             next = 'normal';
         }

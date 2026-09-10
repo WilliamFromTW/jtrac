@@ -44,6 +44,10 @@ html[data-font-scale="large"] {
 	--font-scale: 1.25;
 }
 
+html[data-font-scale="xlarge"] {
+	--font-scale: 1.4;
+}
+
 body {
 	font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	background: var(--bg-body);
@@ -84,25 +88,50 @@ html[data-font-scale="large"] .login-remember-label {
 	font-size: max(0.92em, 15px) !important;
 }
 
+/* Extra Large Font Scale (A+++ 140% / Desktop max 132%) - Minimum font floor >= 16px */
+html[data-font-scale="xlarge"] body {
+	line-height: 1.7;
+}
+
+html[data-font-scale="xlarge"] .col-hist-timeStamp,
+html[data-font-scale="xlarge"] .history-modal-time,
+html[data-font-scale="xlarge"] .history-modal-label,
+html[data-font-scale="xlarge"] .history-detail-btn,
+html[data-font-scale="xlarge"] .mobile-summary-ref-id,
+html[data-font-scale="xlarge"] table.jtrac-list td.col-lastChanged,
+html[data-font-scale="xlarge"] table.item-view-table tr td.label,
+html[data-font-scale="xlarge"] .login-remember-label {
+	font-size: max(1em, 16px) !important;
+}
+
 /* Desktop Anti-Break Safeguard for Wide Tables */
 @media (min-width: 769px) {
 	html[data-font-scale="large"] {
 		--font-scale: 1.2;
 	}
 
+	html[data-font-scale="xlarge"] {
+		--font-scale: 1.32;
+	}
+
 	html[data-font-scale="large"] .item-list-table-container,
-	html[data-font-scale="large"] .table-responsive {
+	html[data-font-scale="large"] .table-responsive,
+	html[data-font-scale="xlarge"] .item-list-table-container,
+	html[data-font-scale="xlarge"] .table-responsive {
 		width: 100%;
 		overflow-x: auto !important;
 		-webkit-overflow-scrolling: touch;
 	}
 
-	html[data-font-scale="large"] table.jtrac-list {
+	html[data-font-scale="large"] table.jtrac-list,
+	html[data-font-scale="xlarge"] table.jtrac-list {
 		min-width: 850px;
 	}
 
 	html[data-font-scale="large"] table.jtrac-list tr.sortable th.col-id,
-	html[data-font-scale="large"] table.jtrac-list tr td.col-id {
+	html[data-font-scale="large"] table.jtrac-list tr td.col-id,
+	html[data-font-scale="xlarge"] table.jtrac-list tr.sortable th.col-id,
+	html[data-font-scale="xlarge"] table.jtrac-list tr td.col-id {
 		position: sticky;
 		left: 0;
 		background: var(--bg-body) !important;
@@ -662,6 +691,11 @@ code {
 		line-height: 1.6 !important;
 	}
 
+	html[data-font-scale="xlarge"] body {
+		font-size: calc(90% * 1.45) !important;
+		line-height: 1.7 !important;
+	}
+
 	html[data-font-scale="medium"] .item-list-toolbar .page-links a,
 	html[data-font-scale="medium"] .item-list-toolbar .page-links span,
 	html[data-font-scale="medium"] .history-detail-btn,
@@ -673,7 +707,13 @@ code {
 	html[data-font-scale="large"] .history-detail-btn,
 	html[data-font-scale="large"] .mobile-theme-btn,
 	html[data-font-scale="large"] .mobile-font-btn,
-	html[data-font-scale="large"] .mobile-search-btn {
+	html[data-font-scale="large"] .mobile-search-btn,
+	html[data-font-scale="xlarge"] .item-list-toolbar .page-links a,
+	html[data-font-scale="xlarge"] .item-list-toolbar .page-links span,
+	html[data-font-scale="xlarge"] .history-detail-btn,
+	html[data-font-scale="xlarge"] .mobile-theme-btn,
+	html[data-font-scale="xlarge"] .mobile-font-btn,
+	html[data-font-scale="xlarge"] .mobile-search-btn {
 		min-height: 44px !important;
 		min-width: 44px !important;
 		box-sizing: border-box;
