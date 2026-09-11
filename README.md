@@ -13,11 +13,11 @@ Pre-built standalone distributions bundling Jetty 10.x and JTrac are available o
 1. Download the latest `jtrac-2.3.3-x.x.x.zip` from GitHub Releases.
 2. Unzip the downloaded archive to your preferred directory.
 3. Start the server:
-   - **Windows**: Double-click or run `start-jtrac.bat`
-   - **Linux / macOS**: Run `./start-jtrac.sh` (ensure execute permissions: `chmod +x *.sh`)
+   - **Windows**: Double-click or run `start.bat`
+   - **Linux / macOS**: Run `./start.sh` (ensure execute permissions: `chmod +x *.sh`)
 4. Stop the server:
-   - **Windows**: Run `stop-jtrac.bat`
-   - **Linux / macOS**: Run `./stop-jtrac.sh`
+   - **Windows**: Run `stop.bat`
+   - **Linux / macOS**: Run `./stop.sh`
 5. Open `http://localhost:8888/` in your browser (default credentials: `admin` / `admin`).
 
 > [!TIP]
