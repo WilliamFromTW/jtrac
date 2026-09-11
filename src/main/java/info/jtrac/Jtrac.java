@@ -55,6 +55,7 @@ public interface Jtrac extends UserDetailsService {
     void storeHistoryForItem(long itemId, History history, FileUpload fileUpload);
     Item loadItem(long id);
     Item loadItemByRefId(String refId);
+    List<Item> findItemsBySmartRefId(String input, Space preferredSpace);
     History loadHistory(long id);
     List<Item> findItems(ItemSearch itemSearch);
     int loadCountOfAllItems();

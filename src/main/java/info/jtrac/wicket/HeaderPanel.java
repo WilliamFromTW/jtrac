@@ -16,6 +16,7 @@
 
 package info.jtrac.wicket;
 
+import info.jtrac.domain.Item;
 import info.jtrac.domain.Space;
 import info.jtrac.domain.State;
 import info.jtrac.domain.User;
@@ -184,6 +185,21 @@ public class HeaderPanel extends BasePanel {
         if (searchText == null || searchText.trim().length() == 0) {
             return;
         }
+        String trimmed = searchText.trim();
+        User user = getPrincipal();
+
+        // 1. Try smart RefID match
+        List<Item> smartItems = getJtrac().findItemsBySmartRefId(trimmed, space);
+        if (smartItems.size() == 1) {
+            Item singleMatch = smartItems.get(0);
+            if (user != null && (user.isSuperUser() || user.isAllocatedToSpace(singleMatch.getSpace().getId()))) {
+                setCurrentSpace(singleMatch.getSpace());
+                setResponsePage(ItemViewPage.class, new PageParameters().set("0", singleMatch.getRefId()));
+                return;
+            }
+        }
+
+        // 2. Ambiguous (multiple matches), nonexistent, or regular text/numbers:
         ItemSearch itemSearch;
         if (space != null) {
             itemSearch = new ItemSearch(space);
@@ -193,9 +209,9 @@ public class HeaderPanel extends BasePanel {
             itemSearch = new ItemSearch(single);
         } else {
             setCurrentSpace(null);
-            itemSearch = new ItemSearch(getPrincipal());
+            itemSearch = new ItemSearch(user);
         }
-        itemSearch.setSearchText(searchText.trim());
+        itemSearch.setSearchText(trimmed);
         JtracSession.get().setItemSearch(itemSearch);
         setResponsePage(ItemListPage.class, itemSearch.getAsQueryString());
     }

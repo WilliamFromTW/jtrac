@@ -109,4 +109,51 @@ public class ItemSearchTest {
         itemSearch.initFromPageParameters(params, user, null);
         Assert.assertEquals("attachment.pdf", itemSearch.getSearchText());
     }
+
+    @Test
+    public void testGlobalSearchSuperUserCriteriaDoesNotRestrictByEmptySpace() {
+        User superUser = new User();
+        superUser.setLoginName("admin");
+        superUser.addSpaceWithRole(null, "ROLE_ADMIN");
+        Assert.assertTrue(superUser.isSuperUser());
+        Assert.assertTrue(superUser.getSpaces().isEmpty());
+
+        ItemSearch itemSearch = new ItemSearch(superUser);
+        Assert.assertNull(itemSearch.getSpace());
+        Assert.assertTrue(itemSearch.getSelectedSpaces().isEmpty());
+
+        org.hibernate.criterion.DetachedCriteria criteria = itemSearch.getCriteriaForCount();
+        Assert.assertNotNull(criteria);
+    }
+
+    @Test
+    public void testGlobalSearchRegularUserWithSpaces() {
+        User user = new User();
+        user.setLoginName("user1");
+        Space space = new Space();
+        space.setId(10);
+        space.setPrefixCode("DEMO");
+        space.setName("Demo Space");
+        user.addSpaceWithRole(space, "ROLE_USER");
+        Assert.assertFalse(user.isSuperUser());
+        Assert.assertEquals(1, user.getSpaces().size());
+
+        ItemSearch itemSearch = new ItemSearch(user);
+        Assert.assertEquals(1, itemSearch.getSelectedSpaces().size());
+        org.hibernate.criterion.DetachedCriteria criteria = itemSearch.getCriteriaForCount();
+        Assert.assertNotNull(criteria);
+    }
+
+    @Test
+    public void testGlobalSearchRegularUserWithNoSpaces() {
+        User user = new User();
+        user.setLoginName("guest");
+        Assert.assertFalse(user.isSuperUser());
+        Assert.assertTrue(user.getSpaces().isEmpty());
+
+        ItemSearch itemSearch = new ItemSearch(user);
+        Assert.assertTrue(itemSearch.getSelectedSpaces().isEmpty());
+        org.hibernate.criterion.DetachedCriteria criteria = itemSearch.getCriteriaForCount();
+        Assert.assertNotNull(criteria);
+    }
 }

@@ -449,4 +449,52 @@ public class JtracTest extends JtracTestBase {
         Assert.assertTrue(status.isComplete());
         Assert.assertNull(status.getErrorMessage());
     }
+
+    @Test
+    public void testFindItemsBySmartRefId() {
+        Space s = new Space();
+        s.setPrefixCode("NETWORK");
+        s.setName("Network Space");
+        jtrac.storeSpace(s);
+
+        User u = new User();
+        u.setLoginName("netuser");
+        u.addSpaceWithRole(s, "DEFAULT");
+        jtrac.storeUser(u);
+
+        Item item = new Item();
+        item.setSpace(s);
+        item.setAssignedTo(u);
+        item.setLoggedBy(u);
+        item.setSummary("Network issue");
+        item.setStatus(State.OPEN);
+        jtrac.storeItem(item, null);
+
+        Assert.assertEquals("NETWORK-1", item.getRefId());
+
+        // 1. Exact match with leading zero
+        List<Item> r1 = jtrac.findItemsBySmartRefId("network-001", null);
+        Assert.assertEquals(1, r1.size());
+        Assert.assertEquals("NETWORK-1", r1.get(0).getRefId());
+
+        // 2. Smart prefix match lowercase with leading zero
+        List<Item> r2 = jtrac.findItemsBySmartRefId("net-001", null);
+        Assert.assertEquals(1, r2.size());
+        Assert.assertEquals("NETWORK-1", r2.get(0).getRefId());
+
+        // 3. Hash delimiter
+        List<Item> r3 = jtrac.findItemsBySmartRefId("NET#1", null);
+        Assert.assertEquals(1, r3.size());
+        Assert.assertEquals("NETWORK-1", r3.get(0).getRefId());
+
+        // 4. Pure numbers must NOT match as RefID
+        List<Item> r4 = jtrac.findItemsBySmartRefId("001", null);
+        Assert.assertTrue(r4.isEmpty());
+        List<Item> r5 = jtrac.findItemsBySmartRefId("1", null);
+        Assert.assertTrue(r5.isEmpty());
+
+        // 5. Non-existent number returns empty
+        List<Item> r6 = jtrac.findItemsBySmartRefId("net-999", null);
+        Assert.assertTrue(r6.isEmpty());
+    }
 }

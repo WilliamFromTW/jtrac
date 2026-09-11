@@ -545,6 +545,88 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         return items.get(0);
     }
 
+    public List<Item> findItemsBySmartRefId(String input, Space preferredSpace) {
+        if (input == null) {
+            return Collections.emptyList();
+        }
+        String trimmed = input.trim();
+        int sepPos = trimmed.indexOf('-');
+        if (sepPos <= 0) {
+            sepPos = trimmed.indexOf('#');
+        }
+        if (sepPos <= 0 || sepPos == trimmed.length() - 1) {
+            return Collections.emptyList();
+        }
+        String prefixPart = trimmed.substring(0, sepPos).trim();
+        String seqPart = trimmed.substring(sepPos + 1).trim();
+        if (prefixPart.isEmpty() || seqPart.isEmpty()) {
+            return Collections.emptyList();
+        }
+        long seqNum;
+        try {
+            seqNum = Long.parseLong(seqPart);
+        } catch (NumberFormatException e) {
+            return Collections.emptyList();
+        }
+        if (seqNum < 0) {
+            return Collections.emptyList();
+        }
+
+        String upperPrefix = prefixPart.toUpperCase();
+        List<Item> results = new ArrayList<Item>();
+        Set<Long> seenItemIds = new HashSet<Long>();
+
+        // 1. If preferredSpace is specified, check if its prefix matches
+        if (preferredSpace != null && preferredSpace.getPrefixCode() != null) {
+            String spacePrefix = preferredSpace.getPrefixCode().toUpperCase();
+            if (spacePrefix.equals(upperPrefix) || spacePrefix.startsWith(upperPrefix)) {
+                try {
+                    Item item = loadItemByRefId(preferredSpace.getPrefixCode() + "-" + seqNum);
+                    if (item != null) {
+                        results.add(item);
+                        seenItemIds.add(item.getId());
+                        return results;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        // 2. Try exact match on prefix across all spaces
+        List<Space> allSpaces = findAllSpaces();
+        for (Space s : allSpaces) {
+            if (s.getPrefixCode() != null && s.getPrefixCode().equalsIgnoreCase(upperPrefix)) {
+                try {
+                    Item item = loadItemByRefId(s.getPrefixCode() + "-" + seqNum);
+                    if (item != null && !seenItemIds.contains(item.getId())) {
+                        results.add(item);
+                        seenItemIds.add(item.getId());
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        if (!results.isEmpty()) {
+            return results;
+        }
+
+        // 3. Smart prefix matching (e.g. NET matches NETWORK)
+        for (Space s : allSpaces) {
+            if (s.getPrefixCode() != null && s.getPrefixCode().toUpperCase().startsWith(upperPrefix)) {
+                try {
+                    Item item = loadItemByRefId(s.getPrefixCode() + "-" + seqNum);
+                    if (item != null && !seenItemIds.contains(item.getId())) {
+                        results.add(item);
+                        seenItemIds.add(item.getId());
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        return results;
+    }
+
     public History loadHistory(long id) {
         return dao.loadHistory(id);
     }
@@ -552,7 +634,13 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
     public List<Item> findItems(ItemSearch itemSearch) {
         String searchText = itemSearch.getSearchText();
         if (searchText != null) {
-            List<Long> hits = indexSearcher.findItemIdsContainingText(searchText);
+            List<Long> hits = new ArrayList<Long>(indexSearcher.findItemIdsContainingText(searchText));
+            List<Item> smartItems = findItemsBySmartRefId(searchText, itemSearch.getSpace());
+            for (Item si : smartItems) {
+                if (!hits.contains(si.getId())) {
+                    hits.add(si.getId());
+                }
+            }
             if (hits.size() == 0) {
                 itemSearch.setResultCount(0);
                 return Collections.<Item>emptyList();

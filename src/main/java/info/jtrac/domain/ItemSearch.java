@@ -23,6 +23,7 @@ import static info.jtrac.domain.ColumnHeading.Name.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -223,7 +224,14 @@ public class ItemSearch implements Serializable {
             // apply restrictions to parent, this is an inner join =============
             parent = criteria.createCriteria("parent");
             if(space == null) {
-                parent.add(Restrictions.in("space", getSelectedSpaces()));
+                Collection<Space> spaces = getSelectedSpaces();
+                if (user != null && user.isSuperUser() && (spaces == null || spaces.isEmpty())) {
+                    // Superuser searching without specific space filter: do not restrict by space
+                } else if (spaces != null && !spaces.isEmpty()) {
+                    parent.add(Restrictions.in("space", spaces));
+                } else {
+                    parent.add(Restrictions.sqlRestriction("1=0"));
+                }
             } else {
                 parent.add(Restrictions.eq("space", space));
             } 
@@ -233,7 +241,14 @@ public class ItemSearch implements Serializable {
         } else {
             criteria = DetachedCriteria.forClass(Item.class);
             if(space == null) {
-                criteria.add(Restrictions.in("space", getSelectedSpaces()));
+                Collection<Space> spaces = getSelectedSpaces();
+                if (user != null && user.isSuperUser() && (spaces == null || spaces.isEmpty())) {
+                    // Superuser searching without specific space filter: do not restrict by space
+                } else if (spaces != null && !spaces.isEmpty()) {
+                    criteria.add(Restrictions.in("space", spaces));
+                } else {
+                    criteria.add(Restrictions.sqlRestriction("1=0"));
+                }
             } else {
                 criteria.add(Restrictions.eq("space", space));
             } 
@@ -314,10 +329,19 @@ public class ItemSearch implements Serializable {
     
     public Collection<Space> getSelectedSpaces() {
         ColumnHeading ch = getColumnHeading(SPACE);
+        if (ch == null) {
+            if (user != null && user.isSuperUser()) {
+                return Collections.emptyList();
+            }
+            return user != null ? user.getSpaces() : Collections.<Space>emptyList();
+        }
         List values = ch.getFilterCriteria().getValues();
         if(values == null || values.size() == 0) {
             ch.getFilterCriteria().setExpression(null);
-            return user.getSpaces();
+            if (user != null && user.isSuperUser()) {
+                return Collections.emptyList();
+            }
+            return user != null ? user.getSpaces() : Collections.<Space>emptyList();
         }
         return values;
     }

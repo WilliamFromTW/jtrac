@@ -45,6 +45,9 @@ public class Item extends AbstractItem {
 
     @Override
     public String getRefId() {
+        if (getSpace() == null || getSpace().getPrefixCode() == null) {
+            return String.valueOf(sequenceNum);
+        }
         return getSpace().getPrefixCode() + "-" + sequenceNum;
     }    
     
@@ -88,7 +91,13 @@ public class Item extends AbstractItem {
         d.add(new org.apache.lucene.document.Field("id", getId() + "", Store.YES, Index.NO));            
         d.add(new org.apache.lucene.document.Field("type", "item", Store.YES, Index.NO));        
         StringBuffer sb = new StringBuffer();
+        if (getSpace() != null && getSpace().getPrefixCode() != null && sequenceNum > 0) {
+            sb.append(getRefId());
+        }
         if (getSummary() != null) {
+            if (sb.length() > 0) {
+                sb.append(" | ");
+            }
             sb.append(getSummary());
         }        
         if (getDetail() != null) {
