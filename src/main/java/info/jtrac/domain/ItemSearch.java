@@ -78,7 +78,8 @@ public class ItemSearch implements Serializable {
 			pageSize = params.get("pageSize").toInt(Integer.parseInt(jtrac.loadConfig("items.search.num")));
 		} catch (RuntimeException rtex) { /* ignore, the default is fine */ }
         sortDescending = !params.get("sortAscending").toBoolean(false);
-        sortFieldName = params.get("sortFieldName").toString("id");
+        String candidateSortField = params.get("sortFieldName").toString("id");
+        sortFieldName = ColumnHeading.isValidFieldOrColumnName(candidateSortField) ? candidateSortField : "id";
         for(String name : params.getNamedKeys()) {
             if(ColumnHeading.isValidFieldOrColumnName(name)) {
                 ColumnHeading ch = getColumnHeading(name);
@@ -451,7 +452,11 @@ public class ItemSearch implements Serializable {
     }
 
     public void setSortFieldName(String sortFieldName) {
-        this.sortFieldName = sortFieldName;
+        if (sortFieldName != null && ColumnHeading.isValidFieldOrColumnName(sortFieldName)) {
+            this.sortFieldName = sortFieldName;
+        } else {
+            this.sortFieldName = "id";
+        }
     }
 
     public boolean isSortDescending() {

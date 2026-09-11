@@ -47,6 +47,16 @@
 
 
 
+    <filter>
+        <filter-name>securityHeaderFilter</filter-name>
+        <filter-class>info.jtrac.web.SecurityHeaderFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>securityHeaderFilter</filter-name>
+        <url-pattern>/app/*</url-pattern>
+    </filter-mapping>
+
     <!-- open session should be above the wicket filter -->
     <filter-mapping>
         <filter-name>openSessionInView</filter-name>

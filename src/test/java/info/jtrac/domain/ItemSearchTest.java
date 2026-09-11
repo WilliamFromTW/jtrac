@@ -156,4 +156,60 @@ public class ItemSearchTest {
         org.hibernate.criterion.DetachedCriteria criteria = itemSearch.getCriteriaForCount();
         Assert.assertNotNull(criteria);
     }
+
+    @Test
+    public void testSortFieldNameValidParamAccepted() {
+        Space space = new Space();
+        space.setMetadata(new Metadata());
+        ItemSearch itemSearch = new ItemSearch(space);
+
+        User user = new User();
+        PageParameters params = new PageParameters();
+        params.set("pageSize", "25");
+        params.set("sortFieldName", "summary");
+
+        itemSearch.initFromPageParameters(params, user, null);
+        Assert.assertEquals("summary", itemSearch.getSortFieldName());
+
+        params.set("sortFieldName", "status");
+        itemSearch.initFromPageParameters(params, user, null);
+        Assert.assertEquals("status", itemSearch.getSortFieldName());
+    }
+
+    @Test
+    public void testSortFieldNameInvalidParamFallbackToId() {
+        Space space = new Space();
+        space.setMetadata(new Metadata());
+        ItemSearch itemSearch = new ItemSearch(space);
+
+        User user = new User();
+        PageParameters params = new PageParameters();
+        params.set("pageSize", "25");
+        // SQL injection probe or non-existent column
+        params.set("sortFieldName", "summary' OR 1=1 --");
+
+        itemSearch.initFromPageParameters(params, user, null);
+        Assert.assertEquals("id", itemSearch.getSortFieldName());
+
+        // Arbitrary unknown field
+        params.set("sortFieldName", "non_existent_column");
+        itemSearch.initFromPageParameters(params, user, null);
+        Assert.assertEquals("id", itemSearch.getSortFieldName());
+    }
+
+    @Test
+    public void testSetSortFieldNameWhitelistValidation() {
+        Space space = new Space();
+        space.setMetadata(new Metadata());
+        ItemSearch itemSearch = new ItemSearch(space);
+
+        itemSearch.setSortFieldName("assignedTo");
+        Assert.assertEquals("assignedTo", itemSearch.getSortFieldName());
+
+        itemSearch.setSortFieldName("malicious_field");
+        Assert.assertEquals("id", itemSearch.getSortFieldName());
+
+        itemSearch.setSortFieldName(null);
+        Assert.assertEquals("id", itemSearch.getSortFieldName());
+    }
 }
