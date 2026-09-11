@@ -26,10 +26,14 @@ import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.search.FlagTerm;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -243,27 +247,142 @@ public class InboundMailReceiver {
         List<String> keywords = extractKeywordsWithLlm(ollamaClient, subject, body);
         logger.info("Extracted query expansion keywords: {}", keywords);
 
-        // 3. Phase 2: Programmatic hybrid weighted retrieval & ranking
+        // 3. Phase 2: Programmatic hybrid weighted retrieval & ranking (select top 10~15 candidates)
         List<Item> contextItems = retrieveAuthorizedTickets(user, subject, body, keywords, maxTickets);
 
-        // 4. Phase 3: Ollama synthesis
-        String systemPrompt = OllamaPromptBuilder.buildSystemPrompt();
-        String userPrompt = OllamaPromptBuilder.buildUserPrompt(subject, body, contextItems);
+        // 4. Phase 3: Map Phase - Per-ticket deep ingestion and intermediate staging
+        File stagingFile = null;
+        String stagedDigest = null;
+        try {
+            File stagingDir = new File(jtrac.getJtracHome(), "temp/ai_staging");
+            if (!stagingDir.exists()) {
+                stagingDir.mkdirs();
+            }
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date());
+            stagingFile = new File(stagingDir, "jtrac_staging_" + user.getLoginName() + "_" + timestamp + ".md");
 
+            stagedDigest = processTicketsToStaging(ollamaClient, contextItems, subject, body, stagingFile);
+        } catch (Exception e) {
+            logger.warn("Failed during ticket staging creation: " + e.getMessage() + ", proceeding with raw context");
+        }
+
+        // 5. Phase 4: Reduce Phase - Final synthesis & beautification
         String aiResponse = null;
         try {
-            aiResponse = ollamaClient.chat(systemPrompt, userPrompt);
+            String reduceSysPrompt = OllamaPromptBuilder.buildFinalSynthesisSystemPrompt();
+            String reduceUserPrompt = OllamaPromptBuilder.buildFinalSynthesisUserPrompt(subject, body, stagedDigest);
+            aiResponse = ollamaClient.chat(reduceSysPrompt, reduceUserPrompt);
         } catch (Exception e) {
             logger.error("Ollama query failed for sender " + senderEmail + ": " + e.getMessage(), e);
             mailSender.sendAiOfflineNotice(senderEmail, subject, userLocale);
             msg.setFlag(Flags.Flag.DELETED, true);
             return;
+        } finally {
+            // Clean up intermediate staging file
+            if (stagingFile != null && stagingFile.exists()) {
+                try {
+                    stagingFile.delete();
+                } catch (Exception ignored) {
+                }
+            }
         }
 
-        // 5. Send formatted HTML response and mark original message for deletion
+        // 6. Send formatted HTML response and mark original message for deletion
         mailSender.sendAiQueryResponse(senderEmail, subject, aiResponse, contextItems, userLocale, user.getSpaces());
         msg.setFlag(Flags.Flag.DELETED, true);
         logger.info("Successfully answered query from {} and marked original message for deletion", senderEmail);
+    }
+
+    /**
+     * Phase 3 (Map Phase): Individually digests each retrieved ticket (along with full comment history
+     * and extracted attachment contents), writes structured analysis into the intermediate staging file,
+     * and returns the complete staged digest content.
+     */
+    protected String processTicketsToStaging(OllamaClient ollamaClient, List<Item> items, String querySubject, String queryBody, File stagingFile) {
+        StringBuilder stagingBuffer = new StringBuilder();
+        stagingBuffer.append("# JTrac AI Query Staging Digest\n\n");
+        stagingBuffer.append("- Inquiry Subject: ").append(querySubject != null ? querySubject : "").append("\n");
+        stagingBuffer.append("- Total Analyzed Tickets: ").append(items != null ? items.size() : 0).append("\n\n");
+
+        if (items != null && !items.isEmpty()) {
+            int index = 1;
+            for (Item item : items) {
+                enrichItemWithAttachmentText(item);
+
+                logger.debug("Ingesting ticket [{}] for Map phase...", item.getRefId());
+                String singleTicketSysPrompt = OllamaPromptBuilder.buildSingleTicketSummarySystemPrompt();
+                String singleTicketUserPrompt = OllamaPromptBuilder.buildSingleTicketSummaryUserPrompt(item, querySubject, queryBody);
+
+                String summaryResult = null;
+                try {
+                    summaryResult = ollamaClient.chat(singleTicketSysPrompt, singleTicketUserPrompt);
+                } catch (Exception ex) {
+                    logger.warn("Per-ticket LLM analysis failed for [{}], falling back to raw fields: {}", item.getRefId(), ex.getMessage());
+                    summaryResult = buildFallbackTicketSummary(item);
+                }
+
+                stagingBuffer.append("## Ticket #").append(index++).append(": [").append(item.getRefId()).append("] - ");
+                stagingBuffer.append(item.getSummary() != null ? item.getSummary() : "").append("\n");
+                if (item.getSpace() != null) {
+                    stagingBuffer.append("Space: ").append(item.getSpace().getName()).append(" (").append(item.getSpace().getPrefixCode()).append(") | ");
+                }
+                stagingBuffer.append("Status: ").append(OllamaPromptBuilder.safeGetStatusValue(item)).append("\n\n");
+                stagingBuffer.append(summaryResult != null ? summaryResult.trim() : "No summary generated.").append("\n\n");
+                stagingBuffer.append("---\n\n");
+            }
+        } else {
+            stagingBuffer.append("No matching tickets found within the user's authorized spaces.\n");
+        }
+
+        String stagedContent = stagingBuffer.toString();
+
+        if (stagingFile != null) {
+            try {
+                File parent = stagingFile.getParentFile();
+                if (parent != null && !parent.exists()) {
+                    parent.mkdirs();
+                }
+                Files.write(stagingFile.toPath(), stagedContent.getBytes(StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                logger.warn("Failed writing staging file [{}]: {}", stagingFile.getAbsolutePath(), ex.getMessage());
+            }
+        }
+
+        return stagedContent;
+    }
+
+    /**
+     * Resilient fallback summarizing basic ticket fields if single-ticket LLM analysis fails.
+     */
+    protected String buildFallbackTicketSummary(Item item) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("- **Core Problem / Subject**: ").append(item.getSummary() != null ? item.getSummary() : "N/A").append("\n");
+        sb.append("- **Resolution / Progress**: Current status is ").append(OllamaPromptBuilder.safeGetStatusValue(item)).append(". ");
+        if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
+            sb.append(item.getDetail().trim().replaceAll("\\s+", " "));
+        }
+        sb.append("\n");
+        sb.append("- **Attachment Findings**: ");
+        if (item.getHistory() != null) {
+            StringBuilder attNames = new StringBuilder();
+            for (History h : item.getHistory()) {
+                if (h.getAttachment() != null) {
+                    if (attNames.length() > 0) {
+                        attNames.append(", ");
+                    }
+                    attNames.append(h.getAttachment().getFileName());
+                }
+            }
+            if (attNames.length() > 0) {
+                sb.append("Attached files: ").append(attNames).append("\n");
+            } else {
+                sb.append("None\n");
+            }
+        } else {
+            sb.append("None\n");
+        }
+        sb.append("- **Relevance & Key Takeaway**: Relevant ticket retrieved by search.\n");
+        return sb.toString();
     }
 
     /**
@@ -466,8 +585,8 @@ public class InboundMailReceiver {
         // Sort descending by score
         candidates.sort((a, b) -> Integer.compare(b.score, a.score));
 
-        // 4. Select top candidates (up to 20) for LLM context, and enrich with attachment text
-        int topLimit = Math.min(20, candidates.size());
+        // 4. Select top candidates (up to 15) for LLM context, and enrich with attachment text
+        int topLimit = Math.min(15, candidates.size());
         List<Item> resultItems = new ArrayList<>(topLimit);
         for (int i = 0; i < topLimit; i++) {
             Item item = candidates.get(i).item;
@@ -571,7 +690,7 @@ public class InboundMailReceiver {
     }
 
     private void enrichItemWithAttachmentText(Item item) {
-        if (item.getHistory() == null || item.getHistory().isEmpty()) {
+        if (jtrac == null || item.getHistory() == null || item.getHistory().isEmpty()) {
             return;
         }
         for (History h : item.getHistory()) {

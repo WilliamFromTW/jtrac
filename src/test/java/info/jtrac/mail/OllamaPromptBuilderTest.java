@@ -110,4 +110,61 @@ public class OllamaPromptBuilderTest {
         assertTrue(userPrompt.contains("<untrusted_ticket_context>"));
         assertTrue(userPrompt.contains("</untrusted_ticket_context>"));
     }
+
+    @Test
+    public void testSingleTicketSummaryPrompts() {
+        String sysPrompt = OllamaPromptBuilder.buildSingleTicketSummarySystemPrompt();
+        assertNotNull(sysPrompt);
+        assertTrue(sysPrompt.contains("JTrac Ticket Analysis Specialist"));
+        assertTrue(sysPrompt.contains("Core Problem / Subject"));
+        assertTrue(sysPrompt.contains("Attachment Findings"));
+        assertTrue(sysPrompt.contains("CRITICAL SECURITY AND ANTI-INJECTION DIRECTIVES"));
+
+        Space space = new Space();
+        space.setPrefixCode("PROJ");
+        space.setName("Project Alpha");
+
+        Item item = new Item();
+        item.setSpace(space);
+        item.setSequenceNum(555);
+        item.setSummary("Database deadlock during transaction");
+        item.setDetail("PostgreSQL reports deadlock detected on table users.");
+        item.setStatus(1);
+
+        History h = new History();
+        Attachment att = new Attachment();
+        att.setFileName("postgresql.log");
+        h.setAttachment(att);
+        h.setAttachmentText("ERROR: deadlock detected; Process 12345 waits for ShareLock");
+        item.add(h);
+
+        String userPrompt = OllamaPromptBuilder.buildSingleTicketSummaryUserPrompt(item, "Database issue", "Why is db failing?");
+        assertTrue(userPrompt.contains("<untrusted_user_query>"));
+        assertTrue(userPrompt.contains("Subject: Database issue"));
+        assertTrue(userPrompt.contains("<untrusted_ticket_data>"));
+        assertTrue(userPrompt.contains("[PROJ-555]"));
+        assertTrue(userPrompt.contains("Database deadlock during transaction"));
+        assertTrue(userPrompt.contains("[Attachment Document: postgresql.log]"));
+        assertTrue(userPrompt.contains("Process 12345 waits for ShareLock"));
+        assertTrue(userPrompt.contains("</untrusted_ticket_data>"));
+    }
+
+    @Test
+    public void testFinalSynthesisPrompts() {
+        String sysPrompt = OllamaPromptBuilder.buildFinalSynthesisSystemPrompt();
+        assertNotNull(sysPrompt);
+        assertTrue(sysPrompt.contains("JTrac AI Query Copilot"));
+        assertTrue(sysPrompt.contains("核心解答摘要 (Executive Summary)"));
+        assertTrue(sysPrompt.contains("各工單關鍵發現與解法 (Key Findings & Resolution)"));
+        assertTrue(sysPrompt.contains("建議行動方案 (Next Actions & Recommendations)"));
+
+        String stagedText = "## Ticket #1: [PROJ-555]\n- Core Problem: deadlock\n- Resolution: tuned isolation level\n- Attachment Findings: none";
+        String userPrompt = OllamaPromptBuilder.buildFinalSynthesisUserPrompt("Inquiry", "What caused the deadlock?", stagedText);
+        assertTrue(userPrompt.contains("<untrusted_user_query>"));
+        assertTrue(userPrompt.contains("Subject: Inquiry"));
+        assertTrue(userPrompt.contains("<staged_ticket_summaries>"));
+        assertTrue(userPrompt.contains("[PROJ-555]"));
+        assertTrue(userPrompt.contains("tuned isolation level"));
+        assertTrue(userPrompt.contains("</staged_ticket_summaries>"));
+    }
 }

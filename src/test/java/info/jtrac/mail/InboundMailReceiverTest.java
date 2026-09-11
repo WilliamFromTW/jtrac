@@ -1,10 +1,14 @@
 package info.jtrac.mail;
 
 import info.jtrac.Jtrac;
+import info.jtrac.domain.Attachment;
+import info.jtrac.domain.History;
 import info.jtrac.domain.Item;
 import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
 import org.junit.Test;
+
+import java.io.File;
 
 import javax.mail.Flags;
 import javax.mail.Session;
@@ -243,5 +247,55 @@ public class InboundMailReceiverTest {
         // Mixed language bonus: has "備份" (non-ASCII) and "backup" (ASCII) -> +5
         // Total score = 6 + 2 + 5 = 13
         assertEquals(13, candidate.getScore());
+    }
+
+    @Test
+    public void testBuildFallbackTicketSummary() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        Item item = new Item();
+        item.setSummary("Critical memory leak in thread pool");
+        item.setStatus(1);
+        item.setDetail("Heap dump shows 2GB held by byte buffers.");
+
+        History h = new History();
+        Attachment att = new Attachment();
+        att.setFileName("heapdump_analysis.txt");
+        h.setAttachment(att);
+        item.add(h);
+
+        String fallback = receiver.buildFallbackTicketSummary(item);
+        assertTrue(fallback.contains("Critical memory leak in thread pool"));
+        assertTrue(fallback.contains("Heap dump shows 2GB held by byte buffers."));
+        assertTrue(fallback.contains("heapdump_analysis.txt"));
+    }
+
+    @Test
+    public void testProcessTicketsToStagingFile() throws Exception {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+
+        Space space = new Space();
+        space.setPrefixCode("PROJ");
+        space.setName("Project Alpha");
+
+        Item item = new Item();
+        item.setSpace(space);
+        item.setSequenceNum(777);
+        item.setSummary("Network timeout on gateway");
+        item.setStatus(1);
+        item.setDetail("Gateway resets connection after 60s.");
+
+        File tempStaging = File.createTempFile("test_staging_", ".md");
+        tempStaging.deleteOnExit();
+
+        String staged = receiver.processTicketsToStaging(null, Collections.singletonList(item), "Network error", "Why is it dropping?", tempStaging);
+
+        assertTrue(staged.contains("# JTrac AI Query Staging Digest"));
+        assertTrue(staged.contains("[PROJ-777]"));
+        assertTrue(staged.contains("Network timeout on gateway"));
+        assertTrue(tempStaging.exists());
+        assertTrue(tempStaging.length() > 0);
+
+        boolean deleted = tempStaging.delete();
+        assertTrue(deleted);
     }
 }

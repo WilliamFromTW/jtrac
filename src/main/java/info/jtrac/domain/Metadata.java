@@ -39,6 +39,7 @@ import java.util.TreeMap;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.dom4j.Node;
 
 /**
  * XML metadata is one of the interesting design decisions of JTrac.
@@ -111,20 +112,24 @@ public class Metadata implements Serializable {
             return;
         }
         Document document = XmlUtils.parse(xmlString);        
-        for (Element e : (List<Element>) document.selectNodes(FIELD_XPATH)) {
+        for (Node node : document.selectNodes(FIELD_XPATH)) {
+            Element e = (Element) node;
             Field field = new Field(e);            
             fields.put(field.getName(), field);
         }       
-        for (Element e : (List<Element>) document.selectNodes(ROLE_XPATH)) {
+        for (Node node : document.selectNodes(ROLE_XPATH)) {
+            Element e = (Element) node;
             Role role = new Role(e);            
             roles.put(role.getName(), role);
         }
-        for (Element e : (List<Element>) document.selectNodes(STATE_XPATH)) {
+        for (Node node : document.selectNodes(STATE_XPATH)) {
+            Element e = (Element) node;
             String key = e.attributeValue(STATUS);
             String value = e.attributeValue(LABEL);
             states.put(Integer.parseInt(key), value);
         }        
-        for (Element e : (List<Element>) document.selectNodes(FIELD_ORDER_XPATH)) {
+        for (Node node : document.selectNodes(FIELD_ORDER_XPATH)) {
+            Element e = (Element) node;
             String fieldName = e.attributeValue(NAME);
             fieldOrder.add(Field.convertToName(fieldName));
         }         
