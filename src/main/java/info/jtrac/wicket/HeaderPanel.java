@@ -76,6 +76,8 @@ public class HeaderPanel extends BasePanel {
             }            
         });
 
+        final Model<String> desktopSearchModel = new Model<String>();
+
         if (space == null) {
             add(new WebMarkupContainer("spaceName").setVisible(false));
             add(new WebMarkupContainer("new").setVisible(false));
@@ -88,7 +90,14 @@ public class HeaderPanel extends BasePanel {
                     } else {
                         setCurrentSpace(null); // may have come here with back button!                        
                     }
-                    setResponsePage(ItemSearchFormPage.class);
+                    String pendingSearch = desktopSearchModel.getObject();
+                    if (pendingSearch != null && !pendingSearch.trim().isEmpty()) {
+                        ItemSearch itemSearch = (getCurrentSpace() != null) ? new ItemSearch(getCurrentSpace()) : new ItemSearch(user);
+                        itemSearch.setSearchText(pendingSearch.trim());
+                        setResponsePage(new ItemSearchFormPage(itemSearch));
+                    } else {
+                        setResponsePage(ItemSearchFormPage.class);
+                    }
                 }  
                 @Override
                 public boolean isVisible() {
@@ -110,7 +119,14 @@ public class HeaderPanel extends BasePanel {
             
             add(new Link("search") {
                 public void onClick() {
-                    setResponsePage(ItemSearchFormPage.class);
+                    String pendingSearch = desktopSearchModel.getObject();
+                    if (pendingSearch != null && !pendingSearch.trim().isEmpty()) {
+                        ItemSearch itemSearch = new ItemSearch(space);
+                        itemSearch.setSearchText(pendingSearch.trim());
+                        setResponsePage(new ItemSearchFormPage(itemSearch));
+                    } else {
+                        setResponsePage(ItemSearchFormPage.class);
+                    }
                 }            
             });            
         }
@@ -158,7 +174,6 @@ public class HeaderPanel extends BasePanel {
             add(new Label("user", user.getName()));
         }
 
-        final Model<String> desktopSearchModel = new Model<String>();
         Form<Void> desktopSearchForm = new Form<Void>("desktopSearchForm") {
             @Override
             protected void onSubmit() {

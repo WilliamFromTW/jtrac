@@ -25,6 +25,7 @@
                 <div class="mobile-search-input-wrap">
                     <span class="mobile-search-prefix-icon">🔍</span>
                     <input type="text" wicket:id="mobileSearchInput" class="mobile-search-input" wicket:message="placeholder:item_search_form.searchPlaceholder"/>
+                    <button type="submit" class="mobile-search-submit-btn"><wicket:message key="search"/></button>
                     <button type="button" class="mobile-search-close-btn" onclick="jtracToggleMobileSearch(event)" title="Close">✕</button>
                 </div>
             </form>
@@ -40,8 +41,10 @@
                             <span class="desktop-search-wrap">
                                 <span class="desktop-search-icon">🔍</span>
                                 <input type="text" wicket:id="desktopSearchInput" class="desktop-search-input" wicket:message="placeholder:item_search_form.searchPlaceholder"/>
+                                <button type="submit" class="desktop-search-submit-btn"><wicket:message key="search"/></button>
                             </span>
                         </form>
+                        <span class="nav-search-divider"></span>
                     </td>
                     <wicket:enclosure><td class="action-tab nav-tab-search"><a href="#" wicket:id="search"><img src="resources/search.gif"/><wicket:message key="header.search"/></a></td></wicket:enclosure>
                 </tr>
