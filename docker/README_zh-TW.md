@@ -23,7 +23,7 @@
 
 ```bash
 cd docker
-docker build -f Dockerfile -t jtrac:latest ..
+docker build -f Dockerfile -t jtrac:latest -t jtrac:2.3.3-2.1.0-beta ..
 docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
 ```
 

@@ -1,0 +1,102 @@
+# JTrac Versionshinweise (Release Notes) - 2.3.3-2.1.0-beta
+
+[English](release-2.3.3-2.1.0_en.md) | [繁體中文](release-2.3.3-2.1.0_zh-TW.md) | [简体中文](release-2.3.3-2.1.0_zh-CN.md) | [日本語](release-2.3.3-2.1.0_ja.md) | [Tiếng Việt](release-2.3.3-2.1.0_vi.md) | [Deutsch](release-2.3.3-2.1.0_de.md) | [Español](release-2.3.3-2.1.0_es.md) | [Français](release-2.3.3-2.1.0_fr.md)
+
+---
+
+[![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.1.0--beta-orange.svg)](../../pom.xml)
+[![Status](https://img.shields.io/badge/Status-Beta%20Preview-yellow.svg)](release-2.3.3-2.1.0_de.md)
+[![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
+[![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
+
+> [!NOTE]
+> **Aktueller Status: Beta-Vorschauversion (Pre-release / Beta Preview)**  
+> Dieses Dokument ist ein lebendiges Änderungsprotokoll (Living Release Notes). Während der Beta-Testphase werden alle nachfolgenden Funktionserweiterungen, Parameteranpassungen und Bugfixes kontinuierlich hier ergänzt.
+
+---
+
+## Inhaltsverzeichnis
+1. [Wichtigste Highlights im Überblick](#1-wichtigste-highlights-im-überblick)
+2. [🤖 KI-E-Mail-Abfrageassistent (AI Query Copilot mit Ollama)](#2--ki-e-mail-abfrageassistent-ai-query-copilot-mit-ollama)
+3. [📦 Abhängigkeiten-Upgrade & Beseitigung von Java-11-Warnungen](#3--abhängigkeiten-upgrade--beseitigung-von-java-11-warnungen)
+4. [🎨 UI-Modernisierung, Barrierefreiheit & Design-Umschalter](#4--ui-modernisierung-barrierefreiheit--design-umschalter)
+5. [🛡️ Produktionssicherheit & Schutzmechanismen](#5--produktionssicherheit--schutzmechanismen)
+6. [⚙️ Systemkonfiguration & Stabilitätsverbesserungen](#6--systemkonfiguration--stabilitätsverbesserungen)
+7. [Upgrade- und Kompatibilitätshinweise](#7-upgrade--und-kompatibilitätshinweise)
+
+---
+
+## 1. Wichtigste Highlights im Überblick
+
+Aufbauend auf der Architekturmodernisierung von Version 2.0.0 führt JTrac 2.3.3-2.1.0-beta den innovativen **KI-E-Mail-Abfrageassistenten (AI Query Copilot via Ollama)** ein, aktualisiert die zugrundeliegende XML-Engine zur vollständigen Behebung von Java-11-Warnungen, verbessert die Barrierefreiheit der Benutzeroberfläche (4-stufige Schriftgrößenskalierung mit A+++-Modus, 3-Zustands-Theme-Umschalter) und verstärkt die Systemsicherheit.
+
+---
+
+## 2. 🤖 KI-E-Mail-Abfrageassistent (AI Query Copilot mit Ollama)
+
+1. **Zweistufige Abfrageerweiterung & Schutz vor Prompt Injection**:
+   - Analysiert E-Mail-Betreff und Inhalt über lokale oder entfernte Ollama-LLMs zur Extraktion von Fachbegriffen und Synonymen.
+   - Schützt durch die Sandkasten-Struktur `<untrusted_user_query>` vor schädlichen Anweisungen.
+2. **Hybrides gewichtetes Retrieval & zweisprachige Trefferpunkte**:
+   - Präzise Bewertung nach Zusammenfassung (+3), Details (+1), Kommentaren (+1) und Anhängen (+1) mit +5 Punkten Bonus für deutsch-englische Übereinstimmungen.
+   - Einstellbarer Parameter `llm.retrieval.max_tickets` in Tabelle `config` (Standard: 50).
+3. **Map-Reduce-Verarbeitungspipeline**:
+   - **Map-Phase**: Analysiert Tickets und Dateianhänge (bis zu 100.000 Zeichen pro Datei; PDF, Word, Excel, TXT, LOG, CSV) in temporäre Zwischenberichte.
+   - **Reduce-Phase**: Erstellt eine strukturierte Gesamtsynthese (Management-Summary, Ursachen & Lösungen, Handlungsempfehlungen).
+   - Saubere Bereinigung über `finally`-Block ohne Rückstände auf der Festplatte.
+4. **Offline-fähiger HTML-Bericht als E-Mail-Anhang (`JTrac-AI-Report-[yyyyMMdd-HHmm].html`)**:
+   - **Schlanker E-Mail-Text**: Vermeidet Darstellungsprobleme in Mail-Clients durch Beschränkung auf Ticketübersicht und Links.
+   - **Vollständiger HTML-Anhang**: Direkt im Speicher via `ByteArrayResource` erzeugt (< 3ms, null Platten-I/O).
+   - **Modernes Design**: Klare Tabellenrahmen, aufklappbare `<details>`-Karten, automatische Dark-Mode-Anpassung und druckoptimiertes Layout.
+5. **Mehrsprachiger Prompt-Leitfaden mit Praxisbeispielen**: Bereitstellung von [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_de.md) in 8 Sprachen.
+
+---
+
+## 3. 📦 Abhängigkeiten-Upgrade & Beseitigung von Java-11-Warnungen
+
+1. **Aktualisierung von `dom4j` auf `2.1.4`**:
+   - Ersetzt das veraltete `dom4j:1.6.1` durch `org.dom4j:dom4j:2.1.4`.
+   - Beseitigt die Warnung `WARNING: An illegal reflective access operation has occurred` unter Tomcat 9 / Java 11 restlos.
+
+---
+
+## 4. 🎨 UI-Modernisierung, Barrierefreiheit & Design-Umschalter
+
+1. **4-stufige Schriftgrößenskalierung**:
+   - 100% (Standard), 115% (Angenehm), 130% (Klar) und **A+++ Riesenmodus (145%)** mit Anti-FOUC-Schutz und `localStorage`-Speicherung.
+2. **3-Zustands-Theme-Umschalter**:
+   - Umschaltung zwischen Auto (System), Hell und Dunkel mit einem einzigen Klick.
+3. **Einheitliche Suchleiste mit Schnellnavigation**:
+   - Integrierter Suchbutton, RefId-Erkennung (z. B. `PROJ-123`) zur direkten Ticketnavigation und globale Suche für Administratoren.
+4. **Mobile Optimierung (RWD)**:
+   - Seitliches Drawer-Menü, Bottom-Sheet für Verlaufsdetails und zentrierte Kapsel-Paginierung.
+
+---
+
+## 5. 🛡️ Produktionssicherheit & Schutzmechanismen
+
+1. **Sicherheits-Header**: Automatische Injektion von `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security` und `Content-Security-Policy`.
+2. **Suchmaschinensperre (`robots.txt`)**: Schutz sensibler Ticketdaten vor Web-Crawlern.
+3. **Manipulationsschutz**: Warnhinweis für Gastrollen, Whitelist-Filterung von Parametern und Schutz vor doppeltem Formularversand.
+
+---
+
+## 6. ⚙️ Systemkonfiguration & Stabilitätsverbesserungen
+
+1. Beseitigung von Wicket-Debug-Warnungen durch Hinzufügen von `status.nullValid = ` in allen Sprachen.
+2. Modernisierung von Boolean-Schaltern auf `IndicatingDropDownChoice`.
+3. Explizite Registrierung von JDBC-Treibern für vereinfachte Datenbankumgebungen.
+4. Automatische UTF-8-Erkennung für Textanhänge und korrigierte Logo-Pfade.
+
+---
+
+## 7. Upgrade- und Kompatibilitätshinweise
+
+- **Datenbank**: Vollständig abwärtskompatibel zu Version 2.3.3-2.0.0; **kein Migrationsskript erforderlich**.
+- **Bereitstellung**: Ersetzen Sie die vorhandene `ROOT.war` durch `target/jtrac.war`.
+- **Weiterführende Links**:
+  - [JTrac AI E-Mail-Abfragen & Prompt-Leitfaden](../llm/PROMPT_EXAMPLES_de.md)
+  - [Vorherige Versionshinweise (2.3.3-2.0.0)](release-2.3.3-2.0.0_de.md)

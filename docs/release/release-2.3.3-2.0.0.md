@@ -1,4 +1,4 @@
-﻿# JTrac Release Notes - 2.3.3-2.0.0
+# JTrac Release Notes - 2.3.3-2.0.0
 
 [English](release-2.3.3-2.0.0_en.md) | [繁體中文](release-2.3.3-2.0.0_zh-TW.md) | [简体中文](release-2.3.3-2.0.0_zh-CN.md) | [日本語](release-2.3.3-2.0.0_ja.md) | [Tiếng Việt](release-2.3.3-2.0.0_vi.md) | [Deutsch](release-2.3.3-2.0.0_de.md) | [Español](release-2.3.3-2.0.0_es.md) | [Français](release-2.3.3-2.0.0_fr.md)
 
@@ -73,6 +73,7 @@ This project is derived from [JTrac 2.3.3 (https://jtrac.info)](https://jtrac.in
 
 ## 📜 Release History
 
+- **Next Release (Preview)**: [JTrac Release Notes - 2.3.3-2.1.0-beta](release-2.3.3-2.1.0_en.md)
 - **Previous Release**: [JTrac Release Notes - 2.3.3-1.0.0](release-2.3.3-1.0.0_en.md)
 
 ---

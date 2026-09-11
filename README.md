@@ -46,8 +46,10 @@ Access the application at `http://localhost:8888/`.
 
 All detailed project specifications, technical guides, and multilingual documentation are organized in the [`docs/`](docs/) directory:
 
+- **Release Notes (2.3.3-2.1.0-beta)**: [`docs/release/release-2.3.3-2.1.0_en.md`](docs/release/release-2.3.3-2.1.0_en.md)
 - **Release Notes (2.3.3-2.0.0)**: [`docs/release/release-2.3.3-2.0.0_en.md`](docs/release/release-2.3.3-2.0.0_en.md)
 - **Release Notes (2.3.3-1.0.0)**: [`docs/release/release-2.3.3-1.0.0_en.md`](docs/release/release-2.3.3-1.0.0_en.md)
+- **AI Query Copilot & Prompt Guide (8 Languages)**: [`docs/llm/PROMPT_EXAMPLES_en.md`](docs/llm/PROMPT_EXAMPLES_en.md)
 - **Build & Compilation Guides (8 Languages)**: [`docs/build/BUILD_en.md`](docs/build/BUILD_en.md)
 - **System Administrator Guides (8 Languages)**: [`docs/admin/ADMIN_GUIDE_en.md`](docs/admin/ADMIN_GUIDE_en.md)
 - **Docker Deployment & Volume Guide**: [`docker/README.md`](docker/README.md)

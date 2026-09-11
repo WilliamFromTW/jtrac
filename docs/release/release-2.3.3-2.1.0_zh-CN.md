@@ -1,0 +1,114 @@
+# JTrac 发布说明 (Release Notes) - 2.3.3-2.1.0-beta
+
+[English](release-2.3.3-2.1.0_en.md) | [繁體中文](release-2.3.3-2.1.0_zh-TW.md) | [简体中文](release-2.3.3-2.1.0_zh-CN.md) | [日本語](release-2.3.3-2.1.0_ja.md) | [Tiếng Việt](release-2.3.3-2.1.0_vi.md) | [Deutsch](release-2.3.3-2.1.0_de.md) | [Español](release-2.3.3-2.1.0_es.md) | [Français](release-2.3.3-2.1.0_fr.md)
+
+---
+
+[![Java](https://img.shields.io/badge/Java-11%20%7C%2017-orange.svg)](https://adoptium.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.9+-blue.svg)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](../../license.txt)
+[![Version](https://img.shields.io/badge/Version-2.3.3--2.1.0--beta-orange.svg)](../../pom.xml)
+[![Status](https://img.shields.io/badge/Status-Beta%20Preview-yellow.svg)](release-2.3.3-2.1.0_zh-CN.md)
+[![Wicket](https://img.shields.io/badge/Wicket-9.16.0-blue.svg)](https://wicket.apache.org/)
+[![Spring](https://img.shields.io/badge/Spring-5.3.37-brightgreen.svg)](https://spring.io/)
+
+> [!NOTE]
+> **当前状态：Beta 测试预览版 (Pre-release / Beta Preview) - 尚未正式封版**  
+> 本文档为动态发布日志（Living Release Notes）。在 Beta 实测期间，所有后续的新增功能、参数微调与 Bug 修复将自动即时追加于此文档。
+
+---
+
+## 目录
+1. [版本核心亮点概述](#一版本核心亮点概述)
+2. [🤖 AI 智慧邮件查询秘书 (AI Query Copilot)](#二-ai-智慧邮件查询秘书-ai-query-copilot)
+3. [📦 核心依赖组件升级与 Java 11 警告消除](#三-核心依赖组件升级与-java-11-警告消除)
+4. [🎨 界面现代化、字号无障碍与主题切换](#四-界面现代化字号无障碍与主题切换)
+5. [🛡️ 生产环境安全防护与防呆机制](#五-生产环境安全防护与防呆机制)
+6. [⚙️ 系统配置与稳定性修复](#六-系统配置与稳定性修复)
+7. [版本升级与兼容性指引](#七版本升级与兼容性指引)
+
+---
+
+## 一、版本核心亮点概述
+
+JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心现代化架构的基础上，引进了革命性的 **AI 智慧邮件查询秘书 (AI Query Copilot with Ollama)**、升级底层 XML 解析器彻底消除 Java 11 反射访问警告、大幅强化用户界面无障碍体验（四段式字号缩放与 A+++ 模式、三态深浅主题）、以及全方位的生产安全防护网。
+
+---
+
+## 二、🤖 AI 智慧邮件查询秘书 (AI Query Copilot)
+
+1. **双阶段查询扩展与防注入隔离 (Two-Phase Query Expansion)**：
+   - 整合本地或服务器端 Ollama LLM，自动分析用户来信主题与正文，提取中英文实体词汇与技术同义词。
+   - 建立严格的 `<untrusted_user_query>` 安全沙箱隔离，防范 Prompt Injection 与恶意指令窃取。
+2. **混合加权检索与双语命中加分 (Hybrid Weighted Retrieval)**：
+   - 检索算法依据摘要（+3）、详情（+1）、留言（+1）、附件（+1）精准评分，并提供跨语言匹配加分（+5）。
+   - 在 `config` 表注册全局参数 `llm.retrieval.max_tickets`（默认 50 条）。
+3. **Map-Reduce 两阶段分治消化机制 (Map-Reduce Pipeline)**：
+   - **Map 阶段（单工单消化）**：逐张消化候选工单历史讨论与附件内容（单文件抽取上限 10 万字符，支持 PDF, Word, Excel, TXT, LOG, CSV），输出中继分析至安全暂存区。
+   - **Reduce 阶段（大局总结）**：统整所有工单精炼摘要，输出结构化三大区块：
+     1. 核心解答摘要 (Executive Summary)
+     2. 各工单关键发现与解法 (Key Findings & Resolution)
+     3. 建议行动方案 (Next Actions & Recommendations)
+   - 具备防呆机制与 `finally` 暂存目录保证销毁，零磁盘泄露风险。
+4. **离线美化 HTML 诊断报告随信附件 (`JTrac-AI-Report-[yyyyMMdd-HHmm].html`)**：
+   - **邮件正文极简速览**：正文仅提供工单速览表格与附件开启引导卡片，彻底解决各邮件客户端表格错乱与无边框问题。
+   - **全包式独立 HTML 附件**：纯内存 `ByteArrayResource` 即时组装流式发送（耗时 < 3ms，零磁盘 I/O）。
+   - **现代化设计**：清晰表格边框（`border-collapse: collapse; border: 1px solid`）、原生 `<details>` 折叠卡片、自动深浅色模式（`@media prefers-color-scheme: dark`）、打印全展开模式（`@media print`）。
+5. **完整多语言 Prompt 指南与 4 大实战范例**：
+   - 建立 8 种语言实战指南 [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_zh-CN.md)。
+
+---
+
+## 三、📦 核心依赖组件升级与 Java 11 警告消除
+
+1. **升级 `dom4j` 至 `2.1.4`**：
+   - 将旧有 `dom4j:1.6.1`（发布于 2005 年）升级为最新版 `org.dom4j:dom4j:2.1.4`。
+   - 修复 [`Metadata.java`](../../src/main/java/info/jtrac/domain/Metadata.java) 中泛型转换引起的编译警告。
+   - 彻底消除了在 Apache Tomcat 9 与 JDK 11 环境下运行时的 `WARNING: An illegal reflective access operation has occurred` 告警。
+
+---
+
+## 四、🎨 界面现代化、字号无障碍与主题切换
+
+1. **四段式字号循环无障碍模式 (Font Scaling)**：
+   - 支持 100%（标准）、115%（舒适）、130%（清晰）以及全新的 **A+++ 超大字模式（145%）**。
+   - 具备防闪烁 (Anti-FOUC) 机制与表格防破版安全保护，持久化至 `localStorage`。
+2. **三态深浅主题切换 (Theme Switcher)**：
+   - 支持系统跟随 (Auto)、浅色模式 (Light) 与深色模式 (Dark) 单图标一键循环切换。
+3. **统一文字搜索栏与智慧跳转**：
+   - 整合内嵌搜索提交按钮与分隔线，支持智慧 RefId 识别跳转与超级管理员全域跨项目搜索。
+4. **移动端 (Mobile RWD) 深度适配**：
+   - 新增移动端抽屉导航栏 (Drawer)。
+   - 工单摘要显式携带工单编号，并提供工单历史详情 Bottom-Sheet 底部抽屉弹窗。
+   - 移动端居中胶囊分页器，桌面端提供首末页跳转与总页数统计。
+
+---
+
+## 五、🛡️ 生产环境安全防护与防呆机制
+
+1. **全局安全响应头防护 (Security Headers Filter)**：
+   - 注入 `X-Frame-Options: SAMEORIGIN`、`X-Content-Type-Options: nosniff`、`Strict-Transport-Security` 等响应头。
+2. **搜索引擎阻断指令 (`robots.txt`)**：
+   - 部署默认 `robots.txt`，防止网络爬虫抓取内部敏感工单。
+3. **安全防护与防呆机制**：
+   - 项目空间 Guest 权限提示警告、查询参数白名单校验、表单防重复提交保护。
+
+---
+
+## 六、⚙️ 系统配置与稳定性修复
+
+1. **Wicket i18n Debug 警告消除**：全语言补齐 `status.nullValid = `。
+2. **配置页面布尔开关重构**：重构为高兼容性的 `IndicatingDropDownChoice`。
+3. **数据库驱动显式注册**：强化特定轻量环境下的数据库连通稳定性。
+4. **附件 UTF-8 编码自动检测**：注入 Charset Header，杜绝中文乱码。
+5. **Context-Relative Logo 路径解析**：修复反向代理环境下的 Logo 路径显示。
+
+---
+
+## 七、版本升级与兼容性指引
+
+- **数据库升级**：本版本完全兼容 2.3.3-2.0.0 数据库结构，**无需执行任何数据库迁移脚本**。
+- **WAR 部署**：直接使用 `target/jtrac.war` 覆盖现有容器之 `ROOT.war` 即可。
+- **相关链接**：
+  - [JTrac AI 邮件查询与 Prompt 实战范例指南](../llm/PROMPT_EXAMPLES_zh-CN.md)
+  - [上一版本发布说明 (2.3.3-2.0.0)](release-2.3.3-2.0.0_zh-CN.md)
