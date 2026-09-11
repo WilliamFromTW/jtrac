@@ -676,14 +676,17 @@ public class HibernateJtracDao implements JtracDao {
             session.createQuery("update StoredSearch search set search.newWindow = true where search.newWindow is null").executeUpdate();
             session.createQuery("update User user set user.prettyDates = true where user.prettyDates is null").executeUpdate();
 
-            Config maxSize = session.get(Config.class, "attachment.index.maxSizeMb");
-            if (maxSize == null) {
-                session.save(new Config("attachment.index.maxSizeMb", "10"));
-            }
-            Config maxChars = session.get(Config.class, "attachment.index.maxChars");
-            if (maxChars == null) {
-                session.save(new Config("attachment.index.maxChars", "50000"));
-            }
+            ensureDefaultConfig(session, "attachment.index.maxSizeMb", "10");
+            ensureDefaultConfig(session, "attachment.index.maxChars", "50000");
+            ensureDefaultConfig(session, "security.privacy.headers.enabled", "true");
+            ensureDefaultConfig(session, "mail.inbound.enabled", "false");
+            ensureDefaultConfig(session, "mail.inbound.server.port", "993");
+            ensureDefaultConfig(session, "mail.inbound.ssl.enable", "false");
+            ensureDefaultConfig(session, "mail.inbound.starttls.enable", "false");
+            ensureDefaultConfig(session, "mail.inbound.ssl.trust.all", "false");
+            ensureDefaultConfig(session, "llm.ollama.url", "http://localhost:11434");
+            ensureDefaultConfig(session, "llm.ollama.model", "llama3.2");
+            ensureDefaultConfig(session, "llm.ollama.timeout", "60");
 
             List<SpaceSequence> ssList = session.createQuery("from SpaceSequence", SpaceSequence.class).getResultList();
             Map<Long, SpaceSequence> ssMap = new HashMap<Long, SpaceSequence>(ssList.size());
@@ -712,6 +715,13 @@ public class HibernateJtracDao implements JtracDao {
             logger.error("Failed to initialize schema data: " + e.getMessage(), e);
         } finally {
             session.close();
+        }
+    }
+
+    private void ensureDefaultConfig(Session session, String param, String defaultValue) {
+        Config cfg = session.get(Config.class, param);
+        if (cfg == null) {
+            session.save(new Config(param, defaultValue));
         }
     }
 

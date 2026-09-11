@@ -73,6 +73,9 @@ public class InboundConfigTest {
             "config.llm.ollama.model",
             "config.llm.ollama.api.key",
             "config.llm.ollama.timeout",
+            "config.security.privacy.headers.enabled",
+            "config.attachment.index.maxSizeMb",
+            "config.attachment.index.maxChars",
             "mail.ai_query.subject_prefix",
             "mail.ai_query.offline_notice_subject",
             "mail.ai_query.offline_notice_body"

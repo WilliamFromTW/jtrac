@@ -18,11 +18,12 @@ package info.jtrac.wicket;
 
 import info.jtrac.domain.Config;
 
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -64,35 +65,24 @@ public class ConfigFormPage extends BasePage {
 			this.isNumber = Config.isNumber(param);
 			this.isColor = Config.isColor(param);
 
+            if (isBoolean && (this.value == null || this.value.trim().isEmpty())) {
+                this.value = "security.privacy.headers.enabled".equals(param) ? "true" : "false";
+            }
+
             final BoundCompoundPropertyModel model = new BoundCompoundPropertyModel(this);
             setModel(model);
 
             add(new Label("heading", localize("config." + param)));
             add(new Label("param", param));
 
-			// boolean settings use a JavaScript switch instead of a text field
+			// boolean settings use a DropDownChoice selector
 			if (isBoolean) {
-				// use the "switch" div instead of the value field
-				add(HeaderContributor.forJavaScript("resources/jquery-3.6.0.min.js"));
-				add(HeaderContributor.forJavaScript("resources/jquery.enhanced-switch.js"));
-				add(HeaderContributor.forCss("resources/jquery.enhanced-switch-pingpong.css"));
-				add(new HeaderContributor(new IHeaderContributor() {
-					public void renderHead(IHeaderResponse response) {
-						String js = "$('.switch').enhancedSwitch();\n" +
-							((value!=null && value.equals("true")) ? "$('.switch').enhancedSwitch('setTrue');\n" : "") +
-							"$('.switch').click(function() {\n" +
-							"	var selectedSwitch = $(this);\n" +
-							"	selectedSwitch.enhancedSwitch('toggle');\n" +
-							"	//console.log(selectedSwitch.enhancedSwitch('state'));\n" +
-							"	$('#valueField').val(selectedSwitch.enhancedSwitch('state'));\n" +
-							"});";
-						response.render(OnDomReadyHeaderItem.forScript(js));
-					}
-				}));
-
 				Fragment f = new Fragment("field", "booleanField", ConfigFormPage.this);
-				HiddenField hiddenField = new HiddenField("value");
-				f.add(model.bind(hiddenField));
+				List<String> options = Arrays.asList("true", "false");
+				DropDownChoice<String> choice = new DropDownChoice<String>("value", options);
+				choice.setNullValid(false);
+				choice.setRequired(true);
+				f.add(model.bind(choice));
 				add(f);
 
 			} else if (isNumber) {
