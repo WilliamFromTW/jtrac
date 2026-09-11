@@ -44,10 +44,17 @@ import net.markenwerk.utils.mail.dkim.DkimMessage;
 import net.markenwerk.utils.mail.dkim.DkimSigner;
 
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StringUtils;
+
+import info.jtrac.domain.AbstractItem;
+import info.jtrac.domain.Attachment;
+import info.jtrac.domain.History;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -382,6 +389,10 @@ public class MailSender {
 	}
 
 	public void sendAiQueryResponse(String toEmail, String originalSubject, String aiContent, List<Item> referencedItems, Locale locale, Set<Space> spaces) {
+		sendAiQueryResponse(toEmail, originalSubject, aiContent, referencedItems, null, locale, spaces);
+	}
+
+	public void sendAiQueryResponse(String toEmail, String originalSubject, String aiContent, List<Item> referencedItems, Map<String, String> perTicketSummaries, Locale locale, Set<Space> spaces) {
 		if (sender == null) {
 			logger.debug("mail sender is null, not sending AI query response");
 			return;
@@ -397,62 +408,81 @@ public class MailSender {
 		logger.debug("Preparing AI query response email to " + toEmail);
 		try {
 			MimeMessage message = sender.createMimeMessage();
-			MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 			helper.setTo(toEmail);
 			helper.setFrom(from);
-			helper.setSentDate(new Date());
+			Date now = new Date();
+			helper.setSentDate(now);
 
 			String prefix = messageSource.getMessage("mail.ai_query.subject_prefix", null, "Re: ", locale);
 			String cleanSub = (originalSubject != null) ? originalSubject.trim() : "";
 			String subject = cleanSub.toLowerCase().startsWith("re:") ? cleanSub : prefix + cleanSub;
 			helper.setSubject(subject);
 
-			// Render AI content from Markdown to HTML
-			String renderedAi = ItemUtils.renderMarkdown(aiContent);
-			if (spaces != null && !spaces.isEmpty()) {
-				renderedAi = ItemUtils.autolinkTickets(url, renderedAi, spaces);
-			}
+			// 1. Generate standalone offline HTML report & attach as JTrac-AI-Report-[yyyyMMdd-HHmm].html
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
+			String reportFilename = "JTrac-AI-Report-" + sdf.format(now) + ".html";
+			String standaloneHtml = buildStandaloneHtmlReport(cleanSub, aiContent, referencedItems, perTicketSummaries, locale, spaces, now);
+			byte[] htmlBytes = standaloneHtml.getBytes(StandardCharsets.UTF_8);
+			helper.addAttachment(reportFilename, new ByteArrayResource(htmlBytes), "text/html; charset=UTF-8");
 
+			// 2. Build streamlined email body (Notice + Ticket list only, completely preventing client formatting breakage)
 			StringBuilder sb = new StringBuilder();
-			sb.append("<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #24292e; line-height: 1.6;'>");
-			sb.append("<div style='border-bottom: 2px solid #0366d6; padding-bottom: 12px; margin-bottom: 20px;'>");
-			sb.append("<h2 style='margin: 0; color: #0366d6; font-size: 20px;'>\uD83E\uDD16 JTrac AI \u67e5\u8a62\u79d8\u66f8\u7d9c\u6574\u5831\u544a / AI Query Copilot Report</h2>");
+			sb.append("<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 24px; color: #24292e; line-height: 1.6;'>");
+
+			sb.append("<div style='border-bottom: 2px solid #0969da; padding-bottom: 12px; margin-bottom: 20px;'>");
+			sb.append("<h2 style='margin: 0; color: #0969da; font-size: 20px;'>\uD83E\uDD16 JTrac AI \u67e5\u8a62\u79d8\u66f8\u56de\u8986 / AI Query Copilot Response</h2>");
 			sb.append("</div>");
 
-			sb.append("<div style='background-color: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 18px; margin-bottom: 24px;'>");
-			sb.append(renderedAi != null ? renderedAi : "");
+			sb.append("<div style='font-size: 14px; color: #57606a; margin-bottom: 18px;'>");
+			sb.append("<strong>\u67e5\u8a62\u4e3b\u65e8 / Query:</strong> ").append(escapeHtml(cleanSub));
 			sb.append("</div>");
 
+			// Attachment Guidance Callout
+			sb.append("<div style='background-color: #f0f7ff; border: 1px solid #cce3ff; border-left: 4px solid #0969da; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px;'>");
+			sb.append("<div style='font-weight: 600; color: #0969da; font-size: 15px; margin-bottom: 8px;'>");
+			sb.append("\uD83D\uDCCE \u8a73\u7d30\u8a3a\u65b7\u5831\u544a\u5df2\u751f\u6210\u70ba\u96e2\u7dda HTML \u9644\u4ef6\uff1a").append(escapeHtml(reportFilename));
+			sb.append("</div>");
+			sb.append("<div style='font-size: 13px; color: #333; line-height: 1.6;'>");
+			sb.append("\u70ba\u907f\u514d\u5404\u90f5\u4ef6\u5ba2\u6236\u7aef\uff08Outlook / Gmail / \u624b\u6a5f\u90f5\u4ef6\uff09\u8868\u683c\u6846\u7dda\u6d88\u5931\u8207\u6392\u7248\u932f\u4f4d\uff0c\u5b8c\u6574\u7684<strong>\u9ad8\u968e\u7e3d\u7d50\u5206\u6790\u3001\u554f\u984c\u6839\u56e0\u8a3a\u65b7\u3001\u5efa\u8b70\u65b9\u6848\u3001\u5404\u5de5\u55ae\u6df1\u5165\u6458\u8981\u8207\u6b77\u7a0b\u7d00\u9304</strong>\u5df2\u6574\u7406\u65bc\u96a8\u4fe1\u9644\u5e36\u7684 HTML \u5831\u544a\u4e2d\u3002<br/>");
+			sb.append("\u8acb\u76f4\u63a5\u4e0b\u8f09\u6216\u9ede\u64ca\u9644\u4ef6\u958b\u555f\uff0c\u5373\u53ef\u7372\u5f97\u6700\u4f73\u96e2\u7dda\u95b1\u8b80\u8207\u6e05\u6670\u8868\u683c\u6846\u7dda\u9ad4\u9a57\u3002");
+			sb.append("<div style='margin-top: 6px; font-size: 12px; color: #666;'>");
+			sb.append("(Full analysis, ticket diagnoses, and recommendations are compiled into the attached standalone HTML report. Please open the attachment in your browser for the best reading experience.)");
+			sb.append("</div></div></div>");
+
+			// Referenced Tickets List
 			if (referencedItems != null && !referencedItems.isEmpty()) {
 				sb.append("<div style='margin-top: 24px;'>");
-				sb.append("<h3 style='font-size: 16px; color: #333; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px;'>");
-				sb.append("\uD83D\uDCCB \u53c3\u8003\u5de5\u55ae\u6e05\u55ae / Referenced Tickets (").append(referencedItems.size()).append(")");
+				sb.append("<h3 style='font-size: 15px; color: #24292e; margin-bottom: 12px;'>");
+				sb.append("\uD83D\uDCCB \u95dc\u806f\u5de5\u55ae\u901f\u89bd / Referenced Tickets (").append(referencedItems.size()).append(")");
 				sb.append("</h3>");
-				sb.append("<table style='width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;'>");
-				sb.append("<thead><tr style='background-color: #f1f3f5;'>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 120px;'>ID</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd;'>Summary</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 90px;'>Status</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 140px;'>Space</th>");
+				sb.append("<table style='width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;'>");
+				sb.append("<thead><tr style='background-color: #f6f8fa;'>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 120px;'>ID</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de;'>Summary</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 90px;'>Status</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 140px;'>Space</th>");
 				sb.append("</tr></thead><tbody>");
 
 				for (Item item : referencedItems) {
 					String itemUrl = url + "app/item/" + item.getRefId();
 					sb.append("<tr>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd; font-weight: bold;'>");
-					sb.append("<a href='").append(itemUrl).append("' style='color: #0366d6; text-decoration: none;'>").append(item.getRefId()).append("</a>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de; font-weight: bold;'>");
+					sb.append("<a href='").append(itemUrl).append("' style='color: #0969da; text-decoration: none;'>").append(escapeHtml(item.getRefId())).append("</a>");
 					sb.append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getSummary() != null ? item.getSummary() : "").append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getStatusValue()).append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getSpace() != null ? item.getSpace().getName() : "").append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(escapeHtml(item.getSummary())).append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(escapeHtml(safeGetStatus(item))).append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</td>");
 					sb.append("</tr>");
 				}
 				sb.append("</tbody></table></div>");
+			} else {
+				sb.append("<p style='font-size: 14px; color: #666;'>\u67e5\u7121\u7b26\u5408\u60a8\u6388\u6b0a\u5c08\u6848\u7a7a\u9593\u5167\u7684\u76f8\u95dc\u5de5\u55ae\u3002 / No matching tickets found within your authorized spaces.</p>");
 			}
 
-			sb.append("<div style='margin-top: 30px; padding-top: 12px; border-top: 1px solid #eaecef; font-size: 12px; color: #6a737d; text-align: center;'>");
+			sb.append("<div style='margin-top: 36px; padding-top: 14px; border-top: 1px solid #eaecef; font-size: 12px; color: #8c959f; text-align: center;'>");
 			sb.append("\u672c\u90f5\u4ef6\u7531 JTrac \u90f5\u4ef6 AI \u67e5\u8a62\u79d8\u66f8\u81ea\u52d5\u7522\u751f\u8207\u56de\u8986\u3002<br>");
-			sb.append("<a href='").append(url).append("' style='color: #0366d6; text-decoration: none;'>").append(url).append("</a>");
+			sb.append("<a href='").append(url).append("' style='color: #0969da; text-decoration: none;'>").append(url).append("</a>");
 			sb.append("</div>");
 			sb.append("</div>");
 
@@ -460,6 +490,374 @@ public class MailSender {
 			sendInNewThread(message);
 		} catch (Exception e) {
 			logger.error("Failed to prepare and send AI query response e-mail", e);
+		}
+	}
+
+	public String buildStandaloneHtmlReport(String originalSubject, String aiContent, List<Item> referencedItems,
+										    Map<String, String> perTicketSummaries, Locale locale, Set<Space> spaces, Date generatedDate) {
+		SimpleDateFormat sdfFull = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String genDateStr = sdfFull.format(generatedDate != null ? generatedDate : new Date());
+		int ticketCount = (referencedItems != null) ? referencedItems.size() : 0;
+
+		// Render AI content from Markdown to HTML
+		String renderedAi = ItemUtils.renderMarkdown(aiContent);
+		if (spaces != null && !spaces.isEmpty() && renderedAi != null) {
+			renderedAi = ItemUtils.autolinkTickets(url, renderedAi, spaces);
+		}
+
+		StringBuilder html = new StringBuilder(16384);
+		html.append("<!DOCTYPE html>\n");
+		html.append("<html lang='").append(locale != null && locale.getLanguage().startsWith("zh") ? "zh-TW" : "en").append("'>\n");
+		html.append("<head>\n");
+		html.append("<meta charset='UTF-8'>\n");
+		html.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n");
+		html.append("<title>JTrac AI Report - ").append(escapeHtml(originalSubject)).append("</title>\n");
+		html.append("<style>\n");
+		html.append(":root {\n");
+		html.append("  --bg-color: #f6f8fa;\n");
+		html.append("  --card-bg: #ffffff;\n");
+		html.append("  --text-color: #1f2328;\n");
+		html.append("  --text-muted: #656d76;\n");
+		html.append("  --border-color: #d0d7de;\n");
+		html.append("  --border-light: #eaeef2;\n");
+		html.append("  --primary-color: #0969da;\n");
+		html.append("  --primary-hover: #0550ae;\n");
+		html.append("  --badge-bg: #ddf4ff;\n");
+		html.append("  --badge-border: #54aeff66;\n");
+		html.append("  --table-header-bg: #f6f8fa;\n");
+		html.append("  --table-stripe-bg: #fcfcfd;\n");
+		html.append("  --code-bg: #f6f8fa;\n");
+		html.append("  --details-bg: #fbfcfd;\n");
+		html.append("}\n");
+		html.append("@media (prefers-color-scheme: dark) {\n");
+		html.append("  :root {\n");
+		html.append("    --bg-color: #0d1117;\n");
+		html.append("    --card-bg: #161b22;\n");
+		html.append("    --text-color: #e6edf3;\n");
+		html.append("    --text-muted: #8b949e;\n");
+		html.append("    --border-color: #30363d;\n");
+		html.append("    --border-light: #21262d;\n");
+		html.append("    --primary-color: #4493f8;\n");
+		html.append("    --primary-hover: #79c0ff;\n");
+		html.append("    --badge-bg: #1f3552;\n");
+		html.append("    --badge-border: #388bfd4d;\n");
+		html.append("    --table-header-bg: #21262d;\n");
+		html.append("    --table-stripe-bg: #161b22;\n");
+		html.append("    --code-bg: #1f242c;\n");
+		html.append("    --details-bg: #1b2028;\n");
+		html.append("  }\n");
+		html.append("}\n");
+		html.append("* { box-sizing: border-box; }\n");
+		html.append("body {\n");
+		html.append("  margin: 0; padding: 32px 16px;\n");
+		html.append("  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n");
+		html.append("  background-color: var(--bg-color);\n");
+		html.append("  color: var(--text-color);\n");
+		html.append("  line-height: 1.6;\n");
+		html.append("  font-size: 14px;\n");
+		html.append("}\n");
+		html.append(".container {\n");
+		html.append("  max-width: 980px; margin: 0 auto;\n");
+		html.append("  background-color: var(--card-bg);\n");
+		html.append("  border: 1px solid var(--border-color);\n");
+		html.append("  border-radius: 10px;\n");
+		html.append("  padding: 36px 40px;\n");
+		html.append("  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);\n");
+		html.append("}\n");
+		html.append(".header {\n");
+		html.append("  border-bottom: 2px solid var(--border-color);\n");
+		html.append("  padding-bottom: 20px; margin-bottom: 28px;\n");
+		html.append("}\n");
+		html.append(".header-badge {\n");
+		html.append("  display: inline-block; font-size: 12px; font-weight: 600;\n");
+		html.append("  color: var(--primary-color); background-color: var(--badge-bg);\n");
+		html.append("  border: 1px solid var(--badge-border); border-radius: 20px;\n");
+		html.append("  padding: 3px 12px; margin-bottom: 12px;\n");
+		html.append("}\n");
+		html.append(".header h1 { margin: 0 0 12px 0; font-size: 22px; color: var(--text-color); }\n");
+		html.append(".header-meta { display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: var(--text-muted); }\n");
+		html.append(".section { margin-bottom: 36px; }\n");
+		html.append(".section-title {\n");
+		html.append("  font-size: 17px; font-weight: 600; color: var(--text-color);\n");
+		html.append("  border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 16px;\n");
+		html.append("}\n");
+		html.append("table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }\n");
+		html.append("table, th, td { border: 1px solid var(--border-color); }\n");
+		html.append("th {\n");
+		html.append("  background-color: var(--table-header-bg); font-weight: 600;\n");
+		html.append("  color: var(--text-color); padding: 10px 14px; text-align: left;\n");
+		html.append("}\n");
+		html.append("td { padding: 10px 14px; color: var(--text-color); vertical-align: top; }\n");
+		html.append("tbody tr:nth-child(even) { background-color: var(--table-stripe-bg); }\n");
+		html.append("tbody tr:hover { background-color: var(--badge-bg); }\n");
+		html.append("a { color: var(--primary-color); text-decoration: none; }\n");
+		html.append("a:hover { text-decoration: underline; }\n");
+		html.append(".status-pill {\n");
+		html.append("  display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: 500;\n");
+		html.append("  border-radius: 12px; background-color: var(--badge-bg);\n");
+		html.append("  color: var(--primary-color); border: 1px solid var(--badge-border);\n");
+		html.append("}\n");
+		html.append(".meta-grid {\n");
+		html.append("  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n");
+		html.append("  gap: 10px; padding: 12px 16px; background-color: var(--table-header-bg);\n");
+		html.append("  border-radius: 6px; margin-bottom: 16px; font-size: 13px;\n");
+		html.append("}\n");
+		html.append("details {\n");
+		html.append("  border: 1px solid var(--border-color); border-radius: 6px;\n");
+		html.append("  margin-bottom: 14px; background-color: var(--details-bg); overflow: hidden;\n");
+		html.append("}\n");
+		html.append("details summary {\n");
+		html.append("  padding: 12px 16px; font-weight: 600; cursor: pointer; list-style: none;\n");
+		html.append("  display: flex; justify-content: space-between; align-items: center; user-select: none;\n");
+		html.append("  background-color: var(--table-header-bg);\n");
+		html.append("}\n");
+		html.append("details summary::-webkit-details-marker { display: none; }\n");
+		html.append("details summary:after { content: '+'; font-size: 16px; font-weight: bold; color: var(--text-muted); }\n");
+		html.append("details[open] summary:after { content: '\u2212'; }\n");
+		html.append(".details-content { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--card-bg); }\n");
+		html.append(".sub-heading {\n");
+		html.append("  font-size: 13px; font-weight: 600; color: var(--text-color);\n");
+		html.append("  margin: 18px 0 8px 0; padding-bottom: 4px; border-bottom: 1px dashed var(--border-color);\n");
+		html.append("}\n");
+		html.append(".markdown-body { line-height: 1.65; }\n");
+		html.append(".markdown-body p { margin: 8px 0; }\n");
+		html.append(".markdown-body ul, .markdown-body ol { padding-left: 24px; margin: 8px 0; }\n");
+		html.append(".markdown-body li { margin-bottom: 4px; }\n");
+		html.append(".markdown-body blockquote {\n");
+		html.append("  margin: 12px 0; padding: 4px 16px; color: var(--text-muted);\n");
+		html.append("  border-left: 4px solid var(--primary-color); background-color: var(--badge-bg);\n");
+		html.append("  border-radius: 0 4px 4px 0;\n");
+		html.append("}\n");
+		html.append(".markdown-body pre {\n");
+		html.append("  background-color: var(--code-bg); border: 1px solid var(--border-color);\n");
+		html.append("  border-radius: 6px; padding: 12px; overflow-x: auto;\n");
+		html.append("  font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px;\n");
+		html.append("}\n");
+		html.append(".markdown-body code {\n");
+		html.append("  background-color: var(--code-bg); padding: 2px 5px; border-radius: 4px;\n");
+		html.append("  font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 85%;\n");
+		html.append("}\n");
+		html.append(".footer {\n");
+		html.append("  margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border-color);\n");
+		html.append("  font-size: 12px; color: var(--text-muted); text-align: center;\n");
+		html.append("}\n");
+		html.append("@media print {\n");
+		html.append("  body { background-color: #fff; color: #000; padding: 0; }\n");
+		html.append("  .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }\n");
+		html.append("  details { border: 1px solid #ccc; margin-bottom: 20px; }\n");
+		html.append("  details[open], details { display: block !important; }\n");
+		html.append("  details > .details-content { display: block !important; }\n");
+		html.append("  details summary:after { display: none; }\n");
+		html.append("}\n");
+		html.append("</style>\n");
+		html.append("</head>\n");
+		html.append("<body>\n");
+		html.append("<div class='container'>\n");
+
+		// Header
+		html.append("<header class='header'>\n");
+		html.append("  <div class='header-badge'>\uD83E\uDD16 JTrac AI Copilot</div>\n");
+		html.append("  <h1>AI \u67e5\u8a62\u5206\u6790\u5831\u544a / AI Query Analysis Report</h1>\n");
+		html.append("  <div class='header-meta'>\n");
+		html.append("    <span><strong>\u67e5\u8a62\u4e3b\u65e8 / Query:</strong> ").append(escapeHtml(originalSubject)).append("</span>\n");
+		html.append("    <span><strong>\u751f\u6210\u6642\u9593 / Generated:</strong> ").append(genDateStr).append("</span>\n");
+		html.append("    <span><strong>\u5206\u6790\u5de5\u55ae\u6578 / Tickets:</strong> ").append(ticketCount).append("</span>\n");
+		html.append("  </div>\n");
+		html.append("</header>\n");
+
+		// Section 1: Executive Synthesis
+		html.append("<section class='section'>\n");
+		html.append("  <h2 class='section-title'>\uD83E\uDD16 \u9ad8\u968e\u7e3d\u7d50\u5206\u6790 / Executive Synthesis</h2>\n");
+		html.append("  <div class='markdown-body'>\n");
+		html.append(renderedAi != null && !renderedAi.trim().isEmpty() ? renderedAi : "<p>\u7121\u5206\u6790\u5167\u5bb9</p>");
+		html.append("  </div>\n");
+		html.append("</section>\n");
+
+		// Section 2: Referenced Tickets Table
+		html.append("<section class='section'>\n");
+		html.append("  <h2 class='section-title'>\uD83D\uDCCB \u95dc\u806f\u5de5\u55ae\u6e05\u55ae\u901f\u89bd / Referenced Tickets Overview (").append(ticketCount).append(")</h2>\n");
+		if (referencedItems != null && !referencedItems.isEmpty()) {
+			html.append("  <table>\n");
+			html.append("    <thead>\n");
+			html.append("      <tr>\n");
+			html.append("        <th style='width: 120px;'>ID</th>\n");
+			html.append("        <th>Summary</th>\n");
+			html.append("        <th style='width: 100px;'>Status</th>\n");
+			html.append("        <th style='width: 130px;'>Space</th>\n");
+			html.append("        <th style='width: 110px;'>Logged By</th>\n");
+			html.append("        <th style='width: 110px;'>Assigned To</th>\n");
+			html.append("      </tr>\n");
+			html.append("    </thead>\n");
+			html.append("    <tbody>\n");
+			for (Item item : referencedItems) {
+				String itemUrl = url + "app/item/" + item.getRefId();
+				html.append("      <tr>\n");
+				html.append("        <td style='font-weight: bold;'><a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></td>\n");
+				html.append("        <td>").append(escapeHtml(item.getSummary())).append("</td>\n");
+				html.append("        <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span></td>\n");
+				html.append("        <td>").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</td>\n");
+				html.append("        <td>").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</td>\n");
+				html.append("        <td>").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</td>\n");
+				html.append("      </tr>\n");
+			}
+			html.append("    </tbody>\n");
+			html.append("  </table>\n");
+		} else {
+			html.append("  <p style='color: var(--text-muted);'>\u67e5\u7121\u7b26\u5408\u60a8\u6388\u6b0a\u5c08\u6848\u7a7a\u9593\u5167\u7684\u76f8\u95dc\u5de5\u55ae\u3002</p>\n");
+		}
+		html.append("</section>\n");
+
+		// Section 3: Per-Ticket Detailed Dossier (<details> accordion)
+		html.append("<section class='section'>\n");
+		html.append("  <h2 class='section-title'>\uD83D\uDD0D \u5404\u5de5\u55ae\u7368\u7acb\u6df1\u5165\u8a3a\u65b7 / Per-Ticket Detailed Dossier</h2>\n");
+		if (referencedItems != null && !referencedItems.isEmpty()) {
+			for (Item item : referencedItems) {
+				String itemUrl = url + "app/item/" + item.getRefId();
+				html.append("  <details class='ticket-card'>\n");
+				html.append("    <summary>\n");
+				html.append("      <span><strong>[").append(escapeHtml(item.getRefId())).append("]</strong> ").append(escapeHtml(item.getSummary())).append("</span>\n");
+				html.append("      <span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span>\n");
+				html.append("    </summary>\n");
+				html.append("    <div class='details-content'>\n");
+
+				// Meta grid
+				html.append("      <div class='meta-grid'>\n");
+				html.append("        <div><strong>\u5de5\u55ae\u9023\u7d50 (Link):</strong> <a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></div>\n");
+				html.append("        <div><strong>\u5c08\u6848\u7a7a\u9593 (Space):</strong> ").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</div>\n");
+				html.append("        <div><strong>\u63d0\u51fa\u8005 (Logged By):</strong> ").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</div>\n");
+				html.append("        <div><strong>\u6307\u6d3e\u8005 (Assigned To):</strong> ").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</div>\n");
+				if (item.getTimeStamp() != null) {
+					html.append("        <div><strong>\u5efa\u7acb\u6642\u9593 (Created):</strong> ").append(sdfFull.format(item.getTimeStamp())).append("</div>\n");
+				}
+				html.append("      </div>\n");
+
+				// Staged AI Digest for this ticket
+				if (perTicketSummaries != null && perTicketSummaries.containsKey(item.getRefId())) {
+					String ticketDigest = perTicketSummaries.get(item.getRefId());
+					if (ticketDigest != null && !ticketDigest.trim().isEmpty()) {
+						html.append("      <div class='sub-heading'>\uD83D\uDCA1 AI \u55ae\u5f35\u7cbe\u7149\u5206\u6790\u6458\u8981 / AI Ticket Digest</div>\n");
+						html.append("      <div class='markdown-body'>\n");
+						String renderedDigest = ItemUtils.renderMarkdown(ticketDigest);
+						if (spaces != null && !spaces.isEmpty() && renderedDigest != null) {
+							renderedDigest = ItemUtils.autolinkTickets(url, renderedDigest, spaces);
+						}
+						html.append(renderedDigest != null ? renderedDigest : "");
+						html.append("      </div>\n");
+					}
+				}
+
+				// Raw description
+				if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
+					html.append("      <div class='sub-heading'>\uD83D\uDCDD \u5de5\u55ae\u539f\u59cb\u63cf\u8ff0 / Ticket Description</div>\n");
+					html.append("      <div class='markdown-body'>\n");
+					String renderedDetail = ItemUtils.renderMarkdown(item.getDetail());
+					if (spaces != null && !spaces.isEmpty() && renderedDetail != null) {
+						renderedDetail = ItemUtils.autolinkTickets(url, renderedDetail, spaces);
+					}
+					html.append(renderedDetail != null ? renderedDetail : escapeHtml(item.getDetail()));
+					html.append("      </div>\n");
+				}
+
+				// History & Comments
+				if (item.getHistory() != null && !item.getHistory().isEmpty()) {
+					List<History> historyList = new ArrayList<>(item.getHistory());
+					Collections.sort(historyList, (h1, h2) -> {
+						if (h1.getTimeStamp() == null || h2.getTimeStamp() == null) return 0;
+						return h1.getTimeStamp().compareTo(h2.getTimeStamp());
+					});
+
+					html.append("      <div class='sub-heading'>\uD83D\uDCAC \u6b77\u7a0b\u8207\u7559\u8a00\u7d00\u9304 / History & Comments (").append(historyList.size()).append(")</div>\n");
+					html.append("      <table>\n");
+					html.append("        <thead>\n");
+					html.append("          <tr>\n");
+					html.append("            <th style='width: 150px;'>\u6642\u9593 (Time)</th>\n");
+					html.append("            <th style='width: 120px;'>\u57f7\u884c\u8005 (Logged By)</th>\n");
+					html.append("            <th style='width: 100px;'>\u72c0\u614b (Status)</th>\n");
+					html.append("            <th>\u8aaa\u660e\u8207\u7559\u8a00 (Comment)</th>\n");
+					html.append("          </tr>\n");
+					html.append("        </thead>\n");
+					html.append("        <tbody>\n");
+					for (History h : historyList) {
+						html.append("          <tr>\n");
+						html.append("            <td>").append(h.getTimeStamp() != null ? sdfFull.format(h.getTimeStamp()) : "").append("</td>\n");
+						html.append("            <td>").append(h.getLoggedBy() != null ? escapeHtml(h.getLoggedBy().getName()) : "").append("</td>\n");
+						html.append("            <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(h))).append("</span></td>\n");
+						String renderedComment = h.getComment() != null ? ItemUtils.renderMarkdown(h.getComment()) : "";
+						html.append("            <td class='markdown-body'>").append(renderedComment != null ? renderedComment : "").append("</td>\n");
+						html.append("          </tr>\n");
+					}
+					html.append("        </tbody>\n");
+					html.append("      </table>\n");
+				}
+
+				// Attachments
+				if (item.getAttachments() != null && !item.getAttachments().isEmpty()) {
+					html.append("      <div class='sub-heading'>\uD83D\uDCCE \u9644\u52a0\u6a94\u6848\u6e05\u55ae / Attachments (").append(item.getAttachments().size()).append(")</div>\n");
+					html.append("      <table>\n");
+					html.append("        <thead>\n");
+					html.append("          <tr>\n");
+					html.append("            <th>\u6a94\u6848\u540d\u7a31 (File Name)</th>\n");
+					html.append("          </tr>\n");
+					html.append("        </thead>\n");
+					html.append("        <tbody>\n");
+					for (Attachment att : item.getAttachments()) {
+						html.append("          <tr>\n");
+						html.append("            <td>").append(escapeHtml(att.getFileName())).append("</td>\n");
+						html.append("          </tr>\n");
+					}
+					html.append("        </tbody>\n");
+					html.append("      </table>\n");
+				}
+
+				html.append("    </div>\n");
+				html.append("  </details>\n");
+			}
+		} else {
+			html.append("  <p style='color: var(--text-muted);'>\u7121\u5de5\u55ae\u8cc7\u6599\u3002</p>\n");
+		}
+		html.append("</section>\n");
+
+		// Footer
+		html.append("<footer class='footer'>\n");
+		html.append("  <p>\u672c\u5831\u544a\u7531 JTrac \u90f5\u4ef6 AI \u67e5\u8a62\u79d8\u66f8\u81ea\u52d5\u7522\u751f\u8207\u532f\u51fa\u3002<br>\n");
+		html.append("  <a href='").append(url).append("' target='_blank'>").append(url).append("</a></p>\n");
+		html.append("</footer>\n");
+
+		html.append("</div>\n");
+		html.append("</body>\n");
+		html.append("</html>\n");
+
+		return html.toString();
+	}
+
+	private String escapeHtml(String text) {
+		if (text == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder(text.length() + 16);
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			switch (c) {
+				case '&': sb.append("&amp;"); break;
+				case '<': sb.append("&lt;"); break;
+				case '>': sb.append("&gt;"); break;
+				case '"': sb.append("&quot;"); break;
+				case '\'': sb.append("&#39;"); break;
+				default: sb.append(c); break;
+			}
+		}
+		return sb.toString();
+	}
+
+	private String safeGetStatus(AbstractItem item) {
+		if (item == null) {
+			return "";
+		}
+		try {
+			String val = item.getStatusValue();
+			return val != null ? val : "";
+		} catch (Exception e) {
+			return item.getStatus() != null ? String.valueOf(item.getStatus()) : "";
 		}
 	}
 

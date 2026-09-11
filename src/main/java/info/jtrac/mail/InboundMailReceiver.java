@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -253,6 +254,7 @@ public class InboundMailReceiver {
         // 4. Phase 3: Map Phase - Per-ticket deep ingestion and intermediate staging
         File stagingFile = null;
         String stagedDigest = null;
+        Map<String, String> perTicketSummaries = new LinkedHashMap<>();
         try {
             File stagingDir = new File(jtrac.getJtracHome(), "temp/ai_staging");
             if (!stagingDir.exists()) {
@@ -261,7 +263,7 @@ public class InboundMailReceiver {
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date());
             stagingFile = new File(stagingDir, "jtrac_staging_" + user.getLoginName() + "_" + timestamp + ".md");
 
-            stagedDigest = processTicketsToStaging(ollamaClient, contextItems, subject, body, stagingFile);
+            stagedDigest = processTicketsToStaging(ollamaClient, contextItems, subject, body, stagingFile, perTicketSummaries);
         } catch (Exception e) {
             logger.warn("Failed during ticket staging creation: " + e.getMessage() + ", proceeding with raw context");
         }
@@ -288,7 +290,7 @@ public class InboundMailReceiver {
         }
 
         // 6. Send formatted HTML response and mark original message for deletion
-        mailSender.sendAiQueryResponse(senderEmail, subject, aiResponse, contextItems, userLocale, user.getSpaces());
+        mailSender.sendAiQueryResponse(senderEmail, subject, aiResponse, contextItems, perTicketSummaries, userLocale, user.getSpaces());
         msg.setFlag(Flags.Flag.DELETED, true);
         logger.info("Successfully answered query from {} and marked original message for deletion", senderEmail);
     }
@@ -299,6 +301,10 @@ public class InboundMailReceiver {
      * and returns the complete staged digest content.
      */
     protected String processTicketsToStaging(OllamaClient ollamaClient, List<Item> items, String querySubject, String queryBody, File stagingFile) {
+        return processTicketsToStaging(ollamaClient, items, querySubject, queryBody, stagingFile, null);
+    }
+
+    protected String processTicketsToStaging(OllamaClient ollamaClient, List<Item> items, String querySubject, String queryBody, File stagingFile, Map<String, String> perTicketSummaries) {
         StringBuilder stagingBuffer = new StringBuilder();
         stagingBuffer.append("# JTrac AI Query Staging Digest\n\n");
         stagingBuffer.append("- Inquiry Subject: ").append(querySubject != null ? querySubject : "").append("\n");
@@ -319,6 +325,10 @@ public class InboundMailReceiver {
                 } catch (Exception ex) {
                     logger.warn("Per-ticket LLM analysis failed for [{}], falling back to raw fields: {}", item.getRefId(), ex.getMessage());
                     summaryResult = buildFallbackTicketSummary(item);
+                }
+
+                if (perTicketSummaries != null && item.getRefId() != null && summaryResult != null) {
+                    perTicketSummaries.put(item.getRefId(), summaryResult.trim());
                 }
 
                 stagingBuffer.append("## Ticket #").append(index++).append(": [").append(item.getRefId()).append("] - ");
