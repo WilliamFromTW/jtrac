@@ -687,6 +687,7 @@ public class HibernateJtracDao implements JtracDao {
             ensureDefaultConfig(session, "llm.ollama.url", "http://localhost:11434");
             ensureDefaultConfig(session, "llm.ollama.model", "llama3.2");
             ensureDefaultConfig(session, "llm.ollama.timeout", "60");
+            ensureDefaultConfig(session, "llm.retrieval.max_tickets", "50");
 
             List<SpaceSequence> ssList = session.createQuery("from SpaceSequence", SpaceSequence.class).getResultList();
             Map<Long, SpaceSequence> ssMap = new HashMap<Long, SpaceSequence>(ssList.size());

@@ -81,6 +81,7 @@ public class Config implements Serializable {
         PARAMS.add("llm.ollama.model");
         PARAMS.add("llm.ollama.api.key");
         PARAMS.add("llm.ollama.timeout");
+        PARAMS.add("llm.retrieval.max_tickets");
 
         BOOLEAN_PARAMS = new LinkedHashSet<String>();
         BOOLEAN_PARAMS.add("mail.server.starttls.enable");
@@ -99,6 +100,7 @@ public class Config implements Serializable {
         NUMBER_PARAMS.add("mail.server.port");
         NUMBER_PARAMS.add("mail.inbound.server.port");
         NUMBER_PARAMS.add("llm.ollama.timeout");
+        NUMBER_PARAMS.add("llm.retrieval.max_tickets");
         NUMBER_PARAMS.add("attachment.maxsize");
         NUMBER_PARAMS.add("pwd.minLength");
         NUMBER_PARAMS.add("items.search.num");

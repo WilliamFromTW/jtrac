@@ -1,5 +1,7 @@
 package info.jtrac.mail;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.mail.util.MailSSLSocketFactory;
 import info.jtrac.Jtrac;
 import info.jtrac.domain.History;
@@ -26,6 +28,7 @@ import javax.mail.search.FlagTerm;
 import java.io.File;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -46,6 +49,12 @@ public class InboundMailReceiver {
 
     private static final Logger logger = LoggerFactory.getLogger(InboundMailReceiver.class);
     private static final Pattern REF_ID_PATTERN = Pattern.compile("(?i)\\b([A-Z0-9]+)-([0-9]+)\\b");
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Set<String> INJECTION_STOPWORDS = new HashSet<>(Arrays.asList(
+            "system", "prompt", "instruction", "instructions", "ignore", "jailbreak",
+            "untrusted_user_query", "untrusted_ticket_context", "roleplay", "assistant",
+            "password", "secret", "override", "bypass", "drop", "delete", "insert", "update"
+    ));
 
     private final Jtrac jtrac;
     private final MailSender mailSender;
@@ -207,10 +216,7 @@ public class InboundMailReceiver {
 
         logger.info("Processing authorized inquiry from user {} [{}] with subject '{}'", user.getLoginName(), senderEmail, subject);
 
-        // 2. Scoped ticket & attachment retrieval
-        List<Item> contextItems = retrieveAuthorizedTickets(user, subject, body);
-
-        // 3. Ollama synthesis
+        // Prepare Ollama client configuration
         String ollamaUrl = config.get("llm.ollama.url");
         String ollamaModel = config.get("llm.ollama.model");
         String ollamaApiKey = config.get("llm.ollama.api.key");
@@ -222,8 +228,25 @@ public class InboundMailReceiver {
             } catch (NumberFormatException ignored) {
             }
         }
-
         OllamaClient ollamaClient = new OllamaClient(ollamaUrl, ollamaModel, ollamaApiKey, timeout);
+
+        int maxTickets = 50;
+        String maxTicketsStr = config.get("llm.retrieval.max_tickets");
+        if (StringUtils.hasText(maxTicketsStr)) {
+            try {
+                maxTickets = Integer.parseInt(maxTicketsStr.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        // 2. Phase 1: LLM-driven query expansion (with graceful heuristic fallback)
+        List<String> keywords = extractKeywordsWithLlm(ollamaClient, subject, body);
+        logger.info("Extracted query expansion keywords: {}", keywords);
+
+        // 3. Phase 2: Programmatic hybrid weighted retrieval & ranking
+        List<Item> contextItems = retrieveAuthorizedTickets(user, subject, body, keywords, maxTickets);
+
+        // 4. Phase 3: Ollama synthesis
         String systemPrompt = OllamaPromptBuilder.buildSystemPrompt();
         String userPrompt = OllamaPromptBuilder.buildUserPrompt(subject, body, contextItems);
 
@@ -237,21 +260,168 @@ public class InboundMailReceiver {
             return;
         }
 
-        // 4. Send formatted HTML response and mark original message for deletion
+        // 5. Send formatted HTML response and mark original message for deletion
         mailSender.sendAiQueryResponse(senderEmail, subject, aiResponse, contextItems, userLocale, user.getSpaces());
         msg.setFlag(Flags.Flag.DELETED, true);
         logger.info("Successfully answered query from {} and marked original message for deletion", senderEmail);
     }
 
     /**
-     * Queries up to 20 relevant tickets within user's authorized spaces (both open and closed),
-     * and enriches tickets with comments and extracted attachment text.
+     * Phase 1: Invokes LLM to extract keywords in the query's original language and English translation/synonyms.
+     * Defensively parses JSON and falls back to heuristic tokenization if LLM is unavailable or fails.
      */
-    protected List<Item> retrieveAuthorizedTickets(User user, String subject, String body) {
-        Set<Long> matchedIds = new LinkedHashSet<>();
-        List<Item> resultItems = new ArrayList<>();
+    protected List<String> extractKeywordsWithLlm(OllamaClient ollamaClient, String subject, String body) {
+        try {
+            String systemPrompt = OllamaPromptBuilder.buildKeywordExtractionSystemPrompt();
+            String userPrompt = OllamaPromptBuilder.buildKeywordExtractionUserPrompt(subject, body);
+            String response = ollamaClient.chat(systemPrompt, userPrompt);
+            List<String> keywords = parseKeywordsFromJson(response);
+            if (keywords != null && !keywords.isEmpty()) {
+                return keywords;
+            }
+        } catch (Exception e) {
+            logger.warn("LLM keyword extraction failed or timed out, falling back to heuristic extraction: {}", e.getMessage());
+        }
+        return extractHeuristicKeywords(subject, body);
+    }
 
-        // Match explicit ticket reference IDs in subject or body (e.g. PROJ-123)
+    /**
+     * Parses the LLM JSON response {"keywords": ["kw1", "kw2", ...]} safely with Jackson.
+     */
+    protected List<String> parseKeywordsFromJson(String response) {
+        if (!StringUtils.hasText(response)) {
+            return Collections.emptyList();
+        }
+        try {
+            String jsonStr = response.trim();
+            if (jsonStr.contains("```json")) {
+                int start = jsonStr.indexOf("```json") + 7;
+                int end = jsonStr.indexOf("```", start);
+                if (end > start) {
+                    jsonStr = jsonStr.substring(start, end).trim();
+                }
+            } else if (jsonStr.contains("```")) {
+                int start = jsonStr.indexOf("```") + 3;
+                int end = jsonStr.indexOf("```", start);
+                if (end > start) {
+                    jsonStr = jsonStr.substring(start, end).trim();
+                }
+            }
+
+            int firstBrace = jsonStr.indexOf('{');
+            int lastBrace = jsonStr.lastIndexOf('}');
+            if (firstBrace >= 0 && lastBrace > firstBrace) {
+                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+            }
+
+            JsonNode root = objectMapper.readTree(jsonStr);
+            JsonNode keywordsNode = root.get("keywords");
+            if (keywordsNode != null && keywordsNode.isArray()) {
+                List<String> result = new ArrayList<>();
+                Set<String> seen = new HashSet<>();
+                for (JsonNode item : keywordsNode) {
+                    if (item != null && item.isTextual()) {
+                        String kw = item.asText().trim();
+                        kw = kw.replaceAll("^[\\\"'\\s.,;]+|[\\\"'\\s.,;]+$", "").trim();
+                        if (isValidKeyword(kw) && seen.add(kw.toLowerCase())) {
+                            result.add(kw);
+                        }
+                    }
+                }
+                return result;
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to parse keywords JSON from LLM: {}", e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Validates and sanitizes individual keyword candidate.
+     */
+    protected static boolean isValidKeyword(String kw) {
+        if (!StringUtils.hasText(kw)) {
+            return false;
+        }
+        String trimmed = kw.trim();
+        if (trimmed.length() < 1 || trimmed.length() > 50) {
+            return false;
+        }
+        if (trimmed.contains("\n") || trimmed.contains("\r") || trimmed.contains("<") || trimmed.contains(">") || trimmed.contains("{") || trimmed.contains("}")) {
+            return false;
+        }
+        if (INJECTION_STOPWORDS.contains(trimmed.toLowerCase())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Heuristic tokenization fallback extracting keywords from subject and body.
+     */
+    protected List<String> extractHeuristicKeywords(String subject, String body) {
+        List<String> keywords = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+
+        String cleanSubject = "";
+        if (StringUtils.hasText(subject)) {
+            cleanSubject = subject.replaceAll("(?i)\\b(re|fwd|fw):\\s*", "").trim();
+        }
+
+        if (StringUtils.hasText(cleanSubject)) {
+            for (String token : cleanSubject.split("[\\s,;:.!?，。！？\\[\\]()（）/\\\\]+")) {
+                String t = token.replaceAll("^[\\\"'\\s.,;]+|[\\\"'\\s.,;]+$", "").trim();
+                if (isValidKeyword(t) && seen.add(t.toLowerCase())) {
+                    keywords.add(t);
+                }
+            }
+        }
+
+        if (StringUtils.hasText(body)) {
+            String[] lines = body.split("\n");
+            for (String line : lines) {
+                String trimmed = line.trim();
+                if (trimmed.length() > 2 && !trimmed.startsWith(">") && !trimmed.startsWith("--")) {
+                    for (String token : trimmed.split("[\\s,;:.!?，。！？\\[\\]()（）/\\\\]+")) {
+                        String t = token.replaceAll("^[\\\"'\\s.,;]+|[\\\"'\\s.,;]+$", "").trim();
+                        if (isValidKeyword(t) && seen.add(t.toLowerCase())) {
+                            keywords.add(t);
+                            if (keywords.size() >= 10) {
+                                break;
+                            }
+                        }
+                    }
+                    if (keywords.size() >= 10) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return keywords;
+    }
+
+    /**
+     * Backward-compatible ticket retrieval delegating to expanded retrieval.
+     */
+    public List<Item> retrieveAuthorizedTickets(User user, String subject, String body) {
+        return retrieveAuthorizedTickets(user, subject, body, extractHeuristicKeywords(subject, body), 50);
+    }
+
+    /**
+     * Phase 2: Programmatic hybrid weighted retrieval & ranking.
+     * Searches up to maxTickets via Lucene, scores candidates based on keyword hits,
+     * rewards bilingual matches, and returns the top 20 tickets enriched with attachment content.
+     */
+    public List<Item> retrieveAuthorizedTickets(User user, String subject, String body, List<String> keywords, int maxTickets) {
+        if (maxTickets <= 0) {
+            maxTickets = 50;
+        }
+
+        Set<Long> matchedIds = new HashSet<>();
+        List<ItemCandidate> candidates = new ArrayList<>();
+
+        // 1. Match explicit ticket reference IDs in subject or body (e.g. PROJ-123)
         String combinedText = subject + " " + (body != null ? body : "");
         Matcher matcher = REF_ID_PATTERN.matcher(combinedText);
         while (matcher.find()) {
@@ -260,39 +430,144 @@ public class InboundMailReceiver {
                 Item item = jtrac.loadItemByRefId(refId);
                 if (item != null && (user.isSuperUser() || user.isAllocatedToSpace(item.getSpace().getId()))) {
                     if (matchedIds.add(item.getId())) {
-                        resultItems.add(item);
+                        candidates.add(new ItemCandidate(item, 100)); // Base 100 for exact RefId match
                     }
                 }
             } catch (Exception ignored) {
             }
         }
 
-        // Lucene full-text and space-scoped search
-        String searchQuery = extractSearchKeywords(subject, body);
-        ItemSearch itemSearch = new ItemSearch(user);
-        itemSearch.setPageSize(20);
+        // 2. Lucene full-text search across authorized spaces using expanded keywords
+        String searchQuery = (keywords != null && !keywords.isEmpty()) ? String.join(" ", keywords) : extractSearchKeywords(subject, body);
         if (StringUtils.hasText(searchQuery)) {
+            ItemSearch itemSearch = new ItemSearch(user);
+            itemSearch.setPageSize(maxTickets);
             itemSearch.setSearchText(searchQuery);
-        }
 
-        List<Item> searchItems = jtrac.findItems(itemSearch);
-        if (searchItems != null) {
-            for (Item item : searchItems) {
-                if (resultItems.size() >= 20) {
-                    break;
-                }
-                if (matchedIds.add(item.getId())) {
-                    resultItems.add(item);
+            List<Item> searchItems = jtrac.findItems(itemSearch);
+            if (searchItems != null) {
+                for (Item item : searchItems) {
+                    if (matchedIds.add(item.getId())) {
+                        candidates.add(new ItemCandidate(item, 0));
+                    }
                 }
             }
         }
 
-        // Enrich each item with full history and extracted attachment texts
-        for (Item item : resultItems) {
+        // 3. Score and rank candidates
+        List<String> effectiveKeywords = (keywords != null && !keywords.isEmpty())
+                ? keywords
+                : extractHeuristicKeywords(subject, body);
+
+        for (ItemCandidate candidate : candidates) {
+            calculateRelevanceScore(candidate, effectiveKeywords);
+        }
+
+        // Sort descending by score
+        candidates.sort((a, b) -> Integer.compare(b.score, a.score));
+
+        // 4. Select top candidates (up to 20) for LLM context, and enrich with attachment text
+        int topLimit = Math.min(20, candidates.size());
+        List<Item> resultItems = new ArrayList<>(topLimit);
+        for (int i = 0; i < topLimit; i++) {
+            Item item = candidates.get(i).item;
             enrichItemWithAttachmentText(item);
+            resultItems.add(item);
         }
 
         return resultItems;
+    }
+
+    protected void calculateRelevanceScore(ItemCandidate candidate, List<String> keywords) {
+        if (candidate == null || candidate.item == null || keywords == null || keywords.isEmpty()) {
+            return;
+        }
+        Item item = candidate.item;
+        String summary = item.getSummary() != null ? item.getSummary().toLowerCase() : "";
+        String detail = item.getDetail() != null ? item.getDetail().toLowerCase() : "";
+
+        StringBuilder commentsBuilder = new StringBuilder();
+        StringBuilder attachmentTextBuilder = new StringBuilder();
+        if (item.getHistory() != null) {
+            for (History h : item.getHistory()) {
+                if (h.getComment() != null) {
+                    commentsBuilder.append(" ").append(h.getComment().toLowerCase());
+                }
+                if (h.getAttachmentText() != null) {
+                    attachmentTextBuilder.append(" ").append(h.getAttachmentText().toLowerCase());
+                }
+            }
+        }
+        String comments = commentsBuilder.toString();
+        String attachments = attachmentTextBuilder.toString();
+
+        boolean hasAsciiMatch = false;
+        boolean hasNonAsciiMatch = false;
+
+        for (String kw : keywords) {
+            if (!StringUtils.hasText(kw)) {
+                continue;
+            }
+            String kwLower = kw.trim().toLowerCase();
+            boolean matched = false;
+
+            if (summary.contains(kwLower)) {
+                candidate.score += 3;
+                matched = true;
+            }
+            if (detail.contains(kwLower)) {
+                candidate.score += 1;
+                matched = true;
+            }
+            if (comments.contains(kwLower)) {
+                candidate.score += 1;
+                matched = true;
+            }
+            if (attachments.contains(kwLower)) {
+                candidate.score += 1;
+                matched = true;
+            }
+
+            if (matched) {
+                if (isPureAscii(kwLower)) {
+                    hasAsciiMatch = true;
+                } else {
+                    hasNonAsciiMatch = true;
+                }
+            }
+        }
+
+        // Mixed-language bonus: reward cross-lingual matches across original language and English
+        if (hasAsciiMatch && hasNonAsciiMatch) {
+            candidate.score += 5;
+        }
+    }
+
+    private static boolean isPureAscii(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) > 127) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected static class ItemCandidate {
+        final Item item;
+        int score;
+
+        public ItemCandidate(Item item, int score) {
+            this.item = item;
+            this.score = score;
+        }
+
+        public Item getItem() {
+            return item;
+        }
+
+        public int getScore() {
+            return score;
+        }
     }
 
     private void enrichItemWithAttachmentText(Item item) {

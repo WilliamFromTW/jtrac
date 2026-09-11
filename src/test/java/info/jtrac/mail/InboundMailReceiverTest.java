@@ -13,6 +13,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -181,5 +182,66 @@ public class InboundMailReceiverTest {
 
         assertTrue("Offline notice should be triggered", offlineNoticeSent.get());
         assertTrue("Processed message must be marked DELETED for expunging", msg.isSet(Flags.Flag.DELETED));
+    }
+
+    @Test
+    public void testParseKeywordsFromJsonNormal() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        String json = "{\"keywords\": [\"備份\", \"機制\", \"backup\", \"rule\"]}";
+        List<String> keywords = receiver.parseKeywordsFromJson(json);
+        assertEquals(4, keywords.size());
+        assertTrue(keywords.contains("備份"));
+        assertTrue(keywords.contains("backup"));
+    }
+
+    @Test
+    public void testParseKeywordsFromJsonWithMarkdownAndSurroundingText() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        String text = "Here are the extracted keywords:\n```json\n{\n  \"keywords\": [\"database\", \"connection\", \"pool\"]\n}\n```\nHope this helps!";
+        List<String> keywords = receiver.parseKeywordsFromJson(text);
+        assertEquals(3, keywords.size());
+        assertTrue(keywords.contains("database"));
+        assertTrue(keywords.contains("pool"));
+    }
+
+    @Test
+    public void testParseKeywordsFiltersInjectionStopwords() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        String attackJson = "{\"keywords\": [\"normal\", \"ignore\", \"system\", \"jailbreak\", \"prompt\", \"<script>alert(1)</script>\", \"drop\"]}";
+        List<String> keywords = receiver.parseKeywordsFromJson(attackJson);
+        assertTrue(keywords.contains("normal"));
+        assertFalse(keywords.contains("ignore"));
+        assertFalse(keywords.contains("system"));
+        assertFalse(keywords.contains("jailbreak"));
+        assertFalse(keywords.contains("prompt"));
+        assertFalse(keywords.contains("drop"));
+        assertFalse(keywords.contains("<script>alert(1)</script>"));
+    }
+
+    @Test
+    public void testExtractHeuristicKeywords() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        List<String> keywords = receiver.extractHeuristicKeywords("Re: [PROJ] 系統備份機制 backup rule", "請問自動備份的排程在哪裡設定？");
+        assertTrue(keywords.contains("系統備份機制"));
+        assertTrue(keywords.contains("backup"));
+        assertTrue(keywords.contains("rule"));
+    }
+
+    @Test
+    public void testCalculateRelevanceScoreAndBilingualBonus() {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+        Item item = new Item();
+        item.setSummary("Database 備份機制 與 backup strategy");
+        item.setDetail("Here is the detailed backup rule.");
+        InboundMailReceiver.ItemCandidate candidate = new InboundMailReceiver.ItemCandidate(item, 0);
+
+        List<String> keywords = Arrays.asList("備份", "backup", "rule");
+        receiver.calculateRelevanceScore(candidate, keywords);
+
+        // Summary hits: "備份" (+3), "backup" (+3) -> 6
+        // Detail hits: "backup" (+1), "rule" (+1) -> 2
+        // Mixed language bonus: has "備份" (non-ASCII) and "backup" (ASCII) -> +5
+        // Total score = 6 + 2 + 5 = 13
+        assertEquals(13, candidate.getScore());
     }
 }

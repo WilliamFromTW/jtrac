@@ -21,6 +21,7 @@ public class InboundConfigTest {
         assertTrue(Config.getParams().contains("llm.ollama.model"));
         assertTrue(Config.getParams().contains("llm.ollama.api.key"));
         assertTrue(Config.getParams().contains("llm.ollama.timeout"));
+        assertTrue(Config.getParams().contains("llm.retrieval.max_tickets"));
     }
 
     @Test
@@ -33,6 +34,7 @@ public class InboundConfigTest {
 
         assertTrue(Config.isNumber("mail.inbound.server.port"));
         assertTrue(Config.isNumber("llm.ollama.timeout"));
+        assertTrue(Config.isNumber("llm.retrieval.max_tickets"));
         assertFalse(Config.isNumber("llm.ollama.model"));
     }
 
@@ -45,6 +47,10 @@ public class InboundConfigTest {
         Config ollamaUrl = new Config("llm.ollama.url", "http://localhost:11434");
         assertFalse(ollamaUrl.isMailConfig());
         assertTrue(ollamaUrl.isLlmConfig());
+
+        Config retrievalLimit = new Config("llm.retrieval.max_tickets", "50");
+        assertFalse(retrievalLimit.isMailConfig());
+        assertTrue(retrievalLimit.isLlmConfig());
     }
 
     @Test
@@ -73,6 +79,7 @@ public class InboundConfigTest {
             "config.llm.ollama.model",
             "config.llm.ollama.api.key",
             "config.llm.ollama.timeout",
+            "config.llm.retrieval.max_tickets",
             "config.security.privacy.headers.enabled",
             "config.attachment.index.maxSizeMb",
             "config.attachment.index.maxChars",
