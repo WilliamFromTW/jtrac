@@ -69,10 +69,26 @@ public class Config implements Serializable {
         PARAMS.add("attachment.index.maxSizeMb");
         PARAMS.add("attachment.index.maxChars");
         PARAMS.add("security.privacy.headers.enabled");
+        PARAMS.add("mail.inbound.enabled");
+        PARAMS.add("mail.inbound.server.host");
+        PARAMS.add("mail.inbound.server.port");
+        PARAMS.add("mail.inbound.username");
+        PARAMS.add("mail.inbound.password");
+        PARAMS.add("mail.inbound.ssl.enable");
+        PARAMS.add("mail.inbound.starttls.enable");
+        PARAMS.add("mail.inbound.ssl.trust.all");
+        PARAMS.add("llm.ollama.url");
+        PARAMS.add("llm.ollama.model");
+        PARAMS.add("llm.ollama.api.key");
+        PARAMS.add("llm.ollama.timeout");
 
         BOOLEAN_PARAMS = new LinkedHashSet<String>();
         BOOLEAN_PARAMS.add("mail.server.starttls.enable");
 		BOOLEAN_PARAMS.add("mail.server.ssl.enable");
+        BOOLEAN_PARAMS.add("mail.inbound.enabled");
+        BOOLEAN_PARAMS.add("mail.inbound.ssl.enable");
+        BOOLEAN_PARAMS.add("mail.inbound.starttls.enable");
+        BOOLEAN_PARAMS.add("mail.inbound.ssl.trust.all");
         BOOLEAN_PARAMS.add("jtrac.edit.item");
         BOOLEAN_PARAMS.add("markdown.enabled");
         BOOLEAN_PARAMS.add("attachments.openNewWindow");
@@ -81,6 +97,8 @@ public class Config implements Serializable {
 
         NUMBER_PARAMS = new LinkedHashSet<String>();
         NUMBER_PARAMS.add("mail.server.port");
+        NUMBER_PARAMS.add("mail.inbound.server.port");
+        NUMBER_PARAMS.add("llm.ollama.timeout");
         NUMBER_PARAMS.add("attachment.maxsize");
         NUMBER_PARAMS.add("pwd.minLength");
         NUMBER_PARAMS.add("items.search.num");
@@ -131,6 +149,10 @@ public class Config implements Serializable {
     
     public boolean isLocaleConfig() {
         return param.startsWith("locale.");
+    }
+
+    public boolean isLlmConfig() {
+        return param != null && param.startsWith("llm.");
     }
 
     //==========================================================================

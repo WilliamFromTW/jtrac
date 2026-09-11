@@ -19,6 +19,7 @@ package info.jtrac.mail;
 import info.jtrac.Jtrac;
 import info.jtrac.domain.Item;
 import info.jtrac.domain.ItemUser;
+import info.jtrac.domain.Space;
 import info.jtrac.domain.User;
 import info.jtrac.util.ItemUtils;
 import info.jtrac.wicket.JtracApplication;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.mail.Header;
 import javax.mail.Session;
@@ -377,6 +379,135 @@ public class MailSender {
 			identity = from;
 
 		logger.info("email sender initialized from config: host = '" + host + "', port = '" + p + "'");
+	}
+
+	public void sendAiQueryResponse(String toEmail, String originalSubject, String aiContent, List<Item> referencedItems, Locale locale, Set<Space> spaces) {
+		if (sender == null) {
+			logger.debug("mail sender is null, not sending AI query response");
+			return;
+		}
+		if (toEmail == null || toEmail.trim().isEmpty() || "no".equalsIgnoreCase(toEmail.trim())) {
+			logger.warn("Invalid recipient email for AI query response: " + toEmail);
+			return;
+		}
+		if (locale == null) {
+			locale = defaultLocale;
+		}
+
+		logger.debug("Preparing AI query response email to " + toEmail);
+		try {
+			MimeMessage message = sender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+			helper.setTo(toEmail);
+			helper.setFrom(from);
+			helper.setSentDate(new Date());
+
+			String prefix = messageSource.getMessage("mail.ai_query.subject_prefix", null, "Re: ", locale);
+			String cleanSub = (originalSubject != null) ? originalSubject.trim() : "";
+			String subject = cleanSub.toLowerCase().startsWith("re:") ? cleanSub : prefix + cleanSub;
+			helper.setSubject(subject);
+
+			// Render AI content from Markdown to HTML
+			String renderedAi = ItemUtils.renderMarkdown(aiContent);
+			if (spaces != null && !spaces.isEmpty()) {
+				renderedAi = ItemUtils.autolinkTickets(url, renderedAi, spaces);
+			}
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #24292e; line-height: 1.6;'>");
+			sb.append("<div style='border-bottom: 2px solid #0366d6; padding-bottom: 12px; margin-bottom: 20px;'>");
+			sb.append("<h2 style='margin: 0; color: #0366d6; font-size: 20px;'>\uD83E\uDD16 JTrac AI \u67e5\u8a62\u79d8\u66f8\u7d9c\u6574\u5831\u544a / AI Query Copilot Report</h2>");
+			sb.append("</div>");
+
+			sb.append("<div style='background-color: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 18px; margin-bottom: 24px;'>");
+			sb.append(renderedAi != null ? renderedAi : "");
+			sb.append("</div>");
+
+			if (referencedItems != null && !referencedItems.isEmpty()) {
+				sb.append("<div style='margin-top: 24px;'>");
+				sb.append("<h3 style='font-size: 16px; color: #333; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 6px;'>");
+				sb.append("\uD83D\uDCCB \u53c3\u8003\u5de5\u55ae\u6e05\u55ae / Referenced Tickets (").append(referencedItems.size()).append(")");
+				sb.append("</h3>");
+				sb.append("<table style='width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;'>");
+				sb.append("<thead><tr style='background-color: #f1f3f5;'>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 120px;'>ID</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd;'>Summary</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 90px;'>Status</th>");
+				sb.append("<th style='padding: 8px 12px; border: 1px solid #ddd; width: 140px;'>Space</th>");
+				sb.append("</tr></thead><tbody>");
+
+				for (Item item : referencedItems) {
+					String itemUrl = url + "app/item/" + item.getRefId();
+					sb.append("<tr>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd; font-weight: bold;'>");
+					sb.append("<a href='").append(itemUrl).append("' style='color: #0366d6; text-decoration: none;'>").append(item.getRefId()).append("</a>");
+					sb.append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getSummary() != null ? item.getSummary() : "").append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getStatusValue()).append("</td>");
+					sb.append("<td style='padding: 8px 12px; border: 1px solid #ddd;'>").append(item.getSpace() != null ? item.getSpace().getName() : "").append("</td>");
+					sb.append("</tr>");
+				}
+				sb.append("</tbody></table></div>");
+			}
+
+			sb.append("<div style='margin-top: 30px; padding-top: 12px; border-top: 1px solid #eaecef; font-size: 12px; color: #6a737d; text-align: center;'>");
+			sb.append("\u672c\u90f5\u4ef6\u7531 JTrac \u90f5\u4ef6 AI \u67e5\u8a62\u79d8\u66f8\u81ea\u52d5\u7522\u751f\u8207\u56de\u8986\u3002<br>");
+			sb.append("<a href='").append(url).append("' style='color: #0366d6; text-decoration: none;'>").append(url).append("</a>");
+			sb.append("</div>");
+			sb.append("</div>");
+
+			helper.setText(addHeaderAndFooter(new StringBuffer(sb.toString())), true);
+			sendInNewThread(message);
+		} catch (Exception e) {
+			logger.error("Failed to prepare and send AI query response e-mail", e);
+		}
+	}
+
+	public void sendAiOfflineNotice(String toEmail, String originalSubject, Locale locale) {
+		if (sender == null) {
+			logger.debug("mail sender is null, not sending AI offline notice");
+			return;
+		}
+		if (toEmail == null || toEmail.trim().isEmpty() || "no".equalsIgnoreCase(toEmail.trim())) {
+			logger.warn("Invalid recipient email for AI offline notice: " + toEmail);
+			return;
+		}
+		if (locale == null) {
+			locale = defaultLocale;
+		}
+
+		logger.debug("Preparing AI offline notice email to " + toEmail);
+		try {
+			MimeMessage message = sender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+			helper.setTo(toEmail);
+			helper.setFrom(from);
+			helper.setSentDate(new Date());
+
+			String subject = messageSource.getMessage("mail.ai_query.offline_notice_subject", null,
+					"[JTrac AI] Service Offline or Request Timed Out", locale);
+			helper.setSubject(subject);
+
+			String noticeBody = messageSource.getMessage("mail.ai_query.offline_notice_body", null,
+					"The local AI query service is currently offline or timed out. Please try again later or contact your system administrator.", locale);
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #24292e;'>");
+			sb.append("<div style='background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; padding: 18px; color: #856404;'>");
+			sb.append("<h3 style='margin-top: 0; color: #856404;'>\u26A0\uFE0F ").append(subject).append("</h3>");
+			sb.append("<p style='font-size: 14px;'>").append(noticeBody).append("</p>");
+			if (originalSubject != null && !originalSubject.trim().isEmpty()) {
+				sb.append("<hr style='border: 0; border-top: 1px solid #ffeeba; margin: 15px 0;'>");
+				sb.append("<p style='font-size: 12px; color: #6c757d; margin-bottom: 0;'>Original Subject: ").append(originalSubject.trim()).append("</p>");
+			}
+			sb.append("</div>");
+			sb.append("</div>");
+
+			helper.setText(addHeaderAndFooter(new StringBuffer(sb.toString())), true);
+			sendInNewThread(message);
+		} catch (Exception e) {
+			logger.error("Failed to prepare and send AI offline notice e-mail", e);
+		}
 	}
 
 }

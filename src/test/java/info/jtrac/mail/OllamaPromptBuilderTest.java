@@ -1,0 +1,82 @@
+package info.jtrac.mail;
+
+import info.jtrac.domain.Attachment;
+import info.jtrac.domain.History;
+import info.jtrac.domain.Item;
+import info.jtrac.domain.Space;
+import info.jtrac.domain.User;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
+public class OllamaPromptBuilderTest {
+
+    @Test
+    public void testBuildSystemPrompt() {
+        String sysPrompt = OllamaPromptBuilder.buildSystemPrompt();
+        assertNotNull(sysPrompt);
+        assertTrue(sysPrompt.contains("JTrac AI Query Copilot"));
+        assertTrue(sysPrompt.contains("[PROJ-123]"));
+    }
+
+    @Test
+    public void testBuildUserPromptWithEmptyItems() {
+        String prompt = OllamaPromptBuilder.buildUserPrompt("Server outage", "Why is the database down?", Collections.emptyList());
+        assertTrue(prompt.contains("Subject: Server outage"));
+        assertTrue(prompt.contains("Content:\nWhy is the database down?"));
+        assertTrue(prompt.contains("No matching tickets found within the user's authorized spaces."));
+    }
+
+    @Test
+    public void testBuildUserPromptWithTicketsAndAttachments() {
+        Space space = new Space();
+        space.setPrefixCode("PROJ");
+        space.setName("Project Alpha");
+
+        User userAlice = new User();
+        userAlice.setName("Alice");
+        User userBob = new User();
+        userBob.setName("Bob");
+
+        Item item = new Item();
+        item.setSpace(space);
+        item.setSequenceNum(101);
+        item.setSummary("Database connection pool exhausted");
+        item.setDetail("HikariCP reached max connection pool size of 20.");
+        item.setStatus(1); // Open
+        item.setLoggedBy(userAlice);
+        item.setAssignedTo(userBob);
+
+        History h1 = new History();
+        h1.setLoggedBy(userBob);
+        h1.setComment("Increased maximumPoolSize to 50 in production config.");
+        item.add(h1);
+
+        History h2 = new History();
+        Attachment att = new Attachment();
+        att.setFileName("error_stacktrace.log");
+        h2.setAttachment(att);
+        h2.setAttachmentText("ConnectionTimeoutException: Connection is not available, request timed out after 30005ms.");
+        item.add(h2);
+
+        List<Item> items = new ArrayList<>();
+        items.add(item);
+
+        String prompt = OllamaPromptBuilder.buildUserPrompt("Hikari issue", "How was the db pool fixed?", items);
+
+        assertTrue(prompt.contains("Subject: Hikari issue"));
+        assertTrue(prompt.contains("--- Ticket #1: [PROJ-101] ---"));
+        assertTrue(prompt.contains("Space: Project Alpha (PROJ)"));
+        assertTrue(prompt.contains("Summary: Database connection pool exhausted"));
+        assertTrue(prompt.contains("Reported By: Alice"));
+        assertTrue(prompt.contains("Assigned To: Bob"));
+        assertTrue(prompt.contains("HikariCP reached max connection pool size of 20."));
+        assertTrue(prompt.contains("Bob: Increased maximumPoolSize to 50"));
+        assertTrue(prompt.contains("[Attachment Document Content: error_stacktrace.log]"));
+        assertTrue(prompt.contains("ConnectionTimeoutException"));
+    }
+}

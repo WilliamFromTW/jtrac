@@ -77,6 +77,7 @@ public interface Jtrac extends UserDetailsService {
     void removeUser(User user);
     User loadUser(long id);
     User loadUser(String loginName);
+    User findUserByEmail(String email);
     List<User> findAllUsers();
     List<User> findUsersWhereIdIn(List<Long> ids);
     List<User> findUsersMatching(String searchText, String searchOn);

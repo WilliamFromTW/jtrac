@@ -38,6 +38,7 @@ import info.jtrac.domain.User;
 import info.jtrac.domain.UserSpaceRole;
 import info.jtrac.lucene.IndexSearcher;
 import info.jtrac.lucene.Indexer;
+import info.jtrac.mail.InboundMailReceiver;
 import info.jtrac.mail.MailSender;
 import info.jtrac.tools.HsqldbDatabaseMigrator;
 import info.jtrac.util.AttachmentStorageMigrator;
@@ -755,6 +756,23 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         return users.get(0);
     }
 
+    public User findUserByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        List<User> users = dao.findUsersByEmail(email.trim());
+        if (users == null || users.isEmpty()) {
+            return null;
+        }
+        User user = users.get(0);
+        for (Space s : findSpacesWhereGuestAllowed()) {
+            if (!user.getSpaces().contains(s)) {
+                user.addSpaceWithRole(s, Role.ROLE_GUEST);
+            }
+        }
+        return user;
+    }
+
     public void storeUser(User user) {
         user.clearNonPersistentRoles();
         dao.storeUser(user);
@@ -1178,9 +1196,34 @@ public class JtracImpl implements Jtrac, org.springframework.context.Application
         logger.debug("hourly task called");
     }
 
+    private InboundMailReceiver inboundMailReceiver;
+
+    public void setInboundMailReceiver(InboundMailReceiver inboundMailReceiver) {
+        this.inboundMailReceiver = inboundMailReceiver;
+    }
+
+    public InboundMailReceiver getInboundMailReceiver() {
+        if (inboundMailReceiver == null) {
+            inboundMailReceiver = new InboundMailReceiver(getJtracProxy(), mailSender);
+        }
+        return inboundMailReceiver;
+    }
+
     /* configured to be called every five minutes */
     public void executePollingTask() {
         logger.debug("polling task called");
+        try {
+            String inboundEnabled = loadConfig("mail.inbound.enabled");
+            if ("true".equalsIgnoreCase(inboundEnabled)) {
+                logger.info("Executing inbound mail AI query polling task...");
+                int processed = getInboundMailReceiver().receiveAndProcess();
+                if (processed > 0) {
+                    logger.info("Inbound mail polling task processed {} messages", processed);
+                }
+            }
+        } catch (Throwable t) {
+            logger.error("Error executing inbound mail polling task: " + t.getMessage(), t);
+        }
     }
 
     //==========================================================================
