@@ -118,6 +118,9 @@ public class OllamaPromptBuilderTest {
         assertTrue(sysPrompt.contains("JTrac Ticket Analysis Specialist"));
         assertTrue(sysPrompt.contains("Core Problem / Subject"));
         assertTrue(sysPrompt.contains("Attachment Findings"));
+        assertTrue(sysPrompt.contains("MERMAID DIAGRAM RULES"));
+        assertTrue(sysPrompt.contains("flowchart TD"));
+        assertTrue(sysPrompt.contains("double quotes"));
         assertTrue(sysPrompt.contains("CRITICAL SECURITY AND ANTI-INJECTION DIRECTIVES"));
 
         Space space = new Space();
@@ -157,6 +160,9 @@ public class OllamaPromptBuilderTest {
         assertTrue(sysPrompt.contains("核心解答摘要 (Executive Summary)"));
         assertTrue(sysPrompt.contains("各工單關鍵發現與解法 (Key Findings & Resolution)"));
         assertTrue(sysPrompt.contains("建議行動方案 (Next Actions & Recommendations)"));
+        assertTrue(sysPrompt.contains("WORKFLOW AND MERMAID DIAGRAM RULES"));
+        assertTrue(sysPrompt.contains("flowchart TD"));
+        assertTrue(sysPrompt.contains("double quotes"));
 
         String stagedText = "## Ticket #1: [PROJ-555]\n- Core Problem: deadlock\n- Resolution: tuned isolation level\n- Attachment Findings: none";
         String userPrompt = OllamaPromptBuilder.buildFinalSynthesisUserPrompt("Inquiry", "What caused the deadlock?", stagedText);

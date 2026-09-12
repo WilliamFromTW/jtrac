@@ -56,6 +56,10 @@ Building upon the core modernization of 2.0.0, JTrac 2.3.3-2.1.0-beta introduces
    - **Modern Design**: Crisp table borders (`border-collapse: collapse`), native `<details>` expandable cards, dark/light theme switching (`@media prefers-color-scheme: dark`), and print expansion.
 5. **Multilingual Prompt Engineering Guide & 4 Real-world Examples**:
    - Published comprehensive practical guides [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_en.md) across 8 languages.
+6. **Ticket Space Grouping, ID DESC Sorting & 100% Air-gapped Offline Mermaid.js Integration**:
+   - **Space-Grouped Sub-tables & Newest-First ID DESC Ordering**: Overhauled email summary tables and HTML dossier reports to group candidate tickets into individual sub-tables per authorized Space with ticket count headers. Tickets inside each Space are strictly sorted by ticket ID descending (`ID DESC`); email notifications remain clean and professional without noisy Mermaid disclaimers.
+   - **100% Self-Contained Offline Mermaid.js Engine**: Packaged the full UMD bundle of Mermaid.js (v10.9.1) into the Java Classpath and directly embedded it inside generated HTML reports, completely eliminating external CDN network dependencies. Includes automatic dark/light theme switching (`prefers-color-scheme`) and try-catch syntax fallback rendering.
+   - **Two-Tier Flowchart Prompts with Double-Quote Guardrails**: Enforced Mermaid `flowchart TD/LR` generation across both the Map phase (per-ticket troubleshooting workflows) and Reduce phase (executive summary & next actions), mandating double-quoted node labels (e.g. `A["Node text"]`) to prevent syntax breaks.
 
 ---
 

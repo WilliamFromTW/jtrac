@@ -56,6 +56,10 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心现代化架构的基础上，引进了�
    - **现代化设计**：清晰表格边框（`border-collapse: collapse; border: 1px solid`）、原生 `<details>` 折叠卡片、自动深浅色模式（`@media prefers-color-scheme: dark`）、打印全展开模式（`@media print`）。
 5. **完整多语言 Prompt 指南与 4 大实战范例**：
    - 建立 8 种语言实战指南 [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_zh-CN.md)。
+6. **工单空间分组、ID 倒序排列与 100% 离线 Mermaid 流程图引擎 (Space Grouping, ID DESC & Offline Mermaid.js)**：
+   - **空间分组与新到旧倒序 (Space-Grouped Sub-tables & ID DESC)**：全面重构 AI 邮件回复速览与 HTML 诊断报告，依授权项目空间（Space）划分独立子表格展示（附工单总数），各空间内部按工单编号（ID DESC）严格由新到旧倒序排列；邮件正文保持极简专业，不追加多余 Mermaid 警语。
+   - **100% 离线纯本地 Mermaid.js 流程图引擎 (Air-gapped Offline Mermaid Rendering)**：将完整版 Mermaid.js (v10.9.1) 内嵌至 Classpath 并直接注入 HTML 报告，彻底摆脱外部 CDN 网络依赖；具备系统深浅色主题自适应（`prefers-color-scheme`）与语法错误容错降级机制，保证封闭隔离内网环境皆能完美浏览。
+   - **双层级 Prompt 流程图硬约束 (Two-Tier Flowchart Prompts with Quote Guardrails)**：于 Map 阶段（单工单深入排查）及 Reduce 阶段（全局核心解答与行动方案）明确要求输出标准 `flowchart TD/LR` 流程图，并强制所有节点文本加上双引号防呆，避免特殊符号导致渲染中断。
 
 ---
 

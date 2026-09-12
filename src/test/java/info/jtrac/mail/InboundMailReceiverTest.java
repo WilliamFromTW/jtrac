@@ -298,4 +298,67 @@ public class InboundMailReceiverTest {
         boolean deleted = tempStaging.delete();
         assertTrue(deleted);
     }
+
+    @Test
+    public void testProcessTicketsToStagingWithMultiSpaceOrdering() throws Exception {
+        InboundMailReceiver receiver = new InboundMailReceiver(null, null);
+
+        Space spaceA = new Space();
+        spaceA.setPrefixCode("AAA");
+        spaceA.setName("App Alpha");
+
+        Space spaceZ = new Space();
+        spaceZ.setPrefixCode("ZZZ");
+        spaceZ.setName("Zeta Core");
+
+        Item i1 = new Item();
+        i1.setId(10L);
+        i1.setSequenceNum(10);
+        i1.setSpace(spaceZ);
+        i1.setSummary("Zeta low issue");
+
+        Item i2 = new Item();
+        i2.setId(99L);
+        i2.setSequenceNum(99);
+        i2.setSpace(spaceZ);
+        i2.setSummary("Zeta high issue");
+
+        Item i3 = new Item();
+        i3.setId(5L);
+        i3.setSequenceNum(5);
+        i3.setSpace(spaceA);
+        i3.setSummary("Alpha low issue");
+
+        Item i4 = new Item();
+        i4.setId(50L);
+        i4.setSequenceNum(50);
+        i4.setSpace(spaceA);
+        i4.setSummary("Alpha high issue");
+
+        // Intentionally mixed order
+        List<Item> unsorted = Arrays.asList(i1, i2, i3, i4);
+        List<Item> sorted = MailSender.sortItemsBySpaceAndIdDesc(unsorted);
+
+        File tempStaging = File.createTempFile("test_multispace_", ".md");
+        tempStaging.deleteOnExit();
+
+        String staged = receiver.processTicketsToStaging(null, sorted, "Multi-space query", "Details", tempStaging);
+
+        // Verify order in digest: AAA-50, AAA-5, ZZZ-99, ZZZ-10
+        int idxA50 = staged.indexOf("[AAA-50]");
+        int idxA5 = staged.indexOf("[AAA-5]");
+        int idxZ99 = staged.indexOf("[ZZZ-99]");
+        int idxZ10 = staged.indexOf("[ZZZ-10]");
+
+        assertTrue("AAA-50 must exist", idxA50 >= 0);
+        assertTrue("AAA-5 must exist", idxA5 >= 0);
+        assertTrue("ZZZ-99 must exist", idxZ99 >= 0);
+        assertTrue("ZZZ-10 must exist", idxZ10 >= 0);
+
+        assertTrue("AAA-50 should appear before AAA-5", idxA50 < idxA5);
+        assertTrue("AAA-5 should appear before ZZZ-99", idxA5 < idxZ99);
+        assertTrue("ZZZ-99 should appear before ZZZ-10", idxZ99 < idxZ10);
+
+        tempStaging.delete();
+    }
 }

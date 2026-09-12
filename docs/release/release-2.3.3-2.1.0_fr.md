@@ -52,6 +52,10 @@ Dans la continuité de la modernisation architecturale 2.0.0, JTrac 2.3.3-2.1.0-
    - **Rapport HTML autonome** : Généré en mémoire vive via `ByteArrayResource` (< 3ms, zéro I/O disque).
    - **Design contemporain** : Bordures de tableau précises, cartes dépliantes `<details>`, mode sombre automatique et mise en page d'impression complète.
 5. **Guide de Prompts en 8 langues** : Consulter [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_fr.md).
+6. **Regroupement par Space, tri ID décroissant et intégration de Mermaid.js 100% hors ligne** :
+   - **Sous-tableaux regroupés par Space & Tri du plus récent au plus ancien (ID DESC)** : Refonte des tableaux de synthèse par e-mail et des rapports HTML pour regrouper les tickets par espace de projet (Space) avec décompte ; au sein de chaque Space, les tickets sont triés par ID décroissant (`ID DESC`). Le corps de l'e-mail demeure épuré sans avertissement superflu sur Mermaid.
+   - **Moteur Mermaid.js autonome 100% hors ligne** : Intégration du bundle complet de Mermaid.js (v10.9.1) dans le Classpath et injection directe dans le rapport HTML, éliminant toute dépendance aux CDN externes. Comprend l'adaptation automatique aux thèmes sombre/clair et un mécanisme de repli tolérant aux erreurs de syntaxe.
+   - **Directives de diagrammes Mermaid à 2 niveaux avec protection par guillemets** : Production obligatoire de diagrammes `flowchart TD/LR` lors de la phase Map (flux de dépannage) et de la phase Reduce (synthèse et recommandations), avec mise entre guillemets doubles stricte des libellés de nœuds.
 
 ---
 

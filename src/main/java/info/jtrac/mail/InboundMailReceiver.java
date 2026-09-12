@@ -250,6 +250,7 @@ public class InboundMailReceiver {
 
         // 3. Phase 2: Programmatic hybrid weighted retrieval & ranking (select top 10~15 candidates)
         List<Item> contextItems = retrieveAuthorizedTickets(user, subject, body, keywords, maxTickets);
+        contextItems = MailSender.sortItemsBySpaceAndIdDesc(contextItems);
 
         // 4. Phase 3: Map Phase - Per-ticket deep ingestion and intermediate staging
         File stagingFile = null;

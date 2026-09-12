@@ -52,6 +52,10 @@ Aufbauend auf der Architekturmodernisierung von Version 2.0.0 führt JTrac 2.3.3
    - **Vollständiger HTML-Anhang**: Direkt im Speicher via `ByteArrayResource` erzeugt (< 3ms, null Platten-I/O).
    - **Modernes Design**: Klare Tabellenrahmen, aufklappbare `<details>`-Karten, automatische Dark-Mode-Anpassung und druckoptimiertes Layout.
 5. **Mehrsprachiger Prompt-Leitfaden mit Praxisbeispielen**: Bereitstellung von [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_de.md) in 8 Sprachen.
+6. **Ticket-Gruppierung nach Space, ID-Abwärtssortierung & 100% Offline-Mermaid.js-Integration**:
+   - **Space-spezifische Untertabellen & Neueste-zuerst-Sortierung (ID DESC)**: Überarbeitung der E-Mail-Vorschautabelle und des HTML-Berichts zur Gruppierung der Tickets nach Projektbereich (Space) mit Ticketanzahl. Innerhalb jedes Spaces werden Tickets strikt nach Ticket-ID absteigend sortiert (`ID DESC`). Der E-Mail-Text bleibt aufgeräumt ohne störende Mermaid-Warnhinweise.
+   - **Vollständig autarke Offline-Mermaid.js-Engine**: Einbettung des vollständigen Mermaid.js-Bundles (v10.9.1) in den Classpath und direkte Injektion in den HTML-Bericht, wodurch externe CDN-Aufrufe komplett entfallen. Inklusive automatischer Theme-Anpassung (Dark/Light) und fehlertoleranter Syntax-Behandlung.
+   - **Zweistufige Flowchart-Prompt-Regeln mit Anführungszeichen-Absicherung**: Verbindliche Vorgabe zur Erstellung von `flowchart TD/LR`-Diagrammen sowohl in der Map-Phase (Fehlerbehebungsabläufe) als auch in der Reduce-Phase (Gesamtfazit & Handlungsempfehlungen), mit zwingender Kapselung von Knotentexten in doppelte Anführungszeichen.
 
 ---
 

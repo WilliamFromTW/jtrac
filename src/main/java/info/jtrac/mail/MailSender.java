@@ -25,11 +25,14 @@ import info.jtrac.util.ItemUtils;
 import info.jtrac.wicket.JtracApplication;
 import org.apache.wicket.Application;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,7 +67,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MailSender {
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private static final Logger logger = LoggerFactory.getLogger(MailSender.class);
 
 	private JavaMailSenderImpl sender;
 	private String prefix;
@@ -450,32 +453,51 @@ public class MailSender {
 			sb.append("(Full analysis, ticket diagnoses, and recommendations are compiled into the attached standalone HTML report. Please open the attachment in your browser for the best reading experience.)");
 			sb.append("</div></div></div>");
 
-			// Referenced Tickets List
+			// Referenced Tickets List (Grouped by Space and ID DESC)
 			if (referencedItems != null && !referencedItems.isEmpty()) {
+				Map<Space, List<Item>> grouped = groupItemsBySpace(referencedItems);
 				sb.append("<div style='margin-top: 24px;'>");
 				sb.append("<h3 style='font-size: 15px; color: #24292e; margin-bottom: 12px;'>");
 				sb.append("\uD83D\uDCCB \u95dc\u806f\u5de5\u55ae\u901f\u89bd / Referenced Tickets (").append(referencedItems.size()).append(")");
 				sb.append("</h3>");
-				sb.append("<table style='width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;'>");
-				sb.append("<thead><tr style='background-color: #f6f8fa;'>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 120px;'>ID</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de;'>Summary</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 90px;'>Status</th>");
-				sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 140px;'>Space</th>");
-				sb.append("</tr></thead><tbody>");
 
-				for (Item item : referencedItems) {
-					String itemUrl = url + "app/item/" + item.getRefId();
-					sb.append("<tr>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de; font-weight: bold;'>");
-					sb.append("<a href='").append(itemUrl).append("' style='color: #0969da; text-decoration: none;'>").append(escapeHtml(item.getRefId())).append("</a>");
-					sb.append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(escapeHtml(item.getSummary())).append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(escapeHtml(safeGetStatus(item))).append("</td>");
-					sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</td>");
-					sb.append("</tr>");
+				for (Map.Entry<Space, List<Item>> entry : grouped.entrySet()) {
+					Space sp = entry.getKey();
+					List<Item> spItems = entry.getValue();
+					String spName = sp.getName() != null ? sp.getName() : sp.getPrefixCode();
+					String spPrefix = sp.getPrefixCode() != null ? sp.getPrefixCode() : "";
+
+					sb.append("<div style='margin-bottom: 20px;'>");
+					sb.append("<div style='font-size: 13px; font-weight: 600; color: #0969da; margin-bottom: 8px; padding: 6px 12px; background-color: #f0f7ff; border-left: 3px solid #0969da; border-radius: 4px;'>");
+					sb.append("\uD83D\uDCC1 \u5c08\u6848\u7a7a\u9593 (Space): ").append(escapeHtml(spName));
+					if (!spPrefix.isEmpty() && !spPrefix.equalsIgnoreCase(spName)) {
+						sb.append(" (").append(escapeHtml(spPrefix)).append(")");
+					}
+					sb.append(" \u2014 \u5171 ").append(spItems.size()).append(" \u5f35\u5de5\u55ae (Tickets)");
+					sb.append("</div>");
+
+					sb.append("<table style='width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; margin-bottom: 12px;'>");
+					sb.append("<thead><tr style='background-color: #f6f8fa;'>");
+					sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 120px;'>ID</th>");
+					sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de;'>Summary</th>");
+					sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 90px;'>Status</th>");
+					sb.append("<th style='padding: 8px 12px; border: 1px solid #d0d7de; width: 110px;'>Logged By</th>");
+					sb.append("</tr></thead><tbody>");
+
+					for (Item item : spItems) {
+						String itemUrl = url + "app/item/" + item.getRefId();
+						sb.append("<tr>");
+						sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de; font-weight: bold;'>");
+						sb.append("<a href='").append(itemUrl).append("' style='color: #0969da; text-decoration: none;'>").append(escapeHtml(item.getRefId())).append("</a>");
+						sb.append("</td>");
+						sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(escapeHtml(item.getSummary())).append("</td>");
+						sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'><span style='display: inline-block; padding: 2px 6px; font-size: 11px; font-weight: 500; border-radius: 10px; background-color: #ddf4ff; color: #0969da; border: 1px solid #54aeff66;'>").append(escapeHtml(safeGetStatus(item))).append("</span></td>");
+						sb.append("<td style='padding: 8px 12px; border: 1px solid #d0d7de;'>").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</td>");
+						sb.append("</tr>");
+					}
+					sb.append("</tbody></table></div>");
 				}
-				sb.append("</tbody></table></div>");
+				sb.append("</div>");
 			} else {
 				sb.append("<p style='font-size: 14px; color: #666;'>\u67e5\u7121\u7b26\u5408\u60a8\u6388\u6b0a\u5c08\u6848\u7a7a\u9593\u5167\u7684\u76f8\u95dc\u5de5\u55ae\u3002 / No matching tickets found within your authorized spaces.</p>");
 			}
@@ -637,6 +659,19 @@ public class MailSender {
 		html.append("  background-color: var(--code-bg); padding: 2px 5px; border-radius: 4px;\n");
 		html.append("  font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 85%;\n");
 		html.append("}\n");
+		html.append(".space-block { margin-bottom: 24px; }\n");
+		html.append(".space-header {\n");
+		html.append("  font-size: 14px; font-weight: 600; color: var(--primary-color);\n");
+		html.append("  background-color: var(--table-header-bg); padding: 8px 14px;\n");
+		html.append("  border-left: 4px solid var(--primary-color); border-radius: 4px;\n");
+		html.append("  margin-bottom: 8px; border: 1px solid var(--border-color); border-left-width: 4px;\n");
+		html.append("}\n");
+		html.append(".mermaid-wrapper {\n");
+		html.append("  margin: 18px 0; padding: 16px; background-color: var(--details-bg);\n");
+		html.append("  border: 1px solid var(--border-color); border-radius: 8px;\n");
+		html.append("  overflow-x: auto; text-align: center;\n");
+		html.append("}\n");
+		html.append(".mermaid-wrapper svg { max-width: 100%; height: auto; }\n");
 		html.append(".footer {\n");
 		html.append("  margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border-color);\n");
 		html.append("  font-size: 12px; color: var(--text-muted); text-align: center;\n");
@@ -656,172 +691,242 @@ public class MailSender {
 
 		// Header
 		html.append("<header class='header'>\n");
-		html.append("  <div class='header-badge'>\uD83E\uDD16 JTrac AI Copilot</div>\n");
-		html.append("  <h1>AI \u67e5\u8a62\u5206\u6790\u5831\u544a / AI Query Analysis Report</h1>\n");
+		html.append("  <div class='header-badge'>🤖 JTrac AI Copilot</div>\n");
+		html.append("  <h1>AI 查詢分析報告 / AI Query Analysis Report</h1>\n");
 		html.append("  <div class='header-meta'>\n");
-		html.append("    <span><strong>\u67e5\u8a62\u4e3b\u65e8 / Query:</strong> ").append(escapeHtml(originalSubject)).append("</span>\n");
-		html.append("    <span><strong>\u751f\u6210\u6642\u9593 / Generated:</strong> ").append(genDateStr).append("</span>\n");
-		html.append("    <span><strong>\u5206\u6790\u5de5\u55ae\u6578 / Tickets:</strong> ").append(ticketCount).append("</span>\n");
+		html.append("    <span><strong>查詢主旨 / Query:</strong> ").append(escapeHtml(originalSubject)).append("</span>\n");
+		html.append("    <span><strong>生成時間 / Generated:</strong> ").append(genDateStr).append("</span>\n");
+		html.append("    <span><strong>分析工單數 / Tickets:</strong> ").append(ticketCount).append("</span>\n");
 		html.append("  </div>\n");
 		html.append("</header>\n");
 
 		// Section 1: Executive Synthesis
 		html.append("<section class='section'>\n");
-		html.append("  <h2 class='section-title'>\uD83E\uDD16 \u9ad8\u968e\u7e3d\u7d50\u5206\u6790 / Executive Synthesis</h2>\n");
+		html.append("  <h2 class='section-title'>🤖 高階總結分析 / Executive Synthesis</h2>\n");
 		html.append("  <div class='markdown-body'>\n");
-		html.append(renderedAi != null && !renderedAi.trim().isEmpty() ? renderedAi : "<p>\u7121\u5206\u6790\u5167\u5bb9</p>");
+		html.append(renderedAi != null && !renderedAi.trim().isEmpty() ? renderedAi : "<p>無分析內容</p>");
 		html.append("  </div>\n");
 		html.append("</section>\n");
 
-		// Section 2: Referenced Tickets Table
+		// Section 2: Referenced Tickets Table (Grouped by Space)
 		html.append("<section class='section'>\n");
-		html.append("  <h2 class='section-title'>\uD83D\uDCCB \u95dc\u806f\u5de5\u55ae\u6e05\u55ae\u901f\u89bd / Referenced Tickets Overview (").append(ticketCount).append(")</h2>\n");
+		html.append("  <h2 class='section-title'>📋 關聯工單清單速覽 / Referenced Tickets Overview (").append(ticketCount).append(")</h2>\n");
 		if (referencedItems != null && !referencedItems.isEmpty()) {
-			html.append("  <table>\n");
-			html.append("    <thead>\n");
-			html.append("      <tr>\n");
-			html.append("        <th style='width: 120px;'>ID</th>\n");
-			html.append("        <th>Summary</th>\n");
-			html.append("        <th style='width: 100px;'>Status</th>\n");
-			html.append("        <th style='width: 130px;'>Space</th>\n");
-			html.append("        <th style='width: 110px;'>Logged By</th>\n");
-			html.append("        <th style='width: 110px;'>Assigned To</th>\n");
-			html.append("      </tr>\n");
-			html.append("    </thead>\n");
-			html.append("    <tbody>\n");
-			for (Item item : referencedItems) {
-				String itemUrl = url + "app/item/" + item.getRefId();
-				html.append("      <tr>\n");
-				html.append("        <td style='font-weight: bold;'><a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></td>\n");
-				html.append("        <td>").append(escapeHtml(item.getSummary())).append("</td>\n");
-				html.append("        <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span></td>\n");
-				html.append("        <td>").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</td>\n");
-				html.append("        <td>").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</td>\n");
-				html.append("        <td>").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</td>\n");
-				html.append("      </tr>\n");
+			Map<Space, List<Item>> grouped = groupItemsBySpace(referencedItems);
+			for (Map.Entry<Space, List<Item>> entry : grouped.entrySet()) {
+				Space sp = entry.getKey();
+				List<Item> spItems = entry.getValue();
+				String spName = sp.getName() != null ? sp.getName() : sp.getPrefixCode();
+				String spPrefix = sp.getPrefixCode() != null ? sp.getPrefixCode() : "";
+
+				html.append("  <div class='space-block'>\n");
+				html.append("    <div class='space-header'>📁 專案空間 (Space): <strong>").append(escapeHtml(spName));
+				if (!spPrefix.isEmpty() && !spPrefix.equalsIgnoreCase(spName)) {
+					html.append(" (").append(escapeHtml(spPrefix)).append(")");
+				}
+				html.append("</strong> — 共 ").append(spItems.size()).append(" 張工單</div>\n");
+				html.append("    <table>\n");
+				html.append("      <thead>\n");
+				html.append("        <tr>\n");
+				html.append("          <th style='width: 120px;'>ID</th>\n");
+				html.append("          <th>Summary</th>\n");
+				html.append("          <th style='width: 100px;'>Status</th>\n");
+				html.append("          <th style='width: 120px;'>Logged By</th>\n");
+				html.append("          <th style='width: 120px;'>Assigned To</th>\n");
+				html.append("        </tr>\n");
+				html.append("      </thead>\n");
+				html.append("      <tbody>\n");
+				for (Item item : spItems) {
+					String itemUrl = url + "app/item/" + item.getRefId();
+					html.append("        <tr>\n");
+					html.append("          <td style='font-weight: bold;'><a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></td>\n");
+					html.append("          <td>").append(escapeHtml(item.getSummary())).append("</td>\n");
+					html.append("          <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span></td>\n");
+					html.append("          <td>").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</td>\n");
+					html.append("          <td>").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</td>\n");
+					html.append("        </tr>\n");
+				}
+				html.append("      </tbody>\n");
+				html.append("    </table>\n");
+				html.append("  </div>\n");
 			}
-			html.append("    </tbody>\n");
-			html.append("  </table>\n");
 		} else {
-			html.append("  <p style='color: var(--text-muted);'>\u67e5\u7121\u7b26\u5408\u60a8\u6388\u6b0a\u5c08\u6848\u7a7a\u9593\u5167\u7684\u76f8\u95dc\u5de5\u55ae\u3002</p>\n");
+			html.append("  <p style='color: var(--text-muted);'>查無符合您授權專案空間內的相關工單。</p>\n");
 		}
 		html.append("</section>\n");
 
-		// Section 3: Per-Ticket Detailed Dossier (<details> accordion)
+		// Section 3: Per-Ticket Detailed Dossier (<details> accordion grouped by Space)
 		html.append("<section class='section'>\n");
-		html.append("  <h2 class='section-title'>\uD83D\uDD0D \u5404\u5de5\u55ae\u7368\u7acb\u6df1\u5165\u8a3a\u65b7 / Per-Ticket Detailed Dossier</h2>\n");
+		html.append("  <h2 class='section-title'>🔍 各工單獨立深入診斷 / Per-Ticket Detailed Dossier</h2>\n");
 		if (referencedItems != null && !referencedItems.isEmpty()) {
-			for (Item item : referencedItems) {
-				String itemUrl = url + "app/item/" + item.getRefId();
-				html.append("  <details class='ticket-card'>\n");
-				html.append("    <summary>\n");
-				html.append("      <span><strong>[").append(escapeHtml(item.getRefId())).append("]</strong> ").append(escapeHtml(item.getSummary())).append("</span>\n");
-				html.append("      <span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span>\n");
-				html.append("    </summary>\n");
-				html.append("    <div class='details-content'>\n");
+			Map<Space, List<Item>> grouped = groupItemsBySpace(referencedItems);
+			for (Map.Entry<Space, List<Item>> entry : grouped.entrySet()) {
+				Space sp = entry.getKey();
+				List<Item> spItems = entry.getValue();
+				String spName = sp.getName() != null ? sp.getName() : sp.getPrefixCode();
+				String spPrefix = sp.getPrefixCode() != null ? sp.getPrefixCode() : "";
 
-				// Meta grid
-				html.append("      <div class='meta-grid'>\n");
-				html.append("        <div><strong>\u5de5\u55ae\u9023\u7d50 (Link):</strong> <a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></div>\n");
-				html.append("        <div><strong>\u5c08\u6848\u7a7a\u9593 (Space):</strong> ").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</div>\n");
-				html.append("        <div><strong>\u63d0\u51fa\u8005 (Logged By):</strong> ").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</div>\n");
-				html.append("        <div><strong>\u6307\u6d3e\u8005 (Assigned To):</strong> ").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</div>\n");
-				if (item.getTimeStamp() != null) {
-					html.append("        <div><strong>\u5efa\u7acb\u6642\u9593 (Created):</strong> ").append(sdfFull.format(item.getTimeStamp())).append("</div>\n");
+				html.append("  <div class='space-header' style='margin-top: 24px; margin-bottom: 12px;'>📁 專案空間 (Space): <strong>").append(escapeHtml(spName));
+				if (!spPrefix.isEmpty() && !spPrefix.equalsIgnoreCase(spName)) {
+					html.append(" (").append(escapeHtml(spPrefix)).append(")");
 				}
-				html.append("      </div>\n");
+				html.append("</strong> — ").append(spItems.size()).append(" 項工單診斷</div>\n");
 
-				// Staged AI Digest for this ticket
-				if (perTicketSummaries != null && perTicketSummaries.containsKey(item.getRefId())) {
-					String ticketDigest = perTicketSummaries.get(item.getRefId());
-					if (ticketDigest != null && !ticketDigest.trim().isEmpty()) {
-						html.append("      <div class='sub-heading'>\uD83D\uDCA1 AI \u55ae\u5f35\u7cbe\u7149\u5206\u6790\u6458\u8981 / AI Ticket Digest</div>\n");
-						html.append("      <div class='markdown-body'>\n");
-						String renderedDigest = ItemUtils.renderMarkdown(ticketDigest);
-						if (spaces != null && !spaces.isEmpty() && renderedDigest != null) {
-							renderedDigest = ItemUtils.autolinkTickets(url, renderedDigest, spaces);
+				for (Item item : spItems) {
+					String itemUrl = url + "app/item/" + item.getRefId();
+					html.append("  <details class='ticket-card'>\n");
+					html.append("    <summary>\n");
+					html.append("      <span><strong>[").append(escapeHtml(item.getRefId())).append("]</strong> ").append(escapeHtml(item.getSummary())).append("</span>\n");
+					html.append("      <span class='status-pill'>").append(escapeHtml(safeGetStatus(item))).append("</span>\n");
+					html.append("    </summary>\n");
+					html.append("    <div class='details-content'>\n");
+
+					// Meta grid
+					html.append("      <div class='meta-grid'>\n");
+					html.append("        <div><strong>工單連結 (Link):</strong> <a href='").append(itemUrl).append("' target='_blank'>").append(escapeHtml(item.getRefId())).append("</a></div>\n");
+					html.append("        <div><strong>專案空間 (Space):</strong> ").append(item.getSpace() != null ? escapeHtml(item.getSpace().getName()) : "").append("</div>\n");
+					html.append("        <div><strong>提出者 (Logged By):</strong> ").append(item.getLoggedBy() != null ? escapeHtml(item.getLoggedBy().getName()) : "").append("</div>\n");
+					html.append("        <div><strong>指派者 (Assigned To):</strong> ").append(item.getAssignedTo() != null ? escapeHtml(item.getAssignedTo().getName()) : "").append("</div>\n");
+					if (item.getTimeStamp() != null) {
+						html.append("        <div><strong>建立時間 (Created):</strong> ").append(sdfFull.format(item.getTimeStamp())).append("</div>\n");
+					}
+					html.append("      </div>\n");
+
+					// Staged AI Digest for this ticket
+					if (perTicketSummaries != null && perTicketSummaries.containsKey(item.getRefId())) {
+						String ticketDigest = perTicketSummaries.get(item.getRefId());
+						if (ticketDigest != null && !ticketDigest.trim().isEmpty()) {
+							html.append("      <div class='sub-heading'>💡 AI 單張精煉分析摘要 / AI Ticket Digest</div>\n");
+							html.append("      <div class='markdown-body'>\n");
+							String renderedDigest = ItemUtils.renderMarkdown(ticketDigest);
+							if (spaces != null && !spaces.isEmpty() && renderedDigest != null) {
+								renderedDigest = ItemUtils.autolinkTickets(url, renderedDigest, spaces);
+							}
+							html.append(renderedDigest != null ? renderedDigest : "");
+							html.append("      </div>\n");
 						}
-						html.append(renderedDigest != null ? renderedDigest : "");
+					}
+
+					// Raw description
+					if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
+						html.append("      <div class='sub-heading'>📝 工單原始描述 / Ticket Description</div>\n");
+						html.append("      <div class='markdown-body'>\n");
+						String renderedDetail = ItemUtils.renderMarkdown(item.getDetail());
+						if (spaces != null && !spaces.isEmpty() && renderedDetail != null) {
+							renderedDetail = ItemUtils.autolinkTickets(url, renderedDetail, spaces);
+						}
+						html.append(renderedDetail != null ? renderedDetail : escapeHtml(item.getDetail()));
 						html.append("      </div>\n");
 					}
-				}
 
-				// Raw description
-				if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
-					html.append("      <div class='sub-heading'>\uD83D\uDCDD \u5de5\u55ae\u539f\u59cb\u63cf\u8ff0 / Ticket Description</div>\n");
-					html.append("      <div class='markdown-body'>\n");
-					String renderedDetail = ItemUtils.renderMarkdown(item.getDetail());
-					if (spaces != null && !spaces.isEmpty() && renderedDetail != null) {
-						renderedDetail = ItemUtils.autolinkTickets(url, renderedDetail, spaces);
-					}
-					html.append(renderedDetail != null ? renderedDetail : escapeHtml(item.getDetail()));
-					html.append("      </div>\n");
-				}
+					// History & Comments
+					if (item.getHistory() != null && !item.getHistory().isEmpty()) {
+						List<History> historyList = new ArrayList<>(item.getHistory());
+						Collections.sort(historyList, (h1, h2) -> {
+							if (h1.getTimeStamp() == null || h2.getTimeStamp() == null) return 0;
+							return h1.getTimeStamp().compareTo(h2.getTimeStamp());
+						});
 
-				// History & Comments
-				if (item.getHistory() != null && !item.getHistory().isEmpty()) {
-					List<History> historyList = new ArrayList<>(item.getHistory());
-					Collections.sort(historyList, (h1, h2) -> {
-						if (h1.getTimeStamp() == null || h2.getTimeStamp() == null) return 0;
-						return h1.getTimeStamp().compareTo(h2.getTimeStamp());
-					});
-
-					html.append("      <div class='sub-heading'>\uD83D\uDCAC \u6b77\u7a0b\u8207\u7559\u8a00\u7d00\u9304 / History & Comments (").append(historyList.size()).append(")</div>\n");
-					html.append("      <table>\n");
-					html.append("        <thead>\n");
-					html.append("          <tr>\n");
-					html.append("            <th style='width: 150px;'>\u6642\u9593 (Time)</th>\n");
-					html.append("            <th style='width: 120px;'>\u57f7\u884c\u8005 (Logged By)</th>\n");
-					html.append("            <th style='width: 100px;'>\u72c0\u614b (Status)</th>\n");
-					html.append("            <th>\u8aaa\u660e\u8207\u7559\u8a00 (Comment)</th>\n");
-					html.append("          </tr>\n");
-					html.append("        </thead>\n");
-					html.append("        <tbody>\n");
-					for (History h : historyList) {
+						html.append("      <div class='sub-heading'>💬 歷程與留言紀錄 / History & Comments (").append(historyList.size()).append(")</div>\n");
+						html.append("      <table>\n");
+						html.append("        <thead>\n");
 						html.append("          <tr>\n");
-						html.append("            <td>").append(h.getTimeStamp() != null ? sdfFull.format(h.getTimeStamp()) : "").append("</td>\n");
-						html.append("            <td>").append(h.getLoggedBy() != null ? escapeHtml(h.getLoggedBy().getName()) : "").append("</td>\n");
-						html.append("            <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(h))).append("</span></td>\n");
-						String renderedComment = h.getComment() != null ? ItemUtils.renderMarkdown(h.getComment()) : "";
-						html.append("            <td class='markdown-body'>").append(renderedComment != null ? renderedComment : "").append("</td>\n");
+						html.append("            <th style='width: 150px;'>時間 (Time)</th>\n");
+						html.append("            <th style='width: 120px;'>執行者 (Logged By)</th>\n");
+						html.append("            <th style='width: 100px;'>狀態 (Status)</th>\n");
+						html.append("            <th>說明與留言 (Comment)</th>\n");
 						html.append("          </tr>\n");
+						html.append("        </thead>\n");
+						html.append("        <tbody>\n");
+						for (History h : historyList) {
+							html.append("          <tr>\n");
+							html.append("            <td>").append(h.getTimeStamp() != null ? sdfFull.format(h.getTimeStamp()) : "").append("</td>\n");
+							html.append("            <td>").append(h.getLoggedBy() != null ? escapeHtml(h.getLoggedBy().getName()) : "").append("</td>\n");
+							html.append("            <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(h))).append("</span></td>\n");
+							String renderedComment = h.getComment() != null ? ItemUtils.renderMarkdown(h.getComment()) : "";
+							html.append("            <td class='markdown-body'>").append(renderedComment != null ? renderedComment : "").append("</td>\n");
+							html.append("          </tr>\n");
+						}
+						html.append("        </tbody>\n");
+						html.append("      </table>\n");
 					}
-					html.append("        </tbody>\n");
-					html.append("      </table>\n");
-				}
 
-				// Attachments
-				if (item.getAttachments() != null && !item.getAttachments().isEmpty()) {
-					html.append("      <div class='sub-heading'>\uD83D\uDCCE \u9644\u52a0\u6a94\u6848\u6e05\u55ae / Attachments (").append(item.getAttachments().size()).append(")</div>\n");
-					html.append("      <table>\n");
-					html.append("        <thead>\n");
-					html.append("          <tr>\n");
-					html.append("            <th>\u6a94\u6848\u540d\u7a31 (File Name)</th>\n");
-					html.append("          </tr>\n");
-					html.append("        </thead>\n");
-					html.append("        <tbody>\n");
-					for (Attachment att : item.getAttachments()) {
+					// Attachments
+					if (item.getAttachments() != null && !item.getAttachments().isEmpty()) {
+						html.append("      <div class='sub-heading'>📎 附加檔案清單 / Attachments (").append(item.getAttachments().size()).append(")</div>\n");
+						html.append("      <table>\n");
+						html.append("        <thead>\n");
 						html.append("          <tr>\n");
-						html.append("            <td>").append(escapeHtml(att.getFileName())).append("</td>\n");
+						html.append("            <th>檔案名稱 (File Name)</th>\n");
 						html.append("          </tr>\n");
+						html.append("        </thead>\n");
+						html.append("        <tbody>\n");
+						for (Attachment att : item.getAttachments()) {
+							html.append("          <tr>\n");
+							html.append("            <td>").append(escapeHtml(att.getFileName())).append("</td>\n");
+							html.append("          </tr>\n");
+						}
+						html.append("        </tbody>\n");
+						html.append("      </table>\n");
 					}
-					html.append("        </tbody>\n");
-					html.append("      </table>\n");
-				}
 
-				html.append("    </div>\n");
-				html.append("  </details>\n");
+					html.append("    </div>\n");
+					html.append("  </details>\n");
+				}
 			}
 		} else {
-			html.append("  <p style='color: var(--text-muted);'>\u7121\u5de5\u55ae\u8cc7\u6599\u3002</p>\n");
+			html.append("  <p style='color: var(--text-muted);'>無工單資料。</p>\n");
 		}
 		html.append("</section>\n");
 
 		// Footer
 		html.append("<footer class='footer'>\n");
-		html.append("  <p>\u672c\u5831\u544a\u7531 JTrac \u90f5\u4ef6 AI \u67e5\u8a62\u79d8\u66f8\u81ea\u52d5\u7522\u751f\u8207\u532f\u51fa\u3002<br>\n");
+		html.append("  <p>本報告由 JTrac 郵件 AI 查詢秘書自動產生與匯出。<br>\n");
 		html.append("  <a href='").append(url).append("' target='_blank'>").append(url).append("</a></p>\n");
 		html.append("</footer>\n");
+
+		// Inject Mermaid JS and Initialization for offline SVG diagrams
+		String mermaidJs = getMermaidJsContent();
+		if (mermaidJs != null && !mermaidJs.isEmpty()) {
+			html.append("<script id=\"mermaid-core-js\">\n");
+			html.append(mermaidJs).append("\n");
+			html.append("</script>\n");
+			html.append("<script>\n");
+			html.append("document.addEventListener('DOMContentLoaded', function() {\n");
+			html.append("  try {\n");
+			html.append("    var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;\n");
+			html.append("    if (typeof mermaid !== 'undefined') {\n");
+			html.append("      mermaid.initialize({\n");
+			html.append("        startOnLoad: false,\n");
+			html.append("        theme: isDark ? 'dark' : 'default',\n");
+			html.append("        securityLevel: 'loose'\n");
+			html.append("      });\n");
+			html.append("      var codeBlocks = document.querySelectorAll('pre code.language-mermaid, pre.mermaid, code.language-mermaid');\n");
+			html.append("      codeBlocks.forEach(function(codeEl, index) {\n");
+			html.append("        try {\n");
+			html.append("          var preEl = (codeEl.parentElement && codeEl.parentElement.tagName === 'PRE') ? codeEl.parentElement : codeEl;\n");
+			html.append("          var graphDef = codeEl.textContent.trim();\n");
+			html.append("          if (!graphDef) return;\n");
+			html.append("          var graphId = 'mermaid-svg-' + index + '-' + Math.floor(Math.random() * 10000);\n");
+			html.append("          var wrapper = document.createElement('div');\n");
+			html.append("          wrapper.className = 'mermaid-wrapper';\n");
+			html.append("          mermaid.render(graphId, graphDef).then(function(res) {\n");
+			html.append("            wrapper.innerHTML = res.svg;\n");
+			html.append("            preEl.parentNode.replaceChild(wrapper, preEl);\n");
+			html.append("          }).catch(function(err) {\n");
+			html.append("            console.warn('Mermaid rendering syntax fallback for block ' + index + ':', err);\n");
+			html.append("          });\n");
+			html.append("        } catch (innerEx) {\n");
+			html.append("          console.warn('Mermaid element conversion error:', innerEx);\n");
+			html.append("        }\n");
+			html.append("      });\n");
+			html.append("    }\n");
+			html.append("  } catch (e) {\n");
+			html.append("    console.warn('Mermaid global init fallback:', e);\n");
+			html.append("  }\n");
+			html.append("});\n");
+			html.append("</script>\n");
+		}
 
 		html.append("</div>\n");
 		html.append("</body>\n");
@@ -847,6 +952,99 @@ public class MailSender {
 			}
 		}
 		return sb.toString();
+	}
+
+	public static Map<Space, List<Item>> groupItemsBySpace(List<Item> items) {
+		if (items == null || items.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		Map<Space, List<Item>> map = new LinkedHashMap<>();
+		for (Item item : items) {
+			Space space = item.getSpace();
+			if (space == null) {
+				space = new Space();
+				space.setName("Other / Unassigned");
+				space.setPrefixCode("OTHER");
+			}
+			List<Item> spaceList = map.get(space);
+			if (spaceList == null) {
+				spaceList = new ArrayList<>();
+				map.put(space, spaceList);
+			}
+			spaceList.add(item);
+		}
+
+		List<Map.Entry<Space, List<Item>>> entries = new ArrayList<>(map.entrySet());
+		entries.sort((e1, e2) -> {
+			String n1 = e1.getKey().getName() != null ? e1.getKey().getName() : "";
+			String n2 = e2.getKey().getName() != null ? e2.getKey().getName() : "";
+			int cmp = n1.compareToIgnoreCase(n2);
+			if (cmp != 0) {
+				return cmp;
+			}
+			String p1 = e1.getKey().getPrefixCode() != null ? e1.getKey().getPrefixCode() : "";
+			String p2 = e2.getKey().getPrefixCode() != null ? e2.getKey().getPrefixCode() : "";
+			return p1.compareToIgnoreCase(p2);
+		});
+
+		Map<Space, List<Item>> sortedMap = new LinkedHashMap<>();
+		for (Map.Entry<Space, List<Item>> entry : entries) {
+			List<Item> spaceItems = entry.getValue();
+			spaceItems.sort((i1, i2) -> {
+				long id1 = i1.getId() > 0 ? i1.getId() : (long) i1.getSequenceNum();
+				long id2 = i2.getId() > 0 ? i2.getId() : (long) i2.getSequenceNum();
+				if (id1 != id2) {
+					return Long.compare(id2, id1); // DESC
+				}
+				if (i1.getTimeStamp() != null && i2.getTimeStamp() != null) {
+					return i2.getTimeStamp().compareTo(i1.getTimeStamp());
+				}
+				return 0;
+			});
+			sortedMap.put(entry.getKey(), spaceItems);
+		}
+		return sortedMap;
+	}
+
+	public static List<Item> sortItemsBySpaceAndIdDesc(List<Item> items) {
+		if (items == null || items.isEmpty()) {
+			return Collections.emptyList();
+		}
+		Map<Space, List<Item>> grouped = groupItemsBySpace(items);
+		List<Item> result = new ArrayList<>(items.size());
+		for (List<Item> spaceItems : grouped.values()) {
+			result.addAll(spaceItems);
+		}
+		return result;
+	}
+
+	private static volatile String cachedMermaidJs = null;
+
+	public static String getMermaidJsContent() {
+		if (cachedMermaidJs == null) {
+			synchronized (MailSender.class) {
+				if (cachedMermaidJs == null) {
+					try (InputStream is = MailSender.class.getResourceAsStream("/info/jtrac/mail/mermaid.min.js")) {
+						if (is != null) {
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+							byte[] buffer = new byte[16384];
+							int len;
+							while ((len = is.read(buffer)) != -1) {
+								baos.write(buffer, 0, len);
+							}
+							cachedMermaidJs = baos.toString(StandardCharsets.UTF_8.name());
+						} else {
+							logger.warn("mermaid.min.js resource not found on classpath: /info/jtrac/mail/mermaid.min.js");
+							cachedMermaidJs = "";
+						}
+					} catch (Exception e) {
+						logger.error("Failed to load mermaid.min.js: " + e.getMessage(), e);
+						cachedMermaidJs = "";
+					}
+				}
+			}
+		}
+		return cachedMermaidJs;
 	}
 
 	private String safeGetStatus(AbstractItem item) {

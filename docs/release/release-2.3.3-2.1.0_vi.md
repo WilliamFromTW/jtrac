@@ -52,6 +52,10 @@ Kế thừa kiến trúc hiện đại từ phiên bản 2.0.0, JTrac 2.3.3-2.1.
    - **Báo cáo HTML độc lập**: Tạo trực tiếp trong bộ nhớ qua `ByteArrayResource` (< 3ms, không tốn I/O đĩa).
    - **Thiết kế hiện đại**: Đường viền bảng rõ nét (`border-collapse: collapse`), thẻ `<details>` đóng mở mượt mà, tự động chuyển Dark Mode và định dạng in ấn tối ưu.
 5. **Hướng dẫn viết Prompt đa ngôn ngữ**: Cung cấp tài liệu [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_vi.md) với 4 kịch bản thực chiến.
+6. **Nhóm theo Space, sắp xếp ID giảm dần & Tích hợp Mermaid.js ngoại tuyến 100%**:
+   - **Bảng phân nhóm theo Space & Sắp xếp mới nhất trước (ID DESC)**: Tái cấu trúc bảng tóm tắt trong email và báo cáo HTML theo từng Space được cấp quyền kèm số lượng ticket; các ticket trong mỗi Space được sắp xếp theo số hiệu ID giảm dần (`ID DESC`). Nội dung email được giữ tối giản, không kèm cảnh báo Mermaid dư thừa.
+   - **Công cụ Mermaid.js ngoại tuyến hoàn toàn**: Nhúng trực tiếp gói Mermaid.js (v10.9.1) vào Classpath và báo cáo HTML, loại bỏ hoàn toàn sự phụ thuộc vào CDN bên ngoài. Hỗ trợ tự động đổi giao diện sáng/tối (`prefers-color-scheme`) và cơ chế phục hồi lỗi cú pháp.
+   - **Ràng buộc Prompt lưu đồ 2 cấp độ với chuẩn đóng ngoặc kép**: Bắt buộc tạo lưu đồ `flowchart TD/LR` ở cả giai đoạn Map (quy trình tái hiện/xử lý sự cố) và Reduce (tóm tắt tổng quan & kế hoạch hành động), yêu cầu nhãn nốt phải đặt trong dấu ngoặc kép để ngăn ngừa lỗi định dạng.
 
 ---
 

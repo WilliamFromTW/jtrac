@@ -56,6 +56,10 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心現代化架構的基礎上，引進了�
    - **現代化設計**：包含清晰表格框線（`border-collapse: collapse; border: 1px solid`）、原生 `<details>` 折疊卡片、自動深淺色模式（`@media prefers-color-scheme: dark`）、列印全展開模式（`@media print`）。
 5. **完整多語系 Prompt 指南與 4 大實戰範例**：
    - 建立 8 種語系之實戰指南 [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_zh-TW.md)，涵蓋障礙排查、工單追蹤、架構規範與版本升級等場景。
+6. **工單空間分組、ID 倒序排列與 100% 離線 Mermaid 流程圖引擎 (Space Grouping, ID DESC & Offline Mermaid.js)**：
+   - **空間分組與新到舊倒序 (Space-Grouped Sub-tables & ID DESC)**：全面重構 AI 郵件回覆速覽與 HTML 診斷報告，依授權專案空間（Space）劃分獨立子表格展示（附工單總數），各空間內部依工單編號（ID DESC）嚴格由新到舊倒序排列；信件保持極簡專業，不追加多餘 Mermaid 警語。
+   - **100% 離線純本地 Mermaid.js 流程圖引擎 (Air-gapped Offline Mermaid Rendering)**：將完整版 Mermaid.js (v10.9.1) 內嵌至 Classpath 並直接注入 HTML 報告，徹底擺脫外部 CDN 網路依賴；具備系統深淺色主題自適應（`prefers-color-scheme`）與語法錯誤容錯降級機制，保證封閉隔離內網環境皆能完美瀏覽。
+   - **雙層級 Prompt 流程圖硬約束 (Two-Tier Flowchart Prompts with Quote Guardrails)**：於 Map 階段（單工單深入排查）及 Reduce 階段（全域核心解答與行動方案）明確要求輸出標準 `flowchart TD/LR` 流程圖，並強制所有節點文字加上雙引號防呆，避免特殊符號導致渲染中斷。
 
 ---
 

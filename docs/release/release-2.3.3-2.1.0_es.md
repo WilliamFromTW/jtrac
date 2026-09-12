@@ -52,6 +52,10 @@ Sobre la base de la modernización estructural de la versión 2.0.0, JTrac 2.3.3
    - **Adjunto HTML completo**: Construido directamente en memoria mediante `ByteArrayResource` (< 3ms, sin I/O de disco).
    - **Diseño moderno**: Bordes de tabla definidos, tarjetas desplegables `<details>`, adaptación automática al modo oscuro y formato de impresión optimizado.
 5. **Guía de Prompts en 8 idiomas**: Documento práctico disponible en [`docs/llm/PROMPT_EXAMPLES_*.md`](../llm/PROMPT_EXAMPLES_es.md).
+6. **Agrupación por Space, orden descendente por ID e integración de Mermaid.js 100% offline**:
+   - **Subtablas agrupadas por Space y orden descendente de ID (ID DESC)**: Reestructuración de la tabla de resumen por correo y del informe HTML para agrupar los tickets por espacio de proyecto (Space) con encabezado de recuento; dentro de cada Space los tickets se ordenan de más reciente a más antiguo (`ID DESC`). El cuerpo del correo se mantiene limpio sin avisos innecesarios de Mermaid.
+   - **Motor Mermaid.js autónomo 100% fuera de línea**: Inclusión del paquete completo de Mermaid.js (v10.9.1) en el Classpath e inyección directa en el informe HTML, eliminando cualquier dependencia de CDN externas. Incluye sincronización automática de modo oscuro/claro y manejo de degradación ante errores de sintaxis.
+   - **Reglas estrictas de diagramas de flujo en dos niveles con comillas protectoras**: Exigencia obligatoria de diagramas `flowchart TD/LR` en la fase Map (flujos de resolución paso a paso) y en la fase Reduce (resumen ejecutivo y acciones recomendadas), obligando al uso de comillas dobles en las etiquetas de los nodos.
 
 ---
 
