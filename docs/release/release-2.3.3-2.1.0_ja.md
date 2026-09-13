@@ -62,6 +62,7 @@ JTrac 2.3.3-2.1.0-beta は、2.0.0 のアーキテクチャ刷新を土台とし
    - **総合所見における外部知見の明記義務 (Mandatory External Knowledge Tagging)**：チケット内の情報で解決策が完結しない場合に限り、全体総括（Reduce 第1セクション「要約」）および第3セクション「推奨アクション」にて一般的な知見による補足を許可。ただし、その際は**「`(Note: Recommended based on external reference knowledge)`」（または「`（參考外部資訊給予建議）`」）の注記を明示的に付与することを義務付け**、情報の出所を完全に可視化。
    - **ゼロヒット時の安全通知 (Zero-Hit Safe Notice)**：認可されたスペース内に対象チケットや添付ファイルが存在しない場合、モデルに架空の推測を行わせず即座に遮断し、認可スペース一覧と接地ポリシーを記載したゼロヒット案内メールを返信して元メールを自動消去。
    - **機密情報の自動マスキング (Confidential Credentials Masking)**：`SensitiveDataMasker` を実装し、HTML 診断レポート内のパスワード（password）、Bearer トークン、API キー、秘密鍵ブロック、URL 内認証情報を自動的に `***` に置換して保護（ユーザー名やチケット ID は維持）。
+   - **推奨ハードウェア仕様と 200K 長文コンテキスト (Recommended Hardware & 200K Context)**：Prompt 実戦ガイドに推奨構成を明記。フラッグシップ GPU である NVIDIA RTX 5090 (32GB VRAM) および `qwen2.5:32b` の組み合わせを推奨し、Ollama Modelfile による 200K コンテキスト（`num_ctx 200000`）の設定を義務化。切り捨てによる分析破綻を防ぐため、短コンテキストや低パラメータモデルの使用を厳禁と警告。
 
 ---
 

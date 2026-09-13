@@ -65,6 +65,7 @@ Building upon the core modernization of 2.0.0, JTrac 2.3.3-2.1.0-beta introduces
    - **Mandatory External Knowledge Tagging**: Only in general synthesis (Section 1 Executive Summary) and Section 3 Next Actions may the model supplement with industry best practices if internal tickets lack full remediation steps, and it **MUST explicitly append the tag `(Note: Recommended based on external reference knowledge)`** (`（參考外部資訊給予建議）`), making knowledge provenance completely transparent.
    - **Zero-Hit Safe Notice**: If a user's inquiry matches zero tickets or attachments across authorized spaces, the system intercepts immediately and sends a helpful zero-hit notice email with authorized spaces and data grounding policies, avoiding any LLM hallucination and purging the mailbox.
    - **Confidential Credentials Masking**: Implemented `SensitiveDataMasker` to automatically redact passwords, Bearer tokens, API keys, private key blocks, and URL credentials in generated HTML reports with `***`, while strictly preserving usernames and ticket IDs.
+   - **Recommended Hardware & 200K Long Context (Hardware & Model Recommendations)**: Documented official hardware and model deployment guidelines recommending the flagship NVIDIA RTX 5090 (32GB VRAM) and `qwen2.5:32b`, with mandatory 200K context window configuration (`num_ctx 200000`) via Ollama Modelfile; strongly warned against underpowered or short-context models to eliminate truncation and analysis failure.
 
 ---
 

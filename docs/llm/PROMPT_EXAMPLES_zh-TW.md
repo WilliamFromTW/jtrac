@@ -13,6 +13,7 @@
    - [範例四：系統升級評估與相容性影響分析](#範例四系統升級評估與相容性影響分析)
 3. [JTrac AI 提問黃金法則 (Golden Rules)](#三jtrac-ai-提問黃金法則-golden-rules)
 4. [離線美化 HTML 報告檢視指引](#四離線美化-html-報告檢視指引)
+5. [推薦部署硬體與 Ollama 模型配置標準](#五推薦部署硬體與-ollama-模型配置標準)
 
 ---
 
@@ -181,3 +182,44 @@ JTrac 秘書你好：
    - 具備完整清晰的表格框線與斑馬紋樣式。
    - 每張工單提供原生 `<details>` 折疊卡片，包含 AI 單張精煉摘要、工單描述、完整留言表格與附件名稱。
    - 支援系統深色模式自動切換與列印全展開排版。
+
+---
+
+## 五、推薦部署硬體與 Ollama 模型配置標準
+
+JTrac AI 郵件秘書採用了多工單彙整與長附件文字抽取（單檔上限 10 萬字元）之 Map-Reduce 管線架構，對後端 LLM 之推論能力、上下文長度及硬體算力具有高標準之門檻要求：
+
+### 1. 推薦硬體規格 (Hardware Recommendation)
+- **旗艦推薦 GPU**：**NVIDIA GeForce RTX 5090 (32GB GDDR7 VRAM)**
+- **企業級替代方案**：NVIDIA A100 (40GB/80GB)、H100、L40S (48GB) 或雙卡 RTX 4090 (24GB x 2)
+- **算力效益解析**：RTX 5090 具備 32GB 龐大顯存與次世代 Blackwell 架構，能在無須 CPU Offload 的全顯存載入模式下，流暢吞吐 128K~200K 極限長上下文，保障在數十張工單與巨量附件文字齊開時維持每秒 30+ tokens 的高速推論。
+
+### 2. 推薦模型選型 (Model Selection)
+- **首選模型**：**`qwen2.5:32b`**（或 Qwen 3 旗艦系列）
+- **關鍵優勢**：Qwen 2.5 32B 在繁簡中英多語系理解、長文本事證抽取、嚴格格式依循（JSON/Markdown）及 Mermaid 語法繪圖能力上均顯著優於同量級模型。
+
+### 3. Ollama 長上下文配置 (Modelfile with 200K Context)
+Ollama 預設之上下文視窗僅為 2,048 (2K) tokens，無法滿足多工單分析。強烈建議建立專屬 Modelfile 將上下文擴展至 200,000 (200K)：
+
+```dockerfile
+# 建立客製化 Modelfile
+FROM qwen2.5:32b
+
+# 設置長上下文視窗為 200K tokens
+PARAMETER num_ctx 200000
+
+# 保持客觀低隨機度，避免推論幻覺
+PARAMETER temperature 0.2
+```
+
+建立並啟動模型：
+```bash
+ollama create qwen2.5-jtrac-200k -f Modelfile
+```
+接著於 JTrac 系統管理員後台將 `llm.ollama.model` 設定為 `qwen2.5-jtrac-200k`。
+
+### 4. ⚠️ 嚴重效能警示 (Crucial Warning)
+> [!CAUTION]
+> **切勿使用過低參數量或短上下文模型**：
+> - 嚴禁使用參數量過低（如 1B、3B、7B/8B 未量化）或未配置長上下文（`num_ctx` < 64K/128K）之模型。
+> - 若使用短上下文模型，當候選工單與巨量 Log/程式碼附件送入時，Ollama 將**無預警自動截斷 (Truncate) 歷史資料**，導致模型在盲目狀態下進行虛假拼湊（幻覺），且極易產出語法破碎之 Mermaid 流程圖，導致整體 AI 輔助分析徹底失效。

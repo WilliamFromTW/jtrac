@@ -13,6 +13,7 @@
    - [Ví dụ 4: Đánh giá nâng cấp hệ thống và tương thích phiên bản](#ví-dụ-4-đánh-giá-nâng-cấp-hệ-thống-và-tương-thích-phiên-bản)
 3. [Quy tắc vàng khi viết Prompt cho JTrac AI (Golden Rules)](#3-quy-tắc-vàng-khi-viết-prompt-cho-jtrac-ai-golden-rules)
 4. [Hướng dẫn xem Báo cáo HTML ngoại tuyến](#4-hướng-dẫn-xem-báo-cáo-html-ngoại-tuyến)
+5. [Cấu hình Phần cứng & Mô hình Ollama Khuyến nghị](#5-cấu-hình-phần-cứng--mô-hình-ollama-khuyến-nghị)
 
 ---
 
@@ -164,3 +165,44 @@ Khi nhận được email phản hồi từ JTrac AI:
    - Bảng biểu có khung viền sắc nét, màu xen kẽ rõ ràng.
    - Thẻ `<details>` gập mở cho từng ticket, đầy đủ tóm tắt AI, mô tả gốc, bảng bình luận và danh sách file đính kèm.
    - Hỗ trợ chế độ Dark Mode tự động và mở rộng toàn bộ khi in.
+
+---
+
+## 5. Cấu hình Phần cứng & Mô hình Ollama Khuyến nghị
+
+Trợ lý Email AI của JTrac sử dụng kiến trúc Map-Reduce tổng hợp nhiều ticket và trích xuất tệp đính kèm dung lượng lớn (tối đa 100.000 ký tự mỗi tệp), đòi hỏi tiêu chuẩn cao về năng lực suy luận của LLM, độ dài ngữ cảnh và phần cứng GPU:
+
+### 1. Phần cứng Khuyến nghị (Hardware Recommendation)
+- **GPU Flagship Khuyến nghị**: **NVIDIA GeForce RTX 5090 (32GB GDDR7 VRAM)**
+- **Giải pháp Doanh nghiệp Thay thế**: NVIDIA A100 (40GB/80GB), H100, L40S (48GB), hoặc Dual RTX 4090 (24GB x 2).
+- **Hiệu quả Tính toán**: RTX 5090 sở hữu 32GB VRAM khổng lồ cùng kiến trúc Blackwell thế hệ mới, cho phép tải toàn bộ mô hình vào VRAM không cần CPU Offload, xử lý mượt mà ngữ cảnh siêu dài từ 128K đến 200K tokens, duy trì tốc độ suy luận trên 30 tokens/giây ngay cả khi phân tích đồng thời hàng chục ticket và tệp nhật ký lớn.
+
+### 2. Lựa chọn Mô hình (Model Selection)
+- **Mô hình Hàng đầu**: **`qwen2.5:32b`** (hoặc dòng flagship Qwen 3).
+- **Ưu điểm Cốt lõi**: Qwen 2.5 32B thể hiện sự vượt trội về khả năng hiểu đa ngôn ngữ, trích xuất dữ kiện chính xác trong văn bản dài, tuân thủ định dạng nghiêm ngặt (JSON/Markdown) và tạo cú pháp lưu đồ Mermaid chuẩn xác.
+
+### 3. Thiết lập Ngữ cảnh Dài trong Ollama (Modelfile 200K Context)
+Mặc định Ollama chỉ cung cấp cửa sổ ngữ cảnh 2.048 (2K) tokens, gây cắt cụt dữ liệu ngay lập tức. Cần tạo tệp Modelfile riêng để mở rộng ngữ cảnh lên 200.000 (200K):
+
+```dockerfile
+# Tạo Modelfile tùy chỉnh cho JTrac
+FROM qwen2.5:32b
+
+# Cấu hình cửa sổ ngữ cảnh 200K tokens
+PARAMETER num_ctx 200000
+
+# Giữ nhiệt độ thấp để suy luận khách quan, chống ảo giác
+PARAMETER temperature 0.2
+```
+
+Khởi tạo mô hình:
+```bash
+ollama create qwen2.5-jtrac-200k -f Modelfile
+```
+Sau đó, trong trang cấu hình Quản trị viên JTrac, đặt `llm.ollama.model` thành `qwen2.5-jtrac-200k`.
+
+### 4. ⚠️ Cảnh báo Hiệu năng Quan trọng (Crucial Warning)
+> [!CAUTION]
+> **Tuyệt đối không sử dụng mô hình quá yếu hoặc ngữ cảnh ngắn**:
+> - Nghiêm cấm dùng các mô hình tham số quá nhỏ (như 1B, 3B, 7B/8B) hoặc ngữ cảnh dưới 64K/128K.
+> - Nếu sử dụng mô hình có ngữ cảnh ngắn, khi nạp danh sách ticket và nhật ký dung lượng lớn, Ollama sẽ **tự động cắt ngắn (Truncate) dữ liệu mà không báo trước**, khiến LLM rơi vào tình trạng suy diễn sai lệch (ảo giác) và tạo ra lưu đồ Mermaid lỗi cú pháp, làm hỏng hoàn toàn kết quả phân tích.

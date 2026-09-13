@@ -13,6 +13,7 @@
    - [Beispiel 4: Upgrade-Bewertung und Kompatibilitätsanalyse](#beispiel-4-upgrade-bewertung-und-kompatibilitätsanalyse)
 3. [Goldene Regeln für JTrac AI Prompts (Golden Rules)](#3-goldene-regeln-für-jtrac-ai-prompts-golden-rules)
 4. [Anleitung zum Offline-HTML-Bericht](#4-anleitung-zum-offline-html-bericht)
+5. [Empfohlene Hardware & Ollama-Modellkonfiguration](#5-empfohlene-hardware--ollama-modellkonfiguration)
 
 ---
 
@@ -164,3 +165,44 @@ Wenn Sie eine Antwort von JTrac AI erhalten:
    - Klare Tabellenrahmen und Zebra-Streifenmuster.
    - Jedes Ticket als aufklappbare `<details>`-Karte mit KI-Zusammenfassung, Beschreibung, Historie und Anhängen.
    - Unterstützt automatischen Dark Mode und Druckoptimierung.
+
+---
+
+## 5. Empfohlene Hardware & Ollama-Modellkonfiguration
+
+Der JTrac KI-E-Mail-Assistent setzt auf eine Map-Reduce-Pipeline zur Synthese mehrerer Tickets und Extraktion umfangreicher Anhänge (bis zu 100.000 Zeichen pro Datei), was hohe Anforderungen an LLM-Inferenz, Kontextlänge und GPU-Rechenleistung stellt:
+
+### 1. Hardware-Empfehlung (Hardware Recommendation)
+- **Flaggschiff-Empfehlung GPU**: **NVIDIA GeForce RTX 5090 (32GB GDDR7 VRAM)**
+- **Unternehmens-Alternativen**: NVIDIA A100 (40GB/80GB), H100, L40S (48GB) oder Dual RTX 4090 (24GB x 2).
+- **Leistungsanalyse**: Die RTX 5090 bietet mit 32GB VRAM und Blackwell-Architektur genügend Kapazität für 128K~200K Kontextfenster ohne CPU-Offloading und liefert über 30 Tokens/Sekunde selbst bei gleichzeitiger Analyse dutzender Tickets und langer Log-Dateien.
+
+### 2. Modellauswahl (Model Selection)
+- **Erste Wahl**: **`qwen2.5:32b`** (oder Qwen 3 Flaggschiff-Serie).
+- **Kernvorteile**: Qwen 2.5 32B zeichnet sich durch exzellentes multilinguales Verständnis, präzise Faktenextraktion aus langen Texten, strikte Formatkonformität (JSON/Markdown) und fehlerfreie Mermaid-Flowchart-Syntax aus.
+
+### 3. Ollama-Konfiguration für 200K-Kontext (Modelfile)
+Der Ollama-Standardkontext liegt bei lediglich 2.048 (2K) Tokens, was zu Datenverlust führt. Es wird dringend empfohlen, ein benutzerdefiniertes Modelfile mit 200.000 (200K) Tokens anzulegen:
+
+```dockerfile
+# Benutzerdefiniertes Modelfile
+FROM qwen2.5:32b
+
+# 200K Token Kontextfenster konfigurieren
+PARAMETER num_ctx 200000
+
+# Niedrige Temperatur für deterministische Faktenbindung
+PARAMETER temperature 0.2
+```
+
+Modell registrieren:
+```bash
+ollama create qwen2.5-jtrac-200k -f Modelfile
+```
+In der JTrac-Administration anschließend `llm.ollama.model` auf `qwen2.5-jtrac-200k` setzen.
+
+### 4. ⚠️ Kritische Leistungswarnung (Crucial Warning)
+> [!CAUTION]
+> **Keine unterdimensionierten Modelle oder kurzen Kontextfenster verwenden**:
+> - Modelle mit geringer Parameteranzahl (z. B. 1B, 3B, 7B/8B) oder unzureichendem Kontext (`num_ctx` < 64K/128K) sind ungeeignet.
+> - Bei kurzem Kontext schneidet Ollama Ticket- und Anhangsdaten **stillschweigend ab (Truncation)**, was zu Halluzinationen und fehlerhaften Mermaid-Diagrammen führt und die KI-Diagnose unbrauchbar macht.

@@ -13,6 +13,7 @@
    - [Ejemplo 4: Evaluación de actualización del sistema y análisis de compatibilidad](#ejemplo-4-evaluación-de-actualización-del-sistema-y-análisis-de-compatibilidad)
 3. [Reglas de oro para redactar Prompts en JTrac AI (Golden Rules)](#3-reglas-de-oro-para-redactar-prompts-en-jtrac-ai-golden-rules)
 4. [Guía para visualizar el informe HTML sin conexión](#4-guía-para-visualizar-el-informe-html-sin-conexión)
+5. [Hardware recomendado y configuración del modelo en Ollama](#5-hardware-recomendado-y-configuración-del-modelo-en-ollama)
 
 ---
 
@@ -164,3 +165,44 @@ Al recibir la respuesta de JTrac AI:
    - Tablas con bordes claros y filas alternas con patrón cebra.
    - Cada ticket se presenta como una tarjeta desplegable `<details>` con resumen de IA, descripción, historial y adjuntos.
    - Compatible con modo oscuro automático y optimizado para impresión.
+
+---
+
+## 5. Hardware recomendado y configuración del modelo en Ollama
+
+El Asistente de consultas por correo con IA de JTrac utiliza una canalización Map-Reduce para sintetizar múltiples tickets y extraer textos extensos de archivos adjuntos (hasta 100.000 caracteres por archivo), exigiendo altos estándares de inferencia, longitud de contexto y capacidad de GPU:
+
+### 1. Recomendaciones de Hardware (Hardware Recommendation)
+- **GPU Insignia Recomendada**: **NVIDIA GeForce RTX 5090 (32GB GDDR7 VRAM)**
+- **Alternativas Empresariales**: NVIDIA A100 (40GB/80GB), H100, L40S (48GB) o doble RTX 4090 (24GB x 2).
+- **Eficiencia de Cómputo**: Los 32GB de VRAM y la arquitectura Blackwell de la RTX 5090 permiten cargar el modelo completo sin CPU Offload y procesar contextos masivos de 128K a 200K tokens, manteniendo más de 30 tokens/segundo de inferencia frente a decenas de tickets y registros simultáneos.
+
+### 2. Selección del Modelo (Model Selection)
+- **Modelo Preferido**: **`qwen2.5:32b`** (o serie insignia Qwen 3).
+- **Ventajas Clave**: Qwen 2.5 32B destaca ampliamente en comprensión multilingüe, extracción precisa de hechos en contextos largos, estricto apego a estructuras JSON/Markdown y generación impecable de sintaxis de diagramas Mermaid.
+
+### 3. Configuración de contexto extendido en Ollama (Modelfile 200K)
+El contexto predeterminado de Ollama es de solo 2.048 (2K) tokens, lo que provocaría un truncamiento inmediato. Se recomienda encarecidamente crear un Modelfile personalizado para fijar el contexto en 200.000 (200K):
+
+```dockerfile
+# Modelfile personalizado para JTrac
+FROM qwen2.5:32b
+
+# Configurar ventana de contexto de 200K tokens
+PARAMETER num_ctx 200000
+
+# Temperatura baja para evitar alucinaciones
+PARAMETER temperature 0.2
+```
+
+Crear el modelo:
+```bash
+ollama create qwen2.5-jtrac-200k -f Modelfile
+```
+Posteriormente, en la configuración de administración de JTrac, asigne `llm.ollama.model` a `qwen2.5-jtrac-200k`.
+
+### 4. ⚠️ Advertencia Crítica de Rendimiento (Crucial Warning)
+> [!CAUTION]
+> **No utilizar modelos pequeños o con contexto limitado**:
+> - Se prohíbe el uso de modelos de bajo parámetro (como 1B, 3B, 7B/8B) o con contextos reducidos (`num_ctx` < 64K/128K).
+> - Si se emplea un modelo con contexto corto, Ollama **truncará silenciosamente el historial de tickets y logs**, obligando a la IA a alucinar con datos incompletos y generando diagramas Mermaid con sintaxis rota, invalidando por completo la asistencia.

@@ -13,6 +13,7 @@
    - [Example 4: System Upgrade & Compatibility Impact Assessment](#example-4-system-upgrade--compatibility-impact-assessment)
 3. [Golden Rules for JTrac AI Prompts](#3-golden-rules-for-jtrac-ai-prompts)
 4. [Viewing the Offline Standalone HTML Report](#4-viewing-the-offline-standalone-html-report)
+5. [Recommended Hardware & Ollama Model Configuration](#5-recommended-hardware--ollama-model-configuration)
 
 ---
 
@@ -181,3 +182,44 @@ When you receive the reply email from JTrac AI:
    - Features crisp, bordered tables with zebra striping.
    - Each ticket is wrapped in a native `<details>` card containing AI digests, descriptions, history comments, and attachment lists.
    - Automatically adapts to system dark/light mode and fully expands when printed.
+
+---
+
+## 5. Recommended Hardware & Ollama Model Configuration
+
+JTrac AI Query Copilot leverages a Map-Reduce pipeline incorporating multi-ticket digestion and extensive attachment extraction (up to 100K characters per file), requiring high-tier inferencing capability, large context windows, and robust GPU hardware:
+
+### 1. Hardware Recommendations
+- **Flagship Recommended GPU**: **NVIDIA GeForce RTX 5090 (32GB GDDR7 VRAM)**
+- **Enterprise Alternatives**: NVIDIA A100 (40GB/80GB), H100, L40S (48GB), or Dual RTX 4090 (24GB x 2).
+- **Compute Efficiency**: The RTX 5090's massive 32GB VRAM and next-gen Blackwell architecture enable zero-CPU-offload execution with 128K~200K extreme context windows, maintaining 30+ tokens/sec throughput even when digesting dozens of tickets and lengthy document attachments simultaneously.
+
+### 2. Model Selection
+- **Recommended Model**: **`qwen2.5:32b`** (or Qwen 3 flagship series).
+- **Core Advantages**: Qwen 2.5 32B demonstrates superior performance in multilingual comprehension, needle-in-a-haystack fact extraction across long contexts, strict adherence to JSON/Markdown output constraints, and error-free Mermaid flowchart syntax generation.
+
+### 3. Ollama Long Context Configuration (Modelfile with 200K Context)
+Ollama defaults to a 2,048 (2K) token context window, which causes immediate truncation during multi-ticket synthesis. It is strongly recommended to define a customized Modelfile configuring a 200,000 (200K) context window:
+
+```dockerfile
+# Custom Modelfile for JTrac
+FROM qwen2.5:32b
+
+# Configure 200K token context window
+PARAMETER num_ctx 200000
+
+# Low temperature for objective, deterministic grounding
+PARAMETER temperature 0.2
+```
+
+Build and register the model:
+```bash
+ollama create qwen2.5-jtrac-200k -f Modelfile
+```
+Then, update the `llm.ollama.model` setting in JTrac Admin Config to `qwen2.5-jtrac-200k`.
+
+### 4. ⚠️ Crucial Performance Warning
+> [!CAUTION]
+> **Avoid Underpowered or Short-Context Models**:
+> - Never deploy small models (e.g. 1B, 3B, or unquantized 7B/8B) or models configured with insufficient context (`num_ctx` < 64K/128K).
+> - When candidates and voluminous attachment logs are fed into a short-context model, Ollama will **silently truncate earlier ticket facts**, leaving the LLM to hallucinate on incomplete data and produce broken Mermaid diagrams, rendering AI diagnosis completely ineffective.

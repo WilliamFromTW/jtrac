@@ -65,6 +65,7 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心現代化架構的基礎上，引進了�
    - **綜合評論外部知識強制標註 (Mandatory External Knowledge Tag)**：僅在全域總結（Reduce Section 1 核心解答摘要）與 Section 3 建議行動方案中，允許於工單事證不足時輔以業界常識或通用指引，但**強制要求顯式標註「（參考外部資訊給予建議）」**（英文標籤：`(Note: Recommended based on external reference knowledge)`、簡體中文：`（参考外部信息给予建议）`），讓使用者一目了然建議之來源背景。
    - **零命中安全通知 (Zero-Hit Safe Notice)**：當使用者查詢在獲授權之 Space 內查無任何匹配工單或附件時，系統立即攔截並寄送結構化零命中通知信件，列出當前授權 Space 清單與接地原則說明，絕不轉交模型進行空想臆測，並將原始信件自動清空。
    - **機敏憑證安全遮罩 (Confidential Secrets Masking)**：實作 `SensitiveDataMasker`，於 HTML 診斷報告組裝時自動過濾密碼（password）、Bearer Token、API Key、私鑰區塊及 URL 連線密碼，全面替換為 `***` 遮罩保護，同時完整保留使用者帳號與工單 ID。
+   - **推薦部署硬體與長上下文配置 (Recommended Hardware & 200K Context)**：於 Prompt 實戰指南中明確規範硬體選型，推薦旗艦 GPU NVIDIA RTX 5090 (32GB VRAM) 與 `qwen2.5:32b`，並強制要求透過 Ollama Modelfile 配置 200K 長上下文視窗（`num_ctx 200000`）；嚴厲示警勿採用短上下文或小參數模型，杜絕資料截斷導致分析失效。
 
 ---
 
