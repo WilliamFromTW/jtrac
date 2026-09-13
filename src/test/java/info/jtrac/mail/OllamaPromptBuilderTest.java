@@ -21,6 +21,7 @@ public class OllamaPromptBuilderTest {
         assertNotNull(sysPrompt);
         assertTrue(sysPrompt.contains("JTrac AI Query Copilot"));
         assertTrue(sysPrompt.contains("[PROJ-123]"));
+        assertTrue(sysPrompt.contains("（參考外部資訊給予建議）"));
     }
 
     @Test
@@ -118,6 +119,8 @@ public class OllamaPromptBuilderTest {
         assertTrue(sysPrompt.contains("JTrac Ticket Analysis Specialist"));
         assertTrue(sysPrompt.contains("Core Problem / Subject"));
         assertTrue(sysPrompt.contains("Attachment Findings"));
+        assertTrue(sysPrompt.contains("STRICT DATA GROUNDING RULES (CLOSED-DOMAIN ONLY)"));
+        assertTrue(sysPrompt.contains("100% strictly and exclusively based on the provided ticket details"));
         assertTrue(sysPrompt.contains("MERMAID DIAGRAM RULES"));
         assertTrue(sysPrompt.contains("flowchart TD"));
         assertTrue(sysPrompt.contains("double quotes"));
@@ -160,6 +163,10 @@ public class OllamaPromptBuilderTest {
         assertTrue(sysPrompt.contains("核心解答摘要 (Executive Summary)"));
         assertTrue(sysPrompt.contains("各工單關鍵發現與解法 (Key Findings & Resolution)"));
         assertTrue(sysPrompt.contains("建議行動方案 (Next Actions & Recommendations)"));
+        assertTrue(sysPrompt.contains("STRICT DATA GROUNDING AND EXTERNAL KNOWLEDGE MANDATORY LABELS"));
+        assertTrue(sysPrompt.contains("（參考外部資訊給予建議）"));
+        assertTrue(sysPrompt.contains("(Note: Recommended based on external reference knowledge)"));
+        assertTrue(sysPrompt.contains("（参考外部信息给予建议）"));
         assertTrue(sysPrompt.contains("WORKFLOW AND MERMAID DIAGRAM RULES"));
         assertTrue(sysPrompt.contains("flowchart TD"));
         assertTrue(sysPrompt.contains("double quotes"));

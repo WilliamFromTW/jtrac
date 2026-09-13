@@ -60,6 +60,11 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心现代化架构的基础上，引进了�
    - **空间分组与新到旧倒序 (Space-Grouped Sub-tables & ID DESC)**：全面重构 AI 邮件回复速览与 HTML 诊断报告，依授权项目空间（Space）划分独立子表格展示（附工单总数），各空间内部按工单编号（ID DESC）严格由新到旧倒序排列；邮件正文保持极简专业，不追加多余 Mermaid 警语。
    - **100% 离线纯本地 Mermaid.js 流程图引擎 (Air-gapped Offline Mermaid Rendering)**：将完整版 Mermaid.js (v10.9.1) 内嵌至 Classpath 并直接注入 HTML 报告，彻底摆脱外部 CDN 网络依赖；具备系统深浅色主题自适应（`prefers-color-scheme`）与语法错误容错降级机制，保证封闭隔离内网环境皆能完美浏览。
    - **双层级 Prompt 流程图硬约束 (Two-Tier Flowchart Prompts with Quote Guardrails)**：于 Map 阶段（单工单深入排查）及 Reduce 阶段（全局核心解答与行动方案）明确要求输出标准 `flowchart TD/LR` 流程图，并强制所有节点文本加上双引号防呆，避免特殊符号导致渲染中断。
+7. **JTrac 封闭领域接地、综合评论外部知识标注与零命中防呆 (Data Grounding, External Knowledge Tagging & Secret Masking)**：
+   - **JTrac 封闭领域接地原则 (Strict JTrac Context Grounding)**：全面约束 LLM 回答必须以授权 JTrac 工单与附件内容为唯一真实依据；单工单分析（Map）与工单关键发现（Reduce Section 2）100% 严禁引入外部未经佐证的推测。
+   - **综合评论外部知识强制标注 (Mandatory External Knowledge Tag)**：仅在全局总结（Reduce Section 1 核心解答摘要）与 Section 3 建议行动方案中，允许在工单事证不足时辅以业界常识或通用指引，但**强制要求显式标注「（参考外部信息给予建议）」**（英文标签：`(Note: Recommended based on external reference knowledge)`、繁体中文：`（參考外部資訊給予建議）`），让用户一目了然建议的来源背景。
+   - **零命中安全通知 (Zero-Hit Safe Notice)**：当用户查询在获授权的 Space 内查无任何匹配工单或附件时，系统立即拦截并发送结构化零命中通知邮件，列出当前授权 Space 清单与接地原则说明，绝不转交模型进行空想臆测，并将原始邮件自动清空。
+   - **机敏凭证安全遮罩 (Confidential Secrets Masking)**：实现 `SensitiveDataMasker`，在 HTML 诊断报告组装时自动过滤密码（password）、Bearer Token、API Key、私钥区块及 URL 连接密码，全面替换为 `***` 遮罩保护，同时完整保留用户账号与工单 ID。
 
 ---
 

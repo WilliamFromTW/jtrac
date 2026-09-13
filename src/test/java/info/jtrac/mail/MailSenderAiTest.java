@@ -262,4 +262,29 @@ public class MailSenderAiTest {
         mailSender.sendAiOfflineNotice(null, "Subject", Locale.ENGLISH);
         mailSender.sendAiOfflineNotice("no", "Subject", Locale.ENGLISH);
     }
+
+    @Test
+    public void testSendAiZeroHitNoticeDoesNotThrow() {
+        Map<String, String> config = new HashMap<>();
+        config.put("mail.server.host", "localhost");
+        config.put("mail.from", "jtrac@example.com");
+
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+
+        MailSender mailSender = new MailSender(config, messageSource, "en");
+
+        Space s = new Space();
+        s.setName("Documentation");
+        s.setPrefixCode("DOC");
+        Set<Space> spaces = Collections.singleton(s);
+
+        mailSender.sendAiZeroHitNotice("user@example.com", "Unknown Query", Locale.ENGLISH, spaces);
+        mailSender.sendAiZeroHitNotice("user@example.com", "查無工單的問題", Locale.TAIWAN, spaces);
+
+        // Defensive checks for null or disabled recipient
+        mailSender.sendAiZeroHitNotice(null, "Subject", Locale.ENGLISH, spaces);
+        mailSender.sendAiZeroHitNotice("no", "Subject", Locale.ENGLISH, spaces);
+        mailSender.sendAiZeroHitNotice("user@example.com", null, null, null);
+    }
 }

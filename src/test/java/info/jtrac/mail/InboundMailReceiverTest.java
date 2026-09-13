@@ -155,7 +155,12 @@ public class InboundMailReceiverTest {
                         return "en";
                     }
                     if ("findItems".equals(method.getName())) {
-                        return Collections.emptyList();
+                        Item dummyItem = new Item();
+                        dummyItem.setId(101L);
+                        dummyItem.setSequenceNum(101);
+                        dummyItem.setSpace(space);
+                        dummyItem.setSummary("What is the status of PROJ-101?");
+                        return Collections.singletonList(dummyItem);
                     }
                     return null;
                 }
@@ -185,6 +190,62 @@ public class InboundMailReceiverTest {
         receiver.processSingleMessage(msg, config);
 
         assertTrue("Offline notice should be triggered", offlineNoticeSent.get());
+        assertTrue("Processed message must be marked DELETED for expunging", msg.isSet(Flags.Flag.DELETED));
+    }
+
+    @Test
+    public void testAuthorizedSenderZeroHitNoticeAndPurge() throws Exception {
+        User activeUser = new User();
+        activeUser.setLoginName("alice");
+        activeUser.setEmail("alice@company.com");
+        activeUser.setLocked(false);
+
+        Space space = new Space();
+        space.setId(1L);
+        space.setPrefixCode("PROJ");
+        space.setName("Project Alpha");
+        activeUser.addSpaceWithRole(space, "ROLE_ADMIN");
+
+        Jtrac dummyJtrac = (Jtrac) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class<?>[]{Jtrac.class},
+                (proxy, method, args) -> {
+                    if ("findUserByEmail".equals(method.getName())) {
+                        return activeUser;
+                    }
+                    if ("getDefaultLocale".equals(method.getName())) {
+                        return "en";
+                    }
+                    if ("findItems".equals(method.getName())) {
+                        return Collections.emptyList();
+                    }
+                    return null;
+                }
+        );
+
+        final AtomicBoolean zeroHitNoticeSent = new AtomicBoolean(false);
+        MailSender mockMailSender = new MailSender(Collections.emptyMap(), null, "en") {
+            @Override
+            public void sendAiZeroHitNotice(String toEmail, String originalSubject, java.util.Locale locale, java.util.Set<Space> authorizedSpaces) {
+                assertEquals("alice@company.com", toEmail);
+                zeroHitNoticeSent.set(true);
+            }
+        };
+
+        InboundMailReceiver receiver = new InboundMailReceiver(dummyJtrac, mockMailSender);
+
+        MimeMessage msg = new MimeMessage((Session) null);
+        msg.setFrom(new InternetAddress("alice@company.com"));
+        msg.setSubject("Unknown issue query");
+        msg.setText("Are there any tickets about XYZ?");
+
+        Map<String, String> config = new HashMap<>();
+        config.put("llm.ollama.url", "http://127.0.0.1:59999");
+        config.put("llm.ollama.timeout", "1");
+
+        receiver.processSingleMessage(msg, config);
+
+        assertTrue("Zero-hit notice must be triggered when no tickets match", zeroHitNoticeSent.get());
         assertTrue("Processed message must be marked DELETED for expunging", msg.isSet(Flags.Flag.DELETED));
     }
 

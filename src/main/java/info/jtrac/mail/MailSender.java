@@ -56,6 +56,7 @@ import org.springframework.util.StringUtils;
 import info.jtrac.domain.AbstractItem;
 import info.jtrac.domain.Attachment;
 import info.jtrac.domain.History;
+import info.jtrac.util.SensitiveDataMasker;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
@@ -521,8 +522,8 @@ public class MailSender {
 		String genDateStr = sdfFull.format(generatedDate != null ? generatedDate : new Date());
 		int ticketCount = (referencedItems != null) ? referencedItems.size() : 0;
 
-		// Render AI content from Markdown to HTML
-		String renderedAi = ItemUtils.renderMarkdown(aiContent);
+		// Render AI content from Markdown to HTML (with confidential credentials masked)
+		String renderedAi = ItemUtils.renderMarkdown(SensitiveDataMasker.maskSecrets(aiContent));
 		if (spaces != null && !spaces.isEmpty() && renderedAi != null) {
 			renderedAi = ItemUtils.autolinkTickets(url, renderedAi, spaces);
 		}
@@ -798,7 +799,7 @@ public class MailSender {
 						if (ticketDigest != null && !ticketDigest.trim().isEmpty()) {
 							html.append("      <div class='sub-heading'>💡 AI 單張精煉分析摘要 / AI Ticket Digest</div>\n");
 							html.append("      <div class='markdown-body'>\n");
-							String renderedDigest = ItemUtils.renderMarkdown(ticketDigest);
+							String renderedDigest = ItemUtils.renderMarkdown(SensitiveDataMasker.maskSecrets(ticketDigest));
 							if (spaces != null && !spaces.isEmpty() && renderedDigest != null) {
 								renderedDigest = ItemUtils.autolinkTickets(url, renderedDigest, spaces);
 							}
@@ -807,26 +808,25 @@ public class MailSender {
 						}
 					}
 
-					// Raw description
+					// Raw description (with confidential credentials masked)
 					if (item.getDetail() != null && !item.getDetail().trim().isEmpty()) {
 						html.append("      <div class='sub-heading'>📝 工單原始描述 / Ticket Description</div>\n");
 						html.append("      <div class='markdown-body'>\n");
-						String renderedDetail = ItemUtils.renderMarkdown(item.getDetail());
+						String renderedDetail = ItemUtils.renderMarkdown(SensitiveDataMasker.maskSecrets(item.getDetail()));
 						if (spaces != null && !spaces.isEmpty() && renderedDetail != null) {
 							renderedDetail = ItemUtils.autolinkTickets(url, renderedDetail, spaces);
 						}
-						html.append(renderedDetail != null ? renderedDetail : escapeHtml(item.getDetail()));
+						html.append(renderedDetail != null ? renderedDetail : escapeHtml(SensitiveDataMasker.maskSecrets(item.getDetail())));
 						html.append("      </div>\n");
 					}
 
-					// History & Comments
+					// History & Comments (with confidential credentials masked)
 					if (item.getHistory() != null && !item.getHistory().isEmpty()) {
 						List<History> historyList = new ArrayList<>(item.getHistory());
 						Collections.sort(historyList, (h1, h2) -> {
 							if (h1.getTimeStamp() == null || h2.getTimeStamp() == null) return 0;
 							return h1.getTimeStamp().compareTo(h2.getTimeStamp());
 						});
-
 						html.append("      <div class='sub-heading'>💬 歷程與留言紀錄 / History & Comments (").append(historyList.size()).append(")</div>\n");
 						html.append("      <table>\n");
 						html.append("        <thead>\n");
@@ -843,7 +843,7 @@ public class MailSender {
 							html.append("            <td>").append(h.getTimeStamp() != null ? sdfFull.format(h.getTimeStamp()) : "").append("</td>\n");
 							html.append("            <td>").append(h.getLoggedBy() != null ? escapeHtml(h.getLoggedBy().getName()) : "").append("</td>\n");
 							html.append("            <td><span class='status-pill'>").append(escapeHtml(safeGetStatus(h))).append("</span></td>\n");
-							String renderedComment = h.getComment() != null ? ItemUtils.renderMarkdown(h.getComment()) : "";
+							String renderedComment = h.getComment() != null ? ItemUtils.renderMarkdown(SensitiveDataMasker.maskSecrets(h.getComment())) : "";
 							html.append("            <td class='markdown-body'>").append(renderedComment != null ? renderedComment : "").append("</td>\n");
 							html.append("          </tr>\n");
 						}
@@ -1103,6 +1103,78 @@ public class MailSender {
 			sendInNewThread(message);
 		} catch (Exception e) {
 			logger.error("Failed to prepare and send AI offline notice e-mail", e);
+		}
+	}
+
+	public void sendAiZeroHitNotice(String toEmail, String originalSubject, Locale locale, Set<info.jtrac.domain.Space> authorizedSpaces) {
+		if (sender == null) {
+			logger.debug("mail sender is null, not sending AI zero-hit notice");
+			return;
+		}
+		if (toEmail == null || toEmail.trim().isEmpty() || "no".equalsIgnoreCase(toEmail.trim())) {
+			logger.warn("Invalid recipient email for AI zero-hit notice: " + toEmail);
+			return;
+		}
+		if (locale == null) {
+			locale = defaultLocale;
+		}
+
+		logger.debug("Preparing AI zero-hit notice email to " + toEmail);
+		try {
+			MimeMessage message = sender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+			helper.setTo(toEmail);
+			helper.setFrom(from);
+			helper.setSentDate(new Date());
+
+			String subject = messageSource.getMessage("mail.ai_query.zero_hit_subject", null,
+					"[JTrac AI] No Matching Tickets Found", locale);
+			helper.setSubject(subject);
+
+			String noticeBody = messageSource.getMessage("mail.ai_query.zero_hit_body", null,
+					"In your authorized project spaces, no relevant historical tickets or attachment records matched your inquiry.", locale);
+			String spacesHeading = messageSource.getMessage("mail.ai_query.zero_hit_spaces", null,
+					"Your currently authorized project spaces:", locale);
+			String noticeTip = messageSource.getMessage("mail.ai_query.zero_hit_tip", null,
+					"In accordance with our strict data grounding policy, JTrac AI Query Copilot does not speculate without internal issue evidence. We suggest refining your search keywords or contacting your space administrator.", locale);
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("<div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #24292e;'>");
+			sb.append("<div style='background-color: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 8px; padding: 24px;'>");
+			sb.append("<h3 style='margin-top: 0; color: #24292e;'>\uD83D\uDD0D ").append(escapeHtml(subject)).append("</h3>");
+			sb.append("<p style='font-size: 14px; line-height: 1.6; color: #444;'>").append(escapeHtml(noticeBody)).append("</p>");
+
+			if (authorizedSpaces != null && !authorizedSpaces.isEmpty()) {
+				sb.append("<div style='margin: 18px 0; padding: 14px; background-color: #ffffff; border: 1px solid #e1e4e8; border-radius: 6px;'>");
+				sb.append("<strong style='font-size: 13px; color: #0366d6;'>").append(escapeHtml(spacesHeading)).append("</strong>");
+				sb.append("<ul style='margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: #555;'>");
+				for (info.jtrac.domain.Space sp : authorizedSpaces) {
+					String spName = sp.getName() != null ? sp.getName() : sp.getPrefixCode();
+					sb.append("<li>").append(escapeHtml(spName));
+					if (sp.getPrefixCode() != null && !sp.getPrefixCode().equalsIgnoreCase(spName)) {
+						sb.append(" (").append(escapeHtml(sp.getPrefixCode())).append(")");
+					}
+					sb.append("</li>");
+				}
+				sb.append("</ul>");
+				sb.append("</div>");
+			}
+
+			sb.append("<div style='background-color: #e7f3fe; border-left: 4px solid #0366d6; padding: 12px 16px; border-radius: 4px; margin-top: 16px;'>");
+			sb.append("<p style='margin: 0; font-size: 13px; color: #0c5460; line-height: 1.5;'>\uD83D\uDCA1 ").append(escapeHtml(noticeTip)).append("</p>");
+			sb.append("</div>");
+
+			if (originalSubject != null && !originalSubject.trim().isEmpty()) {
+				sb.append("<hr style='border: 0; border-top: 1px solid #e1e4e8; margin: 20px 0 10px 0;'>");
+				sb.append("<p style='font-size: 12px; color: #6c757d; margin-bottom: 0;'>Original Subject: ").append(escapeHtml(originalSubject.trim())).append("</p>");
+			}
+			sb.append("</div>");
+			sb.append("</div>");
+
+			helper.setText(addHeaderAndFooter(new StringBuffer(sb.toString())), true);
+			sendInNewThread(message);
+		} catch (Exception e) {
+			logger.error("Failed to prepare and send AI zero-hit notice e-mail", e);
 		}
 	}
 

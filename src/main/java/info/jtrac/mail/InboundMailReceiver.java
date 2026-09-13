@@ -252,6 +252,14 @@ public class InboundMailReceiver {
         List<Item> contextItems = retrieveAuthorizedTickets(user, subject, body, keywords, maxTickets);
         contextItems = MailSender.sortItemsBySpaceAndIdDesc(contextItems);
 
+        // Guardrail: If no matching tickets found in authorized spaces, send zero-hit notice and do NOT hallucinate
+        if (contextItems == null || contextItems.isEmpty()) {
+            logger.info("No matching tickets found for query from {} in authorized spaces. Sending zero-hit notice.", senderEmail);
+            mailSender.sendAiZeroHitNotice(senderEmail, subject, userLocale, user.getSpaces());
+            msg.setFlag(Flags.Flag.DELETED, true);
+            return;
+        }
+
         // 4. Phase 3: Map Phase - Per-ticket deep ingestion and intermediate staging
         File stagingFile = null;
         String stagedDigest = null;
