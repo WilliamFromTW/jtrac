@@ -112,6 +112,9 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心现代化架构的基础上，引进了�
 3. **数据库驱动显式注册**：强化特定轻量环境下的数据库连通稳定性。
 4. **附件 UTF-8 编码自动检测**：注入 Charset Header，杜绝中文乱码。
 5. **Context-Relative Logo 路径解析**：修复反向代理环境下的 Logo 路径显示。
+6. **Docker 构建脚本防呆与 Git 同步指引 (Docker Build Tips & Sync Guidance)**：
+   - 于 `docker/build.bat` 与 `docker/build.sh` 终端加入启动提示，提醒编译前遇到 Tag 冲突或文件变动时之一键同步命令（`git fetch --tags -f && git reset --hard origin/master`）。
+   - 于 `docker/` 提供完整 8 语系构建说明文件，追加常见问题与 Tag 冲突排除指引。
 
 ---
 

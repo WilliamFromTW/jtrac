@@ -120,6 +120,9 @@ Building upon the core modernization of 2.0.0, JTrac 2.3.3-2.1.0-beta introduces
    - Detects text attachment encoding and injects charset headers to prevent garbled text.
 5. **Context-Relative Logo Resolution**:
    - Resolves system header logo paths correctly behind reverse proxies.
+6. **Docker Build Script Guidance & Git Tag Conflict Prevention**:
+   - Added startup troubleshooting tips to `docker/build.bat` and `docker/build.sh` with one-click sync instructions (`git fetch --tags -f && git reset --hard origin/master`) for build machines encountering tag clobbering or local build diffs.
+   - Expanded `docker/` documentation across all 8 supported languages with troubleshooting guides for build environment synchronization.
 
 ---
 

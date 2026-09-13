@@ -1,6 +1,6 @@
 # JTrac Docker 容器化建置與部署 (Jetty 12.x + Eclipse Temurin 17+)
 
-[English](README.md) | [繁體中文](README_zh-TW.md)
+[English](README.md) | [繁體中文](README_zh-TW.md) | [簡體中文](README_zh-CN.md) | [日本語](README_ja.md) | [Tiếng Việt](README_vi.md) | [Deutsch](README_de.md) | [Español](README_es.md) | [Français](README_fr.md)
 
 本目錄提供 JTrac 現代化版本之原生 Docker 多階段建置與容器化執行環境。
 
@@ -61,3 +61,27 @@ docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac jtrac:latest
 ```bash
 docker run -d -p 8888:8080 -v jtrac_data:/jtrac-data --name jtrac inmethod/jtrac:latest
 ```
+
+---
+
+## 常見問題：編譯環境程式碼同步與 Tag 衝突排除 (Troubleshooting)
+
+若您在專屬的 Docker 編譯機器或測試伺服器上執行 `git pull` 遇到失敗，常見原因與排除指令如下：
+
+1. **Tag 遭到遠端覆蓋導致報錯 (`would clobber existing tag`)**：
+   當版本 Tag（如 `2.3.3-2.1.0-beta`）在遠端重新指定到新 Commit 時，Git 基於保護機制會拒絕自動覆蓋本地舊 Tag。請加上 `-f` 強制拉取：
+   ```bash
+   git pull --tags -f
+   ```
+
+2. **編譯機器快速重設對齊遠端（拋棄本地暫存與衝突，推薦）**：
+   編譯機若產生了未提交的暫存修改或換行符號差異，最乾淨且 100% 成功的一鍵同步方式為：
+   ```bash
+   git fetch --tags -f && git reset --hard origin/master
+   ```
+
+3. **設定一鍵同步 Git 捷徑 (Git Alias)**：
+   在該機器上執行一次設定，日後只要輸入 `git sync` 即可自動排除一切 Tag 與暫存衝突完成同步：
+   ```bash
+   git config --global alias.sync "!git fetch --tags -f && git reset --hard origin/master"
+   ```

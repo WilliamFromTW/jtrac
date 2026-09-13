@@ -101,6 +101,9 @@ Kế thừa kiến trúc hiện đại từ phiên bản 2.0.0, JTrac 2.3.3-2.1.
 2. Nâng cấp nút bật/tắt Boolean trong cài đặt thành `IndicatingDropDownChoice`.
 3. Đăng ký rõ ràng Driver JDBC cho các kết nối cơ sở dữ liệu.
 4. Tự động nhận diện UTF-8 cho tệp đính kèm văn bản và xử lý đường dẫn Logo tương đối.
+5. **Hướng dẫn tập lệnh Docker Build & Phòng chống xung đột thẻ Git**:
+   - Thêm thông báo hướng dẫn khi khởi chạy trong `docker/build.bat` và `docker/build.sh` với lệnh đồng bộ nhanh (`git fetch --tags -f && git reset --hard origin/master`) khi gặp lỗi ghi đè thẻ Tag hoặc sai khác mã nguồn.
+   - Hoàn thiện tài liệu `docker/` chuẩn 8 ngôn ngữ kèm mục xử lý sự cố đồng bộ.
 
 ---
 

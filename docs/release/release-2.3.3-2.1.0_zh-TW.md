@@ -120,6 +120,9 @@ JTrac 2.3.3-2.1.0-beta 在 2.0.0 核心現代化架構的基礎上，引進了�
    - 針對文字型附件自動判斷 UTF-8 編碼並注入 Charset Header，避免瀏覽器預覽產生亂碼。
 5. **Context-Relative Logo 路徑解析**：
    - 修復系統 Header Logo 在反向代理環境下的相對路徑解析。
+6. **Docker 建置腳本防呆與 Git 同步指引 (Docker Build Tips & Sync Guidance)**：
+   - 於 `docker/build.bat` 與 `docker/build.sh` 終端機加入啟動提示，提醒編譯前遇 Tag 衝突或檔案異動時之一鍵同步指令（`git fetch --tags -f && git reset --hard origin/master`）。
+   - 於 `docker/` 提供完整 8 語系建置說明文件，追加常見問題與 Tag 衝突排除指引。
 
 ---
 

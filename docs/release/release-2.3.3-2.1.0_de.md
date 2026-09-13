@@ -100,6 +100,9 @@ Aufbauend auf der Architekturmodernisierung von Version 2.0.0 führt JTrac 2.3.3
 2. Modernisierung von Boolean-Schaltern auf `IndicatingDropDownChoice`.
 3. Explizite Registrierung von JDBC-Treibern für vereinfachte Datenbankumgebungen.
 4. Automatische UTF-8-Erkennung für Textanhänge und korrigierte Logo-Pfade.
+5. **Docker-Build-Skripte & Git-Tag-Konfliktbehebung**:
+   - Startmeldungen in `docker/build.bat` und `docker/build.sh` mit Schnell-Synchronisierungsanweisungen (`git fetch --tags -f && git reset --hard origin/master`) bei Tag-Überschreibungen oder lokalen Build-Artefakten hinzugefügt.
+   - Vollständige 8-sprachige `docker/`-Dokumentation mit Anleitungen zur Fehlerbehebung bei der Quellcodesynchronisierung bereitgestellt.
 
 ---
 
